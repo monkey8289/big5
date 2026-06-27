@@ -151,7 +151,7 @@
   <section id="home" class="card">
     <div class="center">
       <h1>Big&nbsp;5 성격 분석</h1>
-      <p class="muted" style="margin-top:8px;">프로필을 만들고 검사하면 결과가 자동 저장됩니다.<br>추이 · 백분위 · 궁합/팀 · 직무추천 · 신뢰도 · 링크공유까지.</p>
+      <p class="muted" style="margin-top:8px;">프로필을 만들고 검사하면 결과가 자동 저장됩니다.<br>매 검사마다 문항이 랜덤 · 추이 · 궁합/팀 · 직무추천 · 링크공유까지.</p>
     </div>
     <div class="facet-list">
       <div class="facet"><span class="dot" style="background:var(--E)"></span><b>외향성</b></div>
@@ -175,7 +175,7 @@
       <button class="btn btn-ghost" onclick="openData()">데이터·공유</button>
     </div>
     <div class="note blue">프로필과 기록은 <b>이 브라우저에만</b> 저장됩니다. 친구와 비교하려면 <b>데이터·공유 → 링크 공유</b>로 결과를 보내거나 받으세요.</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v11 · 2026-06-27 22:40</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v12 · 2026-06-27 23:10</div>
   </section>
 
   <!-- QUIZ -->
@@ -302,39 +302,96 @@
 </div>
 
 <script>
-/* ===================== 데이터 ===================== */
-var QUESTIONS=[
+/* ===================== 문항 은행 (요인당 12 = normal 7 + reverse 5, 총 60) ===================== */
+var QUESTION_BANK=[
+ /* E 외향성 */
  {t:"처음 만난 사람과도 쉽게 대화를 시작한다.",f:"E",rev:false},
- {t:"다른 사람의 감정 변화를 잘 알아차리고 공감한다.",f:"A",rev:false},
- {t:"해야 할 일을 미루지 않고 제때 끝낸다.",f:"C",rev:false},
- {t:"사소한 일로 오래 불안해하지 않는다.",f:"S",rev:false},
- {t:"새로운 아이디어나 낯선 경험을 즐긴다.",f:"O",rev:false},
  {t:"여러 사람이 모인 활기찬 자리에서 에너지를 얻는다.",f:"E",rev:false},
- {t:"도움이 필요한 사람을 보면 먼저 손을 내민다.",f:"A",rev:false},
- {t:"계획을 세우고 그에 맞춰 꾸준히 실행한다.",f:"C",rev:false},
- {t:"스트레스 상황에서도 비교적 침착함을 유지한다.",f:"S",rev:false},
- {t:"예술·음악·문학 등에서 깊은 감흥을 자주 느낀다.",f:"O",rev:false},
- {t:"혼자 조용히 있는 시간이 모임보다 더 편하다.",f:"E",rev:true},
- {t:"내 이익을 위해서라면 타인의 사정은 뒷전이 된다.",f:"A",rev:true},
- {t:"물건이나 일정을 자주 잊어버리고 주변이 어수선하다.",f:"C",rev:true},
- {t:"작은 비판에도 마음이 크게 흔들린다.",f:"S",rev:true},
- {t:"익숙하고 검증된 방식을 새로운 시도보다 선호한다.",f:"O",rev:true},
  {t:"대화에서 주도적으로 이야기를 이끄는 편이다.",f:"E",rev:false},
- {t:"의견이 충돌할 때 상대를 배려해 한발 양보한다.",f:"A",rev:false},
- {t:"맡은 일은 끝까지 책임지고 마무리한다.",f:"C",rev:false},
- {t:"걱정거리가 있어도 비교적 금방 마음을 추스른다.",f:"S",rev:false},
- {t:"추상적이거나 철학적인 주제에 대해 생각하길 좋아한다.",f:"O",rev:false},
- {t:"낯선 환경에서는 말수가 줄고 위축된다.",f:"E",rev:true},
- {t:"타인의 실수에 너그럽기보다 비판적으로 보게 된다.",f:"A",rev:true},
- {t:"충동적으로 일을 벌이고 마무리는 흐지부지될 때가 많다.",f:"C",rev:true},
- {t:"기분의 기복이 심한 편이다.",f:"S",rev:true},
- {t:"변화보다 안정되고 반복되는 일상이 더 편하다.",f:"O",rev:true},
  {t:"새로운 사람들을 만나는 일이 즐겁고 설렌다.",f:"E",rev:false},
+ {t:"모임이나 행사에 적극적으로 참여하는 편이다.",f:"E",rev:false},
+ {t:"주변 사람들에게 먼저 말을 거는 편이다.",f:"E",rev:false},
+ {t:"활동적이고 바쁘게 지내는 것을 좋아한다.",f:"E",rev:false},
+ {t:"혼자 조용히 있는 시간이 모임보다 더 편하다.",f:"E",rev:true},
+ {t:"낯선 환경에서는 말수가 줄고 위축된다.",f:"E",rev:true},
+ {t:"여러 사람 앞에서 나서는 것이 부담스럽다.",f:"E",rev:true},
+ {t:"주말에는 외출보다 집에서 쉬는 것이 더 좋다.",f:"E",rev:true},
+ {t:"처음 보는 사람과 있으면 어색해서 말이 잘 안 나온다.",f:"E",rev:true},
+ /* A 친화성 */
+ {t:"다른 사람의 감정 변화를 잘 알아차리고 공감한다.",f:"A",rev:false},
+ {t:"도움이 필요한 사람을 보면 먼저 손을 내민다.",f:"A",rev:false},
+ {t:"의견이 충돌할 때 상대를 배려해 한발 양보한다.",f:"A",rev:false},
  {t:"사람들은 대체로 믿을 만하다고 생각한다.",f:"A",rev:false},
+ {t:"상대의 입장에서 한 번 더 생각해보려 한다.",f:"A",rev:false},
+ {t:"주변 사람들의 부탁을 잘 들어주는 편이다.",f:"A",rev:false},
+ {t:"갈등이 생기면 부드럽게 풀어가려 노력한다.",f:"A",rev:false},
+ {t:"내 이익을 위해서라면 타인의 사정은 뒷전이 된다.",f:"A",rev:true},
+ {t:"타인의 실수에 너그럽기보다 비판적으로 보게 된다.",f:"A",rev:true},
+ {t:"다른 사람의 부탁을 거절하는 데 거리낌이 없다.",f:"A",rev:true},
+ {t:"사이좋게 지내는 것보다 경쟁에서 이기는 것이 중요하다.",f:"A",rev:true},
+ {t:"사람들의 속마음을 일단 의심부터 하는 편이다.",f:"A",rev:true},
+ /* C 성실성 */
+ {t:"해야 할 일을 미루지 않고 제때 끝낸다.",f:"C",rev:false},
+ {t:"계획을 세우고 그에 맞춰 꾸준히 실행한다.",f:"C",rev:false},
+ {t:"맡은 일은 끝까지 책임지고 마무리한다.",f:"C",rev:false},
  {t:"세부 사항까지 꼼꼼하게 점검한다.",f:"C",rev:false},
+ {t:"약속과 마감 시간을 잘 지킨다.",f:"C",rev:false},
+ {t:"주변 환경과 물건을 정돈된 상태로 유지한다.",f:"C",rev:false},
+ {t:"목표를 정하면 끈기 있게 노력한다.",f:"C",rev:false},
+ {t:"물건이나 일정을 자주 잊어버리고 주변이 어수선하다.",f:"C",rev:true},
+ {t:"충동적으로 일을 벌이고 마무리는 흐지부지될 때가 많다.",f:"C",rev:true},
+ {t:"계획을 세우기보다 그때그때 내키는 대로 행동한다.",f:"C",rev:true},
+ {t:"해야 할 일을 자주 마지막 순간까지 미룬다.",f:"C",rev:true},
+ {t:"꼼꼼함보다는 대충 빨리 끝내는 편을 택한다.",f:"C",rev:true},
+ /* S 정서안정성 */
+ {t:"사소한 일로 오래 불안해하지 않는다.",f:"S",rev:false},
+ {t:"스트레스 상황에서도 비교적 침착함을 유지한다.",f:"S",rev:false},
+ {t:"걱정거리가 있어도 비교적 금방 마음을 추스른다.",f:"S",rev:false},
+ {t:"예상치 못한 문제에도 당황하지 않고 대처한다.",f:"S",rev:false},
+ {t:"감정의 기복 없이 안정적인 편이다.",f:"S",rev:false},
+ {t:"비판을 받아도 크게 흔들리지 않는다.",f:"S",rev:false},
+ {t:"어려운 상황에서도 평정심을 잘 유지한다.",f:"S",rev:false},
+ {t:"작은 비판에도 마음이 크게 흔들린다.",f:"S",rev:true},
+ {t:"기분의 기복이 심한 편이다.",f:"S",rev:true},
  {t:"예상치 못한 문제가 생기면 쉽게 당황하고 초조해진다.",f:"S",rev:true},
- {t:"호기심이 많아 다양한 분야를 두루 탐구한다.",f:"O",rev:false}
+ {t:"별일 아닌데도 자주 걱정과 불안에 휩싸인다.",f:"S",rev:true},
+ {t:"긴장하면 실수를 하거나 머릿속이 하얘진다.",f:"S",rev:true},
+ /* O 개방성 */
+ {t:"새로운 아이디어나 낯선 경험을 즐긴다.",f:"O",rev:false},
+ {t:"예술·음악·문학 등에서 깊은 감흥을 자주 느낀다.",f:"O",rev:false},
+ {t:"추상적이거나 철학적인 주제에 대해 생각하길 좋아한다.",f:"O",rev:false},
+ {t:"호기심이 많아 다양한 분야를 두루 탐구한다.",f:"O",rev:false},
+ {t:"상상력이 풍부하고 공상을 자주 한다.",f:"O",rev:false},
+ {t:"익숙하지 않은 방식도 기꺼이 시도해본다.",f:"O",rev:false},
+ {t:"다양한 관점과 가치관에 열려 있다.",f:"O",rev:false},
+ {t:"익숙하고 검증된 방식을 새로운 시도보다 선호한다.",f:"O",rev:true},
+ {t:"변화보다 안정되고 반복되는 일상이 더 편하다.",f:"O",rev:true},
+ {t:"추상적인 이론보다 실용적이고 구체적인 것이 좋다.",f:"O",rev:true},
+ {t:"예술이나 공상보다는 현실적인 일에 관심이 더 간다.",f:"O",rev:true},
+ {t:"낯선 곳을 탐험하기보다 익숙한 곳이 편하다.",f:"O",rev:true}
 ];
+/* 세션 문항(매 검사마다 buildSession으로 채워짐) */
+var QUESTIONS=[];
+function shuffle(arr){ for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp; } return arr; }
+/* 요인당 12문항 중 6문항 무작위 추출(reverse 2 보장, normal 4) + 전체 순서 셔플 → 매번 다른 문항/순서 */
+function buildSession(){
+  var picked=[];
+  ORDER.forEach(function(fk){
+    var pool=QUESTION_BANK.filter(function(q){ return q.f===fk; });
+    var norm=shuffle(pool.filter(function(q){ return !q.rev; }));
+    var rev=shuffle(pool.filter(function(q){ return q.rev; }));
+    var sel=[];
+    var rc=Math.min(2, rev.length);
+    for(var i=0;i<rc;i++){ sel.push(rev[i]); }
+    var ni=0;
+    while(sel.length<6 && ni<norm.length){ sel.push(norm[ni]); ni++; }
+    var ri=rc;
+    while(sel.length<6 && ri<rev.length){ sel.push(rev[ri]); ri++; }
+    picked=picked.concat(sel.slice(0,6));
+  });
+  return shuffle(picked);
+}
+
 var FACTORS=[{k:"E",name:"외향성",hex:"#d9774a"},{k:"A",name:"친화성",hex:"#4a9d8e"},{k:"C",name:"성실성",hex:"#4a6fa5"},{k:"S",name:"정서안정성",hex:"#8a6cc0"},{k:"O",name:"개방성",hex:"#c0894a"}];
 var FNAME={E:"외향성",A:"친화성",C:"성실성",S:"정서안정성",O:"개방성"};
 var ORDER=["E","A","C","S","O"];
@@ -465,11 +522,12 @@ function beginTest(){
     db.profiles.push(p); db.curId=p.id; saveDB(db);
     try{ if($("newName")) $("newName").value=""; renderHome(); }catch(e){}
   }
+  QUESTIONS=buildSession();
   answers=new Array(QUESTIONS.length).fill(null); idx=0; renderQ(); show("quiz");
 }
 
 /* ===================== 퀴즈 ===================== */
-var answers=new Array(QUESTIONS.length).fill(null), idx=0;
+var answers=[], idx=0;
 function renderQ(){
   var q=QUESTIONS[idx];
   $("qnum").textContent=(idx+1)+" / "+QUESTIONS.length;
@@ -485,11 +543,11 @@ function pick(v){
 }
 function prevQ(){ if(idx>0){ idx--; renderQ(); } }
 
-/* ===================== 채점/분석 ===================== */
+/* ===================== 채점/분석 (세션 30문항 기준: 요인당 6 → 0~100%) ===================== */
 function computeScores(ans){
-  var a=ans||answers, raw={E:0,A:0,C:0,S:0,O:0};
-  for(var i=0;i<QUESTIONS.length;i++){ var v=a[i]; if(v==null)v=3; var sc=QUESTIONS[i].rev?(6-v):v; raw[QUESTIONS[i].f]+=sc; }
-  var pct={}; for(var k in raw){ pct[k]=Math.round((raw[k]-6)/24*100); } return pct;
+  var a=ans||answers, raw={E:0,A:0,C:0,S:0,O:0}, cnt={E:0,A:0,C:0,S:0,O:0};
+  for(var i=0;i<QUESTIONS.length;i++){ var v=a[i]; if(v==null)v=3; var sc=QUESTIONS[i].rev?(6-v):v; raw[QUESTIONS[i].f]+=sc; cnt[QUESTIONS[i].f]++; }
+  var pct={}; for(var k in raw){ var c=cnt[k]||1; pct[k]=Math.round((raw[k]-c)/(c*4)*100); if(pct[k]<0)pct[k]=0; if(pct[k]>100)pct[k]=100; } return pct;
 }
 function tierOf(p){ return p>=67?"high":(p<=33?"low":"mid"); }
 function tierLabel(t){ return t==="high"?"상":(t==="low"?"하":"중"); }
@@ -1045,7 +1103,8 @@ function esc(s){ return (s==null?"":(""+s)).replace(/[&<>"]/g,function(c){return
 
 /* ===================== 검증 훅 ===================== */
 window.__big5={
-  questions:QUESTIONS, compute:computeScores, reliability:reliability, percentileTop:percentileTop,
+  bank:QUESTION_BANK, buildSession:buildSession, getQuestions:function(){return QUESTIONS;}, setQuestions:function(q){QUESTIONS=q;},
+  compute:computeScores, reliability:reliability, percentileTop:percentileTop,
   topProfile:topProfile, recommendRole:recommendRole, pairScoreDetail:pairScoreDetail,
   encodeRec:encodeRec, decodeRec:decodeRec, b64urlEncode:b64urlEncode, b64urlDecode:b64urlDecode,
   shareLink:shareLink, loadDB:loadDB, saveDB:saveDB, lsOK:lsOK,
