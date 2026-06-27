@@ -175,7 +175,7 @@
       <button class="btn btn-ghost" onclick="openData()">데이터·공유</button>
     </div>
     <div class="note blue">프로필과 기록은 <b>이 브라우저에만</b> 저장됩니다. 친구와 비교하려면 <b>데이터·공유 → 링크 공유</b>로 결과를 보내거나 받으세요.</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v10 · 2026-06-27 22:10</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v11 · 2026-06-27 22:40</div>
   </section>
 
   <!-- QUIZ -->
@@ -231,6 +231,8 @@
       <div id="histChart"></div>
     </div>
 
+    <div id="replyHint" style="display:none;"></div>
+
     <div class="btn-row no-print">
       <button class="btn btn-pri" onclick="shareKakao()">💬 결과 공유</button>
       <button class="btn btn-ghost" onclick="exportPNG()">🖼 PNG</button>
@@ -238,6 +240,7 @@
       <button class="btn btn-ghost" onclick="beginTest()">↻ 다시검사</button>
       <button class="btn btn-ghost" onclick="goHome()">🏠 홈</button>
     </div>
+    <p class="muted no-print" style="text-align:center;margin-top:8px;font-size:12px;line-height:1.6;">💡 받은 친구가 ‘내 결과 답장 보내기’를 누르면 <b>두 분 모두</b> 궁합을 볼 수 있어요.</p>
     <p class="foot-note">본 테스트는 자기이해를 돕기 위한 참고용이며 전문적 진단이 아닙니다.</p>
   </section>
 
@@ -258,6 +261,10 @@
       <button class="btn btn-pri" onclick="runCompat()">분석하기</button>
       <button class="btn btn-ghost" onclick="goHome()">🏠 홈</button>
     </div>
+    <div class="btn-row">
+      <button class="btn btn-pri btn-block" onclick="replyMyResult()">💬 내 결과 답장 보내기</button>
+    </div>
+    <p class="muted" style="text-align:center;margin-top:8px;font-size:12px;line-height:1.6;">친구 결과를 링크로 받았다면, 위 버튼으로 <b>내 결과를 답장</b>해 보세요. 그래야 친구도 궁합을 볼 수 있어요.</p>
     <div id="compatResult" style="margin-top:18px;"></div>
   </section>
 
@@ -618,6 +625,15 @@ function renderResult(who, rec, profile){
   if(profile && profile.history && profile.history.length>=2){ $("histChart").innerHTML=buildLineChart(profile.history); hs.style.display="block"; }
   else { hs.style.display="none"; }
 
+  var rh=$("replyHint");
+  if(rh){
+    var fn=latestImportedFriend();
+    if(fn){
+      rh.innerHTML='<div class="note blue" style="margin-top:16px">💌 <b>'+esc(fn)+'</b>님이 결과를 보내줬어요. 아래 버튼으로 <b>내 결과를 답장</b>하면 '+esc(fn)+'님도 우리 궁합을 볼 수 있어요.</div>'
+      +'<div class="btn-row no-print"><button class="btn btn-pri btn-block" onclick="replyMyResult()">💬 '+esc(fn)+'님께 내 결과 답장 보내기</button></div>';
+      rh.style.display="block";
+    } else { rh.style.display="none"; rh.innerHTML=""; }
+  }
   window._lastPct=pct; window._lastProfile=prof; window._lastWho=who;
 }
 
@@ -854,6 +870,41 @@ function shareLink(){
   var data=shareData(); if(!data){ return null; }
   return location.origin+location.pathname+'#import='+b64urlEncode(data);
 }
+/* 답장(왕복): 반드시 '본인(수신자) 자신' 프로필 = imported 아닌, 결과 있는 프로필 */
+function myProfile(){
+  var db=loadDB();
+  var mine=db.profiles.filter(function(p){ return !p.imported && p.history && p.history.length; });
+  if(!mine.length){ return null; }
+  var cur=currentProfile();
+  if(cur && !cur.imported && cur.history && cur.history.length){ return cur; }
+  return mine[mine.length-1];
+}
+function shareDataFor(p){
+  if(!p||!p.history||!p.history.length){ return null; }
+  var rec=p.history[p.history.length-1];
+  return {v:1,t:"big5",name:p.name,date:rec.date,pct:rec.pct,rel:rec.rel||null};
+}
+function latestImportedFriend(){
+  var db=loadDB();
+  var fr=db.profiles.filter(function(p){ return p.imported && p.history && p.history.length; });
+  return fr.length?fr[fr.length-1].name:null;
+}
+function replyMyResult(){
+  var p=myProfile();
+  if(!p){
+    if(confirm("답장하려면 먼저 '내 검사'가 필요해요. 지금 검사를 시작할까요?")){ beginTest(); }
+    return;
+  }
+  var data=shareDataFor(p);
+  if(!data){ alert("내 결과가 없습니다. 먼저 검사를 완료하세요."); return; }
+  var link=location.origin+location.pathname+'#import='+b64urlEncode(data);
+  var nm=p.name;
+  if(navigator.share){
+    navigator.share({title:"성격검사 결과 답장", text:nm+"님이 본인 결과로 답장했어요! 열어보면 두 분의 궁합을 볼 수 있어요.", url:link}).then(function(){}, function(){});
+  } else {
+    copyTextValue(link, "답장 링크가 복사됐어요. 상대에게 카톡으로 보내면 그쪽도 궁합을 볼 수 있어요.");
+  }
+}
 
 /* ===================== 데이터 내보내기/가져오기 ===================== */
 function buildCode(profile){
@@ -998,6 +1049,7 @@ window.__big5={
   topProfile:topProfile, recommendRole:recommendRole, pairScoreDetail:pairScoreDetail,
   encodeRec:encodeRec, decodeRec:decodeRec, b64urlEncode:b64urlEncode, b64urlDecode:b64urlDecode,
   shareLink:shareLink, loadDB:loadDB, saveDB:saveDB, lsOK:lsOK,
+  myProfile:myProfile, shareDataFor:shareDataFor, replyMyResult:replyMyResult, latestImportedFriend:latestImportedFriend,
   setAnswers:function(a){answers=a;}, getAnswers:function(){return answers;}, finish:finish
 };
 
