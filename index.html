@@ -175,7 +175,7 @@
       <button class="btn btn-ghost" onclick="openData()">데이터·공유</button>
     </div>
     <div class="note blue">프로필과 기록은 <b>이 브라우저에만</b> 저장됩니다. 친구와 비교하려면 <b>데이터·공유 → 링크 공유</b>로 결과를 보내거나 받으세요.</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v12 · 2026-06-27 23:10</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v13 · 2026-06-28 00:10</div>
   </section>
 
   <!-- QUIZ -->
@@ -492,7 +492,7 @@ function renderHome(){
   db.profiles.forEach(function(p){
     var on=(p.id===db.curId)?" on":"";
     var tag=p.imported?" ↧":"";
-    var n=p.history&&p.history.length?(" · "+p.history.length+"회"):"";
+    var n="";/* v13: 프로필 칩의 검사횟수 표시 제거(공유 시 오해 방지) */
     var c=document.createElement("span"); c.className="chip"+on;
     c.innerHTML='<span onclick="selectProfile(\''+p.id+'\')">'+esc(p.name)+tag+'<span class="muted" style="font-weight:600">'+n+'</span></span><span class="x" onclick="delProfile(\''+p.id+'\')">✕</span>';
     row.appendChild(c);
