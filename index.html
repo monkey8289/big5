@@ -237,7 +237,7 @@
       <button class="btn btn-ghost" onclick="openData()">데이터 관리</button>
     </div>
     <div class="note blue">친구와 <b>궁합</b>을 보려면 결과 화면의 <b>‘💬 내 결과 공유하기’</b>로 링크를 보내세요(받은 친구가 열면 자동으로 결과가 추가돼요). 그냥 <b>검사만 추천</b>하려면 아래 <b>‘🔗 검사 추천하기’</b>로 앱 링크만 보낼 수 있어요(내 결과는 포함되지 않아요).</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v26 · 2026-06-28 06:40</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v27 · 2026-06-28 07:20</div>
   </section>
 
   <!-- MODE -->
@@ -354,9 +354,11 @@
       <button class="btn btn-pri" onclick="authLogin()">로그인</button>
       <button class="btn btn-ghost" onclick="authSignup()">회원가입</button>
     </div>
+    <div class="btn-row"><button class="btn btn-ghost btn-block" onclick="authGoogle()"><b style="color:#4285F4;font-size:17px;">G</b>&nbsp;&nbsp;구글로 로그인</button></div>
     <div id="authMsg" class="muted" style="margin-top:8px;line-height:1.6;"></div>
-    <div class="btn-row"><button class="btn btn-ghost btn-block" onclick="goHome()">게스트로 계속 (로그인 없이)</button></div>
-    <p class="muted" style="margin-top:10px;font-size:11.5px;line-height:1.6;">※ 비밀번호는 Firebase 인증으로 안전하게 처리되며 앱은 비밀번호를 저장하지 않아요. 게스트로도 모든 기능을 쓸 수 있어요(데이터는 이 브라우저에만 저장).</p>
+    <div id="inappWarn" class="note" style="display:none;margin-top:10px;">⚠️ <b>카카오톡 등 인앱 브라우저</b>에서는 구글 정책상 <b>구글 로그인이 차단</b>돼요. <b>이메일/비밀번호</b>로 로그인하거나, 오른쪽 위 <b>⋮ → ‘다른 브라우저로 열기’</b>로 크롬에서 열어 주세요.</div>
+    <div id="authStats" class="muted" style="margin-top:14px;text-align:center;font-size:12px;"></div>
+    <p class="muted" style="margin-top:10px;font-size:11.5px;line-height:1.6;">※ 로그인하면 검사 결과가 <b>로그인 계정 클라우드(Firebase)</b>에 저장되어 어느 기기·브라우저에서나 볼 수 있어요. 비밀번호는 Firebase 인증으로 안전하게 처리되며 앱은 비밀번호를 저장하지 않아요.</p>
   </section>
 
   <!-- 받은 링크 붙여넣기 -->
@@ -617,7 +619,7 @@ function currentProfile(){ var db=loadDB(); return getProfile(db.curId); }
 function $(id){return document.getElementById(id);}
 var SCREENS=["home","mode","quiz","result","trend","compat","data","crossctx","pastelink","auth"];
 function show(s){ for(var i=0;i<SCREENS.length;i++){ var el=$(SCREENS[i]); if(el) el.style.display=(SCREENS[i]===s)?"block":"none"; } window.scrollTo(0,0); }
-function goHome(){ renderHome(); show("home"); try{ loadCounters(); }catch(e){} }
+function goHome(){ if(typeof fbReady!=='undefined' && fbReady && !cloudUser){ try{ show("auth"); if(typeof setInappWarn==='function') setInappWarn(); }catch(e){} return; } renderHome(); show("home"); try{ loadCounters(); }catch(e){} }
 function toast(msg){ try{ var t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){ t.className='toast on'; },20); setTimeout(function(){ t.className='toast'; setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },320); },3400); }catch(e){} }
 function clamp(x){ return x<0?0:(x>100?100:x); }
 
@@ -1142,11 +1144,12 @@ window.__hx={
 window.onerror=function(msg){ try{ if(window.console&&console.warn) console.warn('[hx] 처리된 오류:', msg); }catch(e){} return false; };
 function showStorageNotice(){ try{ var hm=$("home"); if(!hm||hm.querySelector('.ls-warn')) return; var d=document.createElement('div'); d.className='note ls-warn'; d.innerHTML='⚠️ 이 환경에서는 저장이 제한될 수 있어요. 검사·결과·궁합·공유는 동작하며, 결과는 <b>데이터·공유</b>의 코드/링크로 따로 보관하세요.'; hm.appendChild(d); }catch(e){} }
 function init(){
-  try{ handleAutoImport(); }catch(e){}
+  try{ handleAutoImport(); }catch(e){}            /* 친구 링크 데이터는 잡아두고 로그인 후 처리 */
   try{ renderHome(); }catch(e){ try{ var pr=$("profRow"); if(pr) pr.innerHTML='<span class="muted">아직 프로필이 없습니다.</span>'; }catch(_){ } }
-  try{ show("home"); }catch(e){ try{ var hm=$("home"); if(hm) hm.style.display="block"; }catch(_){ } }
+  /* v27: 로그인 게이트 — 인증 전엔 로그인 화면만 */
+  try{ show("auth"); }catch(e){ try{ var hm=$("auth"); if(hm) hm.style.display="block"; }catch(_){ } }
+  try{ if(typeof setInappWarn==='function') setInappWarn(); }catch(e){}
   if(!lsOK) showStorageNotice();
-  try{ afterImportFlow(); }catch(e){}
   try{ loadCounters(); }catch(e){}
   try{ if(typeof startFirebase==='function') startFirebase(); }catch(e){}
 }
@@ -1400,6 +1403,8 @@ function paintCounters(){
       +'<br><span class="stats-sub">간편 '+cntNum(CNTV.easy)+' · 균형 '+cntNum(CNTV.balanced)+' · 정밀 '+cntNum(CNTV.precise)+' · 같은 사람이 여러 번 하면 중복 집계</span>'; }
     var rs=document.getElementById('resultStats');
     if(rs){ rs.innerHTML='지금까지 누적 <b>'+cntNum(CNTV.total)+'</b>회 · 오늘 <b>'+cntNum(CNTV.today)+'</b>회 검사 완료'; }
+    var as=document.getElementById('authStats');
+    if(as){ as.innerHTML='📊 지금까지 <b>'+cntNum(CNTV.total)+'</b>회 검사 완료 · 오늘 <b>'+cntNum(CNTV.today)+'</b>회'; }
   }catch(e){}
 }
 function loadCounters(){
@@ -1441,15 +1446,19 @@ function startFirebase(){
         firebase.initializeApp(FB_CONFIG);
         fbAuth=firebase.auth(); fbDb=firebase.firestore(); fbReady=true;
         fbAuth.onAuthStateChanged(function(u){ cloudUser=u||null; onAuthChanged(u); });
+        try{ fbAuth.getRedirectResult().then(function(r){ /* 성공 시 onAuthStateChanged가 처리 */ }, function(e){ try{ authMsgSet(fbErrMsg(e)); }catch(_){ } }); }catch(e){}
         paintAuthBar();
       }catch(e){ try{ paintAuthBar(); }catch(_){ } }
     });
   }catch(e){ try{ paintAuthBar(); }catch(_){ } }
 }
 function onAuthChanged(u){
+  cloudUser=u||null;
   paintAuthBar();
-  if(u){ loadCloud(u); var a=document.getElementById('auth'); if(a && getComputedStyle(a).display!=='none'){ goHome(); } }
+  if(u){ loadCloud(u); }
+  else { try{ show('auth'); if(typeof setInappWarn==='function') setInappWarn(); }catch(e){} }
 }
+function enterHome(){ try{ renderHome(); show('home'); }catch(e){} try{ afterImportFlow(); }catch(e){} }
 function paintAuthBar(){
   try{
     var bar=document.getElementById('authBar'); if(!bar){ return; }
@@ -1468,7 +1477,7 @@ function mergeProfiles(localArr, cloudArr){
   var out=[]; for(var k in byId){ out.push(byId[k]); } return out;
 }
 function loadCloud(u){
-  if(!fbDb||!u){ return; }
+  if(!fbDb||!u){ enterHome(); return; }
   try{
     fbDb.collection('users').doc(u.uid).get().then(function(doc){
       var cloud=(doc && doc.exists)?doc.data():null;
@@ -1479,10 +1488,10 @@ function loadCloud(u){
       var hasCur=false; merged.forEach(function(p){ if(p.id===curId){ hasCur=true; } }); if(!hasCur && merged.length){ curId=merged[0].id; }
       saveDB({profiles:merged, curId:curId});
       pushCloud();
-      renderHome();
+      enterHome();
       toast('로그인됨 · 클라우드 데이터와 동기화했어요.');
-    }, function(){ });
-  }catch(e){}
+    }, function(){ enterHome(); });
+  }catch(e){ enterHome(); }
 }
 function pushCloud(){
   if(!fbDb || !cloudUser){ return; }
@@ -1491,14 +1500,21 @@ function pushCloud(){
     try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
   }, 700);
 }
-function openAuth(){ try{ document.getElementById('authMsg').textContent=''; }catch(e){} show('auth'); if(!fbReady){ try{ document.getElementById('authMsg').innerHTML='<span style="color:#c0564a">로그인 서버에 연결할 수 없어요(오프라인일 수 있어요). 게스트로 계속 사용할 수 있어요.</span>'; }catch(e){} } }
+function openAuth(){ try{ document.getElementById('authMsg').textContent=''; }catch(e){} show('auth'); try{ setInappWarn(); }catch(e){} if(!fbReady){ try{ document.getElementById('authMsg').innerHTML='<span style="color:#c0564a">로그인 서버에 연결할 수 없어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.</span>'; }catch(e){} } }
 function authMsgSet(t,ok){ try{ var m=document.getElementById('authMsg'); m.style.color=ok?'#2c7a62':'#c0564a'; m.textContent=t; }catch(e){} }
 function authVals(){ return {e:((document.getElementById('authEmail')||{}).value||'').trim(), p:(document.getElementById('authPw')||{}).value||''}; }
 function fbErrMsg(e){ var c=(e&&e.code)||''; if(c.indexOf('email-already-in-use')>=0){ return '이미 가입된 이메일이에요. 로그인해 주세요.'; } if(c.indexOf('invalid-email')>=0){ return '이메일 형식이 올바르지 않아요.'; } if(c.indexOf('weak-password')>=0){ return '비밀번호는 6자 이상이어야 해요.'; } if(c.indexOf('wrong-password')>=0||c.indexOf('invalid-credential')>=0){ return '이메일 또는 비밀번호가 맞지 않아요.'; } if(c.indexOf('user-not-found')>=0){ return '가입되지 않은 이메일이에요. 회원가입해 주세요.'; } if(c.indexOf('too-many-requests')>=0){ return '시도가 많아 잠시 후 다시 해주세요.'; } if(c.indexOf('network')>=0){ return '네트워크 연결을 확인해 주세요.'; } return '처리 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.'; }
 function authSignup(){ if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; } var v=authVals(); if(!v.e||!v.p){ authMsgSet('이메일과 비밀번호를 입력해 주세요.'); return; } authMsgSet('가입 중…',true); fbAuth.createUserWithEmailAndPassword(v.e,v.p).then(function(){ authMsgSet('가입 완료! 동기화할게요.',true); }, function(e){ authMsgSet(fbErrMsg(e)); }); }
 function authLogin(){ if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; } var v=authVals(); if(!v.e||!v.p){ authMsgSet('이메일과 비밀번호를 입력해 주세요.'); return; } authMsgSet('로그인 중…',true); fbAuth.signInWithEmailAndPassword(v.e,v.p).then(function(){ authMsgSet('로그인 성공!',true); }, function(e){ authMsgSet(fbErrMsg(e)); }); }
-function authLogout(){ try{ if(fbAuth){ fbAuth.signOut().then(function(){ cloudUser=null; toast('로그아웃했어요. (이 브라우저 데이터는 그대로 남아요.)'); paintAuthBar(); }); } }catch(e){} }
-window.__fb={ ready:function(){return fbReady;}, user:function(){return cloudUser;}, login:authLogin, signup:authSignup, logout:authLogout, loadCloud:loadCloud, pushCloud:pushCloud, mergeProfiles:mergeProfiles };
+function authLogout(){ try{ if(fbAuth){ fbAuth.signOut().then(function(){ cloudUser=null; try{ localStorage.removeItem(LS_KEY); }catch(e){} memDB={profiles:[],curId:null}; toast('로그아웃했어요.'); paintAuthBar(); show('auth'); setInappWarn(); }); } }catch(e){} }
+function authGoogle(){
+  if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; }
+  if(isInAppBrowser()){ authMsgSet('카카오톡 등 인앱 브라우저에서는 구글 로그인이 막혀 있어요. 이메일/비밀번호로 로그인하거나, 오른쪽 위 ⋮ → ‘다른 브라우저로 열기’를 이용해 주세요.'); return; }
+  try{ var provider=new firebase.auth.GoogleAuthProvider(); authMsgSet('구글 로그인 페이지로 이동 중…',true); fbAuth.signInWithRedirect(provider); }
+  catch(e){ authMsgSet('구글 로그인을 시작할 수 없어요. 이메일/비밀번호를 이용해 주세요.'); }
+}
+function setInappWarn(){ try{ var w=document.getElementById('inappWarn'); if(w){ w.style.display=(typeof isInAppBrowser==='function' && isInAppBrowser())?'block':'none'; } }catch(e){} }
+window.__fb={ ready:function(){return fbReady;}, user:function(){return cloudUser;}, login:authLogin, signup:authSignup, logout:authLogout, google:authGoogle, loadCloud:loadCloud, pushCloud:pushCloud, mergeProfiles:mergeProfiles };
 </script>
 </body>
 </html>
