@@ -441,7 +441,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v50 · 2026-06-28 17:45</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v51 · 2026-06-29 (hotfix)</div>
   </section>
 
   <!-- MODE -->
@@ -2686,7 +2686,7 @@ function renderCollection(){
     var typeMembers={};
     if(myType){ (typeMembers[myType]=typeMembers[myType]||[]).push({name:myName,avatar:d.avatar,isMe:true}); }
     for(var fu in accSet){ var r=frr[fu]; if(r&&r.agg){ var tnm=r.name||topProfile(r.agg).name; (typeMembers[tnm]=typeMembers[tnm]||[]).push({name:friendMainName(fu, r),avatar:r.avatar,isMe:false}); } }
-    window.__dexMembers=typeMembers;  /* v48: 셀 클릭 시 멤버 이름 표시용 */
+    window.__dexMembers=typeMembers;
     AVATARS.forEach(function(a){ if((typeMembers[mascotType[a.name]]||[]).length){ nUnlocked++; } });
     var H='<div class="muted" style="margin-bottom:10px;line-height:1.6">나와 친구들이 어떤 유형인지 보는 <b>내 주변 유형 지도</b>예요. 친구가 검사하면 실시간으로 채워져요.</div>';
     H+='<div class="center" style="margin-bottom:11px"><span class="dex-prog">7개 유형 중 <b>'+nUnlocked+'개</b> 만남</span></div>';
@@ -2694,4 +2694,117 @@ function renderCollection(){
     AVATARS.forEach(function(a){
       var typeName=mascotType[a.name]; var members=typeMembers[typeName]||[]; var unlocked=members.length>0;
       H+='<div class="dex-cell'+(unlocked?'':' locked')+'"'+(unlocked?(' style="cursor:pointer" onclick="dexShowMembers(\''+typeName+'\')"'):'')+'><span class="avatar" style="width:56px;height:56px;background:'+a.color+'1f">'+mascotArtSVG(a.id,56)+'</span><span class="avatar-nm">'+a.name+'</span><span class="dex-type">'+esc(typeName||'')+'</span>';
-      if(un
+      if(unlocked){
+        H+='<span class="dex-cnt">'+members.length+'명 ›</span><div class="dex-members">';
+        members.slice(0,4).forEach(function(mm){ H+='<span class="dex-mem">'+avatarSVG(mm.avatar,20)+(mm.isMe?'<span class="dex-me">나</span>':'')+'</span>'; });
+        H+='</div>';
+      } else { H+='<span class="dex-lock">🔒</span><span class="dex-cnt" style="color:#aeb6c4">아직 없음</span>'; }
+      H+='</div>';
+    });
+    H+='</div>';
+    H+='<div id="dexInfo" style="display:none"></div>';
+    var totalTests=0, preciseCnt=0, days={};
+    (d.profiles||[]).forEach(function(p){ if(!p.imported&&p.history){ p.history.forEach(function(rec){ totalTests++; if(rec.mode===3){ preciseCnt++; } if(rec.date){ days[(''+rec.date).slice(0,10)]=1; } }); } });
+    var nDays=0; for(var dd in days){ nDays++; }
+    var nFriends=0; var set=acceptedFriendSet(); for(var k in set){ nFriends++; }
+    var nTypes=0; for(var t in types){ nTypes++; }
+    var myP=(typeof currentMyProfile==='function')?currentMyProfile():null; var myRel=myP?aggReliability(myP).score:0;
+    var badges=[
+      {on:totalTests>=1,t:'🎯 첫 검사'},{on:totalTests>=3,t:'🔁 재검사 3회'},{on:totalTests>=5,t:'🏅 재검사 5회'},{on:totalTests>=10,t:'👑 재검사 10회'},
+      {on:preciseCnt>=1,t:'🔬 정밀검사 1회'},{on:preciseCnt>=3,t:'🔬 정밀검사 3회'},
+      {on:myRel>=50,t:'📊 신뢰도 50%'},{on:myRel>=70,t:'📈 신뢰도 70%'},{on:myRel>=90,t:'💎 신뢰도 90%'},
+      {on:nDays>=3,t:'📅 꾸준함(3일)'},
+      {on:nFriends>=1,t:'🤝 첫 친구'},{on:nFriends>=3,t:'👥 친구 3명'},
+      {on:nTypes>=3,t:'🌈 3유형 수집'},{on:nUnlocked>=7,t:'📖 도감 완성'}
+    ];
+    H+='<div class="section-title" style="margin-top:18px">배지</div><div class="pillrow">';
+    badges.forEach(function(b){ H+='<span class="pill'+(b.on?' g':'')+'" style="opacity:'+(b.on?1:0.38)+'">'+b.t+'</span>'; });
+    H+='</div>';
+    box.innerHTML=H;
+  }catch(e){}
+}
+function dexShowMembers(type){
+  try{
+    var box=document.getElementById('dexInfo'); if(!box){ return; }
+    var ms=(window.__dexMembers||{})[type]||[];
+    if(!ms.length){ box.style.display='none'; box.innerHTML=''; return; }
+    var H='<div class="dex-info-card"><div class="dex-info-h">'+esc(type)+' · '+ms.length+'명</div><div class="dex-info-list">';
+    ms.forEach(function(mm){ H+='<span class="dex-info-mem">'+avatarSVG(mm.avatar,22)+'<span>'+esc(mm.name)+(mm.isMe?' <b>(나)</b>':'')+'</span></span>'; });
+    H+='</div></div>';
+    box.innerHTML=H; box.style.display='block';
+    try{ box.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){}
+  }catch(e){}
+}
+function mergeProfiles(localArr, cloudArr){
+  var byId={};
+  (cloudArr||[]).forEach(function(p){ if(p&&p.id){ byId[p.id]=p; } });
+  (localArr||[]).forEach(function(p){ if(!p||!p.id){ return; } var ex=byId[p.id];
+    if(!ex){ byId[p.id]=p; } else { var lh=(p.history||[]).length, ch=(ex.history||[]).length; if(lh>ch){ byId[p.id]=p; } } });
+  var out=[]; for(var k in byId){ out.push(byId[k]); } return out;
+}
+function loadCloud(u){
+  if(!fbDb||!u){ enterHome(); return; }
+  try{
+    fbDb.collection('users').doc(u.uid).get().then(function(doc){
+      var cloud=(doc && doc.exists)?doc.data():null;
+      var local=loadDB();
+      var cloudProfiles=(cloud && cloud.profiles)?cloud.profiles:[];
+      var merged=mergeProfiles(local.profiles, cloudProfiles);
+      var curId=local.curId || (cloud && cloud.curId) || (merged.length?merged[0].id:null);
+      var hasCur=false; merged.forEach(function(p){ if(p.id===curId){ hasCur=true; } }); if(!hasCur && merged.length){ curId=merged[0].id; }
+      saveDB({profiles:merged, curId:curId,
+        handle:(cloud&&cloud.handle)||local.handle||null,
+        displayName:(cloud&&cloud.displayName)||local.displayName||null,
+        avatar:(cloud&&cloud.avatar)||local.avatar||null,
+        visibility:(cloud&&cloud.visibility)||local.visibility||'public',
+        friends:(cloud&&cloud.friends)||local.friends||[],
+        friendNicknames:(cloud&&cloud.friendNicknames)||local.friendNicknames||{}});
+      pushCloud();
+      enterHome();
+      try{ publishMyResult(); }catch(e){}
+      toast('로그인됨 · 클라우드 데이터와 동기화했어요.');
+    }, function(){ enterHome(); });
+  }catch(e){ enterHome(); }
+}
+function pushCloud(){
+  if(!fbDb || !cloudUser){ return; }
+  if(pushTimer){ clearTimeout(pushTimer); }
+  pushTimer=setTimeout(function(){
+    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, handle:db.handle||null, displayName:db.displayName||null, avatar:db.avatar||null, visibility:db.visibility||'public', friends:db.friends||[], friendNicknames:db.friendNicknames||{}, updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
+  }, 700);
+}
+function openAuth(){ try{ document.getElementById('authMsg').textContent=''; }catch(e){} show('auth'); try{ setInappWarn(); }catch(e){} if(!fbReady){ try{ document.getElementById('authMsg').innerHTML='<span style="color:#c0564a">로그인 서버에 연결할 수 없어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.</span>'; }catch(e){} } }
+function authMsgSet(t,ok){ try{ var m=document.getElementById('authMsg'); m.style.color=ok?'#2c7a62':'#c0564a'; m.textContent=t; }catch(e){} }
+function authVals(){ return {e:((document.getElementById('authEmail')||{}).value||'').trim(), p:(document.getElementById('authPw')||{}).value||''}; }
+function fbErrMsg(e){ var c=(e&&e.code)||''; if(c.indexOf('email-already-in-use')>=0){ return '이미 가입된 이메일이에요. 로그인해 주세요.'; } if(c.indexOf('invalid-email')>=0){ return '이메일 형식이 올바르지 않아요.'; } if(c.indexOf('weak-password')>=0){ return '비밀번호는 6자 이상이어야 해요.'; } if(c.indexOf('wrong-password')>=0||c.indexOf('invalid-credential')>=0){ return '이메일 또는 비밀번호가 맞지 않아요.'; } if(c.indexOf('user-not-found')>=0){ return '가입되지 않은 이메일이에요. 회원가입해 주세요.'; } if(c.indexOf('too-many-requests')>=0){ return '시도가 많아 잠시 후 다시 해주세요.'; } if(c.indexOf('network')>=0){ return '네트워크 연결을 확인해 주세요.'; } return '처리 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.'; }
+function authSignup(){ if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; } var v=authVals(); if(!v.e||!v.p){ authMsgSet('이메일과 비밀번호를 입력해 주세요.'); return; } authMsgSet('가입 중…',true); fbAuth.createUserWithEmailAndPassword(v.e,v.p).then(function(){ authMsgSet('가입 완료! 동기화할게요.',true); }, function(e){ authMsgSet(fbErrMsg(e)); }); }
+function authLogin(){ if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; } var v=authVals(); if(!v.e||!v.p){ authMsgSet('이메일과 비밀번호를 입력해 주세요.'); return; } authMsgSet('로그인 중…',true); fbAuth.signInWithEmailAndPassword(v.e,v.p).then(function(){ authMsgSet('로그인 성공!',true); }, function(e){ authMsgSet(fbErrMsg(e)); }); }
+function authLogout(){ try{ if(fbAuth){ fbAuth.signOut().then(function(){ cloudUser=null; try{ localStorage.removeItem(LS_KEY); }catch(e){} memDB={profiles:[],curId:null}; toast('로그아웃했어요.'); paintAuthBar(); show('auth'); setInappWarn(); }); } }catch(e){} }
+function authGoogle(){
+  if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; }
+  if(isInAppBrowser()){ authMsgSet('카카오톡 등 인앱 브라우저에서는 구글 로그인이 막혀 있어요. 이메일/비밀번호로 로그인하거나, 오른쪽 위 ⋮ → ‘다른 브라우저로 열기’를 이용해 주세요.'); return; }
+  try{
+    var provider=new firebase.auth.GoogleAuthProvider();
+    authMsgSet('구글 계정 선택 창을 여는 중…',true);
+    fbAuth.signInWithPopup(provider).then(function(){ /* onAuthStateChanged가 처리 */ }, function(e){
+      var c=(e&&e.code)||'';
+      if(c.indexOf('popup-closed')>=0||c.indexOf('cancelled-popup')>=0){ authMsgSet('로그인 창이 닫혔어요. 다시 시도해 주세요.'); }
+      else if(c.indexOf('popup-blocked')>=0){ authMsgSet('팝업이 차단됐어요. 브라우저 팝업을 허용한 뒤 다시 시도해 주세요.'); }
+      else { authMsgSet(fbErrMsg(e)); }
+    });
+  }catch(e){ authMsgSet('구글 로그인 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.'); }
+}
+function setInappWarn(){
+  try{
+    var w=document.getElementById('inappWarn'); if(!w){ return; }
+    if(typeof isInAppBrowser==='function' && isInAppBrowser()){
+      w.className='';
+      w.innerHTML='<div class="btn-row" style="margin:4px 0 0;"><button class="btn btn-ghost btn-sm btn-block" onclick="tryOpenExternal()">🌐 기본 브라우저에서 열기</button></div>';
+      w.style.display='block';
+    } else { w.style.display='none'; w.innerHTML=''; }
+  }catch(e){}
+}
+window.__fb={ ready:function(){return fbReady;}, user:function(){return cloudUser;}, login:authLogin, signup:authSignup, logout:authLogout, google:authGoogle, loadCloud:loadCloud, pushCloud:pushCloud, mergeProfiles:mergeProfiles };
+</script>
+</body>
+</html>
