@@ -209,6 +209,22 @@
   .rankrow .rkname b{font-weight:700;}
   .rankrow .rkscore{font-size:17px;font-weight:800;display:flex;align-items:center;gap:3px;white-space:nowrap;}
   .rankrow .rkgo{font-size:18px;color:#b7c0d4;font-weight:700;}
+  /* v30: 아바타 · 의무 프로필 · 친구요청 알림 */
+  .avatar{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;flex:none;vertical-align:middle;}
+  .avatar svg{display:block;}
+  .avatar-empty{background:#e7ebf3;}
+  .avatar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:4px;}
+  .avatar-cell{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 4px;border:2px solid #e8ebf3;border-radius:14px;background:#fff;cursor:pointer;transition:.15s;font-family:inherit;}
+  .avatar-cell:hover{border-color:#c9d3ec;}
+  .avatar-cell.on{border-color:#5a7bc0;background:#f3f6fd;box-shadow:0 2px 8px rgba(90,123,192,.18);}
+  .avatar-nm{font-size:11.5px;font-weight:700;color:#4a5268;}
+  .bell{position:relative;border:none;background:#f0f3f9;width:38px;height:38px;border-radius:11px;font-size:17px;cursor:pointer;flex:none;}
+  .bell .badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;background:#e0564a;color:#fff;border-radius:9px;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;}
+  .reqcard{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e9ecf4;border-radius:13px;padding:10px 12px;margin-bottom:8px;}
+  .reqcard .rq-info{flex:1;min-width:0;font-size:13.5px;color:#2c3550;}
+  .reqcard .rq-btns{display:flex;gap:6px;flex:none;}
+  .reqcard .btn{min-height:34px;padding:0 11px;font-size:12.5px;}
+  .ab-ava{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
   /* v24: MBTI 근사 · 인물상 */
   .mbti-card{background:linear-gradient(135deg,#eef3fb,#eef8f4);border:1px solid #d8e3ee;border-radius:15px;padding:15px;}
   .mbti-row{display:flex;align-items:center;gap:12px;}
@@ -229,6 +245,25 @@
       <div class="splash-logo">HEXACO</div>
       <div class="muted" style="margin-top:14px;">불러오는 중…</div>
     </div>
+  </section>
+
+  <!-- SETUP (v30: 로그인 후 의무 프로필 생성) -->
+  <section id="setup" class="card" style="display:none;">
+    <div class="center" style="margin-bottom:4px;">
+      <h2 id="setupTitle">프로필 만들기</h2>
+      <p class="muted" style="margin-top:7px;line-height:1.6;">시작하려면 <b>아이디</b>와 <b>프로필 캐릭터</b>를 정해주세요. (건너뛸 수 없어요)</p>
+    </div>
+    <div class="section-title" style="margin-top:10px;">아이디</div>
+    <div class="newprof">
+      <input id="setupHandle" type="text" placeholder="고유 아이디 (한글/영문/숫자·밑줄 2~16자)" maxlength="16">
+    </div>
+    <div class="section-title" style="margin-top:16px;">프로필 캐릭터 선택</div>
+    <div id="setupAvatars"></div>
+    <div id="setupMsg" class="muted" style="margin-top:11px;font-size:12.5px;min-height:16px;"></div>
+    <div class="btn-row" style="margin-top:12px;">
+      <button class="btn btn-pri btn-block" onclick="saveSetup()">완료하고 시작하기</button>
+    </div>
+    <div class="btn-row"><button class="btn btn-ghost btn-sm" onclick="authLogout()">로그아웃</button></div>
   </section>
 
   <!-- HOME -->
@@ -259,17 +294,22 @@
     </div>
 
     <div class="section">
-      <div class="section-title">내 아이디</div>
+      <div class="section-title">내 프로필</div>
       <div id="handleBox"></div>
+    </div>
+
+    <div class="section" id="friendReqSection" style="display:none;">
+      <div class="section-title">🔔 받은 친구 요청 <span id="friendReqCount"></span></div>
+      <div id="friendReqBox"></div>
     </div>
 
     <div class="section">
       <div class="section-title">친구 추가</div>
       <div class="newprof">
-        <input id="friendHandleInput" type="text" placeholder="친구 아이디 (예: hexfriend)" maxlength="16" onkeydown="if(event.key==='Enter')addFriendByHandle(this.value)">
-        <button class="btn btn-ghost btn-sm" onclick="addFriendByHandle(document.getElementById('friendHandleInput').value)">＋ 추가</button>
+        <input id="friendHandleInput" type="text" placeholder="친구 아이디로 요청 보내기" maxlength="16" onkeydown="if(event.key==='Enter')sendFriendRequest(this.value)">
+        <button class="btn btn-ghost btn-sm" onclick="sendFriendRequest(document.getElementById('friendHandleInput').value)">요청</button>
       </div>
-      <div id="friendMsg" class="muted" style="margin-top:6px;font-size:12px;"></div>
+      <div id="friendMsg" class="muted" style="margin-top:6px;font-size:12px;">상대가 <b>수락</b>하면 친구가 돼요.</div>
     </div>
 
     <div class="section">
@@ -277,7 +317,7 @@
       <div id="friendRank" class="rankbox"><span class="muted">로그인 후 이용할 수 있어요.</span></div>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v29 · 2026-06-28 08:20</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v30 · 2026-06-28 09:00</div>
   </section>
 
   <!-- MODE -->
@@ -650,9 +690,9 @@ function currentProfile(){ var db=loadDB(); return getProfile(db.curId); }
 
 /* ===================== 화면 전환 ===================== */
 function $(id){return document.getElementById(id);}
-var SCREENS=["splash","home","mode","quiz","result","trend","compat","data","crossctx","pastelink","auth"];
+var SCREENS=["splash","setup","home","mode","quiz","result","trend","compat","data","crossctx","pastelink","auth"];
 function show(s){ for(var i=0;i<SCREENS.length;i++){ var el=$(SCREENS[i]); if(el) el.style.display=(SCREENS[i]===s)?"block":"none"; } window.scrollTo(0,0); }
-function goHome(){ if(typeof fbReady!=='undefined' && fbReady && !cloudUser){ try{ show("auth"); if(typeof setInappWarn==='function') setInappWarn(); }catch(e){} return; } renderHome(); show("home"); try{ loadCounters(); }catch(e){} }
+function goHome(){ if(typeof fbReady!=='undefined' && fbReady && !cloudUser){ try{ show("auth"); if(typeof setInappWarn==='function') setInappWarn(); }catch(e){} return; } if(typeof fbReady!=='undefined' && fbReady && cloudUser && typeof profileComplete==='function' && !profileComplete()){ try{ renderSetup(); show("setup"); }catch(e){} return; } renderHome(); show("home"); try{ loadCounters(); }catch(e){} }
 function toast(msg){ try{ var t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){ t.className='toast on'; },20); setTimeout(function(){ t.className='toast'; setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },320); },3400); }catch(e){} }
 function clamp(x){ return x<0?0:(x>100?100:x); }
 
@@ -660,6 +700,8 @@ function clamp(x){ return x<0?0:(x>100?100:x); }
 function renderHome(){
   try{ renderResumeBox(); }catch(e){}
   try{ if(typeof renderHandleBox==='function') renderHandleBox(); }catch(e){}
+  try{ if(typeof watchFriendRequests==='function') watchFriendRequests(); }catch(e){}
+  try{ if(typeof renderFriendRequests==='function') renderFriendRequests(); }catch(e){}
   try{ if(typeof loadFriendsRanking==='function') loadFriendsRanking(); }catch(e){}
 }
 function renderResumeBox(){
@@ -1324,6 +1366,35 @@ var CHAR={
  '창의적 탐구가':{m:'호롱이',color:DHEX.O,emb:EMB.O,tag:'호기심으로 반짝이는 탐험가',desc:'늘 새로운 걸 궁금해하는 아이디어 뱅크. 머릿속에 전구가 반짝반짝해요. 다만 벌인 일을 끝맺는 연습이 필요하답니다.',traits:['호기심','창의','상상','개방'],compat:['활기찬 사교가','균형 잡힌 올라운더'],clash:['성실한 실행가']},
  '균형 잡힌 올라운더':{m:'고루미',color:'#6d8bc0',emb:EMB.B,tag:'어디에도 잘 맞는 균형의 달인',desc:'모난 데 없이 두루두루 잘하는 만능 친구. 어떤 사람, 어떤 상황과도 무난히 어울려요. 자기만의 뾰족한 색을 하나쯤 키우면 더 빛난답니다.',traits:['균형','적응','유연','조화'],compat:['창의적 탐구가','너그러운 화합가'],clash:[]}
 };
+/* v30: 마스코트 아바타(프로필 사진) — 7종 */
+var AVATARS=[
+ {id:'chamgom', name:'참곰',   color:DHEX.H, emb:EMB.H},
+ {id:'monggle', name:'몽글이', color:DHEX.E, emb:EMB.E},
+ {id:'banjjak', name:'반짝이', color:DHEX.X, emb:EMB.X},
+ {id:'pogeun',  name:'포근이', color:DHEX.A, emb:EMB.A},
+ {id:'ttobak',  name:'또박이', color:DHEX.C, emb:EMB.C},
+ {id:'horong',  name:'호롱이', color:DHEX.O, emb:EMB.O},
+ {id:'gorumi',  name:'고루미', color:'#6d8bc0', emb:EMB.B}
+];
+function avatarById(id){ for(var i=0;i<AVATARS.length;i++){ if(AVATARS[i].id===id) return AVATARS[i]; } return null; }
+function mascotSVGsized(c, emb, sz){
+  return '<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" width="'+sz+'" height="'+sz+'" role="img" aria-label="마스코트 아바타">'
+   +'<path d="M80 18 C42 18 30 48 30 84 C30 122 52 146 80 146 C108 146 130 122 130 84 C130 48 118 18 80 18 Z" fill="'+c+'"/>'
+   +'<ellipse cx="80" cy="40" rx="20" ry="9" fill="rgba(255,255,255,0.18)"/>'
+   +'<circle cx="62" cy="78" r="10" fill="#fff"/><circle cx="98" cy="78" r="10" fill="#fff"/>'
+   +'<circle cx="64" cy="80" r="5" fill="#2a2f3a"/><circle cx="100" cy="80" r="5" fill="#2a2f3a"/>'
+   +'<path d="M70 96 Q80 106 90 96" fill="none" stroke="#2a2f3a" stroke-width="3" stroke-linecap="round"/>'
+   +'<g transform="translate(80,122)">'+emb+'</g></svg>';
+}
+function avatarSVG(id, sz){ var a=avatarById(id); sz=sz||34; if(!a){ return '<span class="avatar avatar-empty" style="width:'+sz+'px;height:'+sz+'px"></span>'; } return '<span class="avatar" style="width:'+sz+'px;height:'+sz+'px;background:'+a.color+'22">'+mascotSVGsized(a.color,a.emb,sz)+'</span>'; }
+function avatarGridHTML(selId){
+  var H='<div class="avatar-grid">';
+  AVATARS.forEach(function(a){
+    var on=(a.id===selId)?' on':'';
+    H+='<button type="button" class="avatar-cell'+on+'" onclick="pickAvatar(\''+a.id+'\')"><span class="avatar" style="width:54px;height:54px;background:'+a.color+'22">'+mascotSVGsized(a.color,a.emb,54)+'</span><span class="avatar-nm">'+a.name+'</span></button>';
+  });
+  H+='</div>'; return H;
+}
 function charCardHTML(prof, dom){
   var ch=CHAR[prof.name]; if(!ch) return '';
   var H='<div class="charcard">';
@@ -1559,52 +1630,94 @@ function onAuthChanged(u){
   if(u){ loadCloud(u); }            /* loadCloud → enterHome (홈 표시) */
   else { try{ show('auth'); if(typeof setInappWarn==='function') setInappWarn(); }catch(e){} }
 }
-function enterHome(){ try{ renderHome(); show('home'); }catch(e){} try{ afterImportFlow(); }catch(e){} }
+function profileComplete(){ try{ var d=loadDB(); return !!(d.handle && d.avatar); }catch(e){ return false; } }
+function enterHome(){
+  try{
+    if(fbReady && cloudUser && !profileComplete()){ renderSetup(); show('setup'); return; }
+    renderHome(); show('home');
+  }catch(e){ try{ show('home'); }catch(_){} }
+  try{ afterImportFlow(); }catch(e){}
+}
 function paintAuthBar(){
   try{
     var bar=document.getElementById('authBar'); if(!bar){ return; }
     if(cloudUser){
-      var d=loadDB(); var hh=d.handle?(' · <b>@'+esc(d.handle)+'</b>'):'';
-      bar.innerHTML='<span class="ab-stat">☁️ '+esc(cloudUser.email||'로그인됨')+hh+'</span><button class="btn btn-ghost btn-sm" onclick="authLogout()">로그아웃</button>';
+      var d=loadDB();
+      var av=d.avatar?avatarSVG(d.avatar,30):'';
+      var nm=d.handle?('@'+esc(d.handle)):esc(cloudUser.email||'로그인됨');
+      var nReq=(window.__pendingReqs&&window.__pendingReqs.length)||0;
+      var badge=nReq>0?('<span class="badge">'+(nReq>9?'9+':nReq)+'</span>'):'';
+      bar.innerHTML='<span class="ab-ava">'+av+'<b style="font-size:13.5px;color:#2c3550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nm+'</b></span>'
+        +'<button class="bell" onclick="scrollToReqs()" title="친구 요청">🔔'+badge+'</button>'
+        +'<button class="btn btn-ghost btn-sm" onclick="authLogout()">로그아웃</button>';
     } else {
       bar.innerHTML='<span class="ab-stat">로그인이 필요해요</span>';
     }
   }catch(e){}
 }
+function scrollToReqs(){
+  try{
+    var n=(window.__pendingReqs&&window.__pendingReqs.length)||0;
+    if(!n){ toast('받은 친구 요청이 없어요.'); return; }
+    var s=document.getElementById('friendReqSection'); if(s){ s.scrollIntoView({behavior:'smooth',block:'center'}); }
+  }catch(e){}
+}
 
-/* ===================== v29 친구 시스템 (Firestore 실시간) ===================== */
+/* ===================== v30 프로필(아이디+아바타) 의무 생성 ===================== */
 function validHandle(h){ return /^[A-Za-z0-9가-힣_]{2,16}$/.test(h); }
+function renderSetup(){
+  try{
+    var d=loadDB();
+    window.__setupAvatar=d.avatar||window.__setupAvatar||null;
+    var hi=document.getElementById('setupHandle'); if(hi){ hi.value=d.handle||''; }
+    var t=document.getElementById('setupTitle'); if(t){ t.textContent=(d.handle||d.avatar)?'프로필 수정':'프로필 만들기'; }
+    var g=document.getElementById('setupAvatars'); if(g){ g.innerHTML=avatarGridHTML(window.__setupAvatar); }
+    var m=document.getElementById('setupMsg'); if(m){ m.textContent=''; }
+  }catch(e){}
+}
+function pickAvatar(id){
+  try{
+    window.__setupAvatar=id;
+    var g=document.getElementById('setupAvatars'); if(g){ g.innerHTML=avatarGridHTML(id); }
+    var m=document.getElementById('setupMsg'); if(m){ m.textContent=''; }
+  }catch(e){}
+}
+function openSetup(){ try{ renderSetup(); show('setup'); }catch(e){} }
+function saveSetup(){
+  var msg=document.getElementById('setupMsg');
+  function m(t,err){ if(msg){ msg.style.color=err?'#c0564a':'#2c7a62'; msg.textContent=t; } }
+  if(!fbReady||!cloudUser||!fbDb){ m('로그인이 필요해요.',1); return; }
+  var h=((document.getElementById('setupHandle')||{}).value||'').trim().replace(/^@/,'');
+  var av=window.__setupAvatar;
+  if(!validHandle(h)){ m('아이디는 한글/영문/숫자·밑줄 2~16자예요.',1); return; }
+  if(!av){ m('프로필 캐릭터를 하나 선택해 주세요.',1); return; }
+  var d=loadDB(); var lower=h.toLowerCase(); var unchanged=(d.handle && d.handle.toLowerCase()===lower);
+  m('확인 중…',0); if(msg){ msg.style.color='#65718a'; }
+  function commit(){
+    var d2=loadDB(); d2.handle=h; d2.avatar=av; if(!d2.displayName){ d2.displayName=h; } saveDB(d2);
+    try{ fbDb.collection('handles').doc(lower).set({uid:cloudUser.uid, handle:h}); }catch(e){}
+    try{ publishMyResult(); }catch(e){}
+    try{ paintAuthBar(); }catch(e){}
+    m('완료! 시작할게요.',0);
+    setTimeout(function(){ try{ enterHome(); }catch(e){} }, 250);
+  }
+  if(unchanged){ commit(); return; }
+  fbDb.collection('handles').doc(lower).get().then(function(doc){
+    if(doc.exists && doc.data().uid!==cloudUser.uid){ m('이미 사용 중인 아이디예요.',1); return; }
+    commit();
+  }, function(){ m('확인에 실패했어요. 네트워크를 확인해 주세요.',1); });
+}
 function renderHandleBox(){
   try{
     var box=document.getElementById('handleBox'); if(!box){ return; }
-    if(!fbReady || !cloudUser){ box.innerHTML='<span class="muted">로그인하면 아이디를 설정할 수 있어요.</span>'; return; }
+    if(!fbReady || !cloudUser){ box.innerHTML='<span class="muted">로그인하면 프로필을 설정할 수 있어요.</span>'; return; }
     var d=loadDB();
-    if(d.handle){ box.innerHTML='<div class="handle-set">내 아이디 <b>@'+esc(d.handle)+'</b><button class="btn btn-ghost btn-sm" onclick="openHandleEdit()">변경</button></div><div class="muted" style="margin-top:6px;font-size:12px">친구가 이 아이디로 나를 추가할 수 있어요.</div>'; }
-    else { box.innerHTML=handleInputHTML(); }
+    if(d.handle && d.avatar){
+      box.innerHTML='<div class="handle-set">'+avatarSVG(d.avatar,38)+'<b style="margin-left:2px">@'+esc(d.handle)+'</b><button class="btn btn-ghost btn-sm" onclick="openSetup()">프로필 수정</button></div>';
+    } else {
+      box.innerHTML='<div class="btn-row" style="margin:0"><button class="btn btn-pri btn-block" onclick="openSetup()">프로필 만들기</button></div>';
+    }
   }catch(e){}
-}
-function handleInputHTML(){
-  return '<div class="newprof"><input id="handleInput" type="text" placeholder="원하는 아이디 (한글/영문/숫자 2~16자)" maxlength="16" onkeydown="if(event.key===\'Enter\')setMyHandle(this.value)"><button class="btn btn-pri btn-sm" onclick="setMyHandle(document.getElementById(\'handleInput\').value)">설정</button></div><div id="handleMsg" class="muted" style="margin-top:6px;font-size:12px">친구가 이 아이디로 나를 추가할 수 있어요.</div>';
-}
-function openHandleEdit(){ try{ var box=document.getElementById('handleBox'); if(box){ box.innerHTML=handleInputHTML(); var i=document.getElementById('handleInput'); if(i){ i.value=(loadDB().handle||''); i.focus(); } } }catch(e){} }
-function setMyHandle(h){
-  var msg=document.getElementById('handleMsg');
-  function m(t,err){ if(msg){ msg.style.color=err?'#c0564a':'#2c7a62'; msg.textContent=t; } }
-  if(!fbReady||!cloudUser||!fbDb){ m('로그인이 필요해요.',1); return; }
-  h=(h||'').trim().replace(/^@/,'');
-  if(!validHandle(h)){ m('아이디는 한글/영문/숫자·밑줄 2~16자예요.',1); return; }
-  var lower=h.toLowerCase();
-  if(msg){ msg.style.color='#65718a'; msg.textContent='확인 중…'; }
-  fbDb.collection('handles').doc(lower).get().then(function(doc){
-    if(doc.exists && doc.data().uid!==cloudUser.uid){ m('이미 사용 중인 아이디예요.',1); return; }
-    fbDb.collection('handles').doc(lower).set({uid:cloudUser.uid, handle:h}).then(function(){
-      var d=loadDB(); d.handle=h; if(!d.displayName){ d.displayName=h; } saveDB(d);
-      try{ paintAuthBar(); }catch(e){}
-      try{ publishMyResult(); }catch(e){}
-      try{ renderHandleBox(); }catch(e){}
-      m('아이디 설정 완료: @'+h,0);
-    }, function(){ m('저장에 실패했어요. 다시 시도해 주세요.',1); });
-  }, function(){ m('확인에 실패했어요. 네트워크를 확인해 주세요.',1); });
 }
 function currentMyProfile(){
   try{
@@ -1619,60 +1732,128 @@ function myAggDom(){ var p=currentMyProfile(); var ag=p?aggProfile(p):null; retu
 function publishMyResult(){
   try{
     if(!fbReady||!cloudUser||!fbDb){ return; }
-    var d=loadDB(); var p=currentMyProfile(); var ag=p?aggProfile(p):null; if(!ag){ return; }
-    var rel=aggReliability(p); var tp=topProfile(ag.dom);
-    fbDb.collection('results').doc(cloudUser.uid).set({
-      uid:cloudUser.uid, handle:d.handle||'', displayName:d.displayName||d.handle||'',
-      agg:ag.dom, count:ag.count, reliability:rel.score, name:tp.name, updatedAt:Date.now()
-    }).then(function(){}, function(){});
+    var d=loadDB(); var p=currentMyProfile(); var ag=p?aggProfile(p):null;
+    var base={ uid:cloudUser.uid, handle:d.handle||'', displayName:d.displayName||d.handle||'', avatar:d.avatar||'', updatedAt:Date.now() };
+    if(ag){ var rel=aggReliability(p); var tp=topProfile(ag.dom); base.agg=ag.dom; base.fac=ag.fac||null; base.count=ag.count; base.reliability=rel.score; base.name=tp.name; }
+    fbDb.collection('results').doc(cloudUser.uid).set(base, {merge:true}).then(function(){}, function(){});
   }catch(e){}
 }
-function addFriendByHandle(h){
+
+/* ===================== v30 친구 요청 + 수락 + 알림 (Firestore 실시간) ===================== */
+function reqId(a,b){ return a+'_'+b; }
+function sendFriendRequest(h){
   var msg=document.getElementById('friendMsg');
   function m(t,c){ if(msg){ msg.style.color=c||'#c0564a'; msg.textContent=t; } }
   if(!fbReady||!cloudUser||!fbDb){ m('로그인이 필요해요.'); return; }
+  if(!profileComplete()){ m('먼저 프로필을 만들어 주세요.'); return; }
   h=(h||'').trim().replace(/^@/,'');
   if(!h){ m('친구 아이디를 입력해 주세요.'); return; }
-  var lower=h.toLowerCase();
-  if(msg){ msg.style.color='#65718a'; msg.textContent='찾는 중…'; }
+  var lower=h.toLowerCase(); var me=cloudUser.uid; var d=loadDB();
+  if(d.handle && d.handle.toLowerCase()===lower){ m('자기 자신에게는 보낼 수 없어요.'); return; }
+  m('찾는 중…', '#65718a');
   fbDb.collection('handles').doc(lower).get().then(function(doc){
     if(!doc.exists){ m('그런 아이디를 찾을 수 없어요.'); return; }
-    var fuid=doc.data().uid;
-    if(fuid===cloudUser.uid){ m('자기 자신은 추가할 수 없어요.'); return; }
-    var d=loadDB(); d.friends=d.friends||[];
-    if(d.friends.indexOf(fuid)>=0){ m('이미 추가된 친구예요.', '#c08a3e'); return; }
-    d.friends.push(fuid); saveDB(d);
-    m('@'+h+' 친구 추가 완료!', '#2c7a62');
-    var inp=document.getElementById('friendHandleInput'); if(inp){ inp.value=''; }
-    loadFriendsRanking();
+    var fuid=doc.data().uid; var fhandle=doc.data().handle||h;
+    if(fuid===me){ m('자기 자신에게는 보낼 수 없어요.'); return; }
+    if(isAcceptedFriend(fuid)){ m('이미 친구예요.', '#c08a3e'); return; }
+    /* 상대가 이미 나에게 보낸 보류 요청이 있으면 → 바로 수락 */
+    function createReq(){
+      var payload={ from:me, to:fuid, fromHandle:d.handle||'', fromName:d.displayName||d.handle||'', fromAvatar:d.avatar||'', toHandle:fhandle, status:'pending', createdAt:Date.now() };
+      fbDb.collection('friendRequests').doc(reqId(me,fuid)).set(payload).then(function(){
+        m('@'+fhandle+'님께 친구 요청을 보냈어요. 수락하면 친구가 돼요.', '#2c7a62'); clearFriendInput();
+      }, function(){ m('요청 전송에 실패했어요. 다시 시도해 주세요.'); });
+    }
+    fbDb.collection('friendRequests').doc(reqId(fuid,me)).get().then(function(rev){
+      if(rev.exists && rev.data().status==='pending'){
+        fbDb.collection('friendRequests').doc(reqId(fuid,me)).update({status:'accepted'}).then(function(){
+          m('@'+fhandle+'님과 친구가 됐어요! (상대 요청 수락)', '#2c7a62'); clearFriendInput();
+        }, function(){ m('수락 처리에 실패했어요.'); });
+        return;
+      }
+      createReq();
+    }, function(){ createReq(); });
   }, function(){ m('검색에 실패했어요. 네트워크를 확인해 주세요.'); });
 }
-var __friendUnsubs=[];
+function clearFriendInput(){ try{ var i=document.getElementById('friendHandleInput'); if(i){ i.value=''; } }catch(e){} }
+function isAcceptedFriend(fuid){ var s=acceptedFriendSet(); return !!s[fuid]; }
+function acceptedFriendSet(){
+  var set={}, f=window.__accFrom||{}, t=window.__accTo||{}, k;
+  for(k in f){ set[f[k]]=1; } for(k in t){ set[t[k]]=1; }
+  return set;
+}
+var __reqWatchUnsub=null, __accFromUnsub=null, __accToUnsub=null, __resUnsubs={};
+function watchFriendRequests(){
+  try{
+    if(__reqWatchUnsub){ try{ __reqWatchUnsub(); }catch(e){} __reqWatchUnsub=null; }
+    if(!fbReady||!cloudUser||!fbDb){ return; }
+    __reqWatchUnsub=fbDb.collection('friendRequests').where('to','==',cloudUser.uid).where('status','==','pending').onSnapshot(function(snap){
+      window.__pendingReqs=[]; snap.forEach(function(doc){ var o=doc.data(); o.id=doc.id; window.__pendingReqs.push(o); });
+      window.__pendingReqs.sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+      renderFriendRequests(); paintAuthBar();
+    }, function(){});
+  }catch(e){}
+}
+function renderFriendRequests(){
+  try{
+    var sec=document.getElementById('friendReqSection'); var box=document.getElementById('friendReqBox'); var cnt=document.getElementById('friendReqCount');
+    if(!sec||!box){ return; }
+    var reqs=window.__pendingReqs||[];
+    if(!reqs.length){ sec.style.display='none'; box.innerHTML=''; if(cnt){ cnt.textContent=''; } return; }
+    sec.style.display='block'; if(cnt){ cnt.textContent='('+reqs.length+')'; }
+    var H='';
+    reqs.forEach(function(r){
+      H+='<div class="reqcard">'+avatarSVG(r.fromAvatar,38)
+        +'<span class="rq-info"><b>'+esc(r.fromName||r.fromHandle||'친구')+'</b> <span class="muted" style="font-size:11px">@'+esc(r.fromHandle||'')+'</span><br><span class="muted" style="font-size:11.5px">친구 요청을 보냈어요</span></span>'
+        +'<span class="rq-btns"><button class="btn btn-pri" onclick="acceptRequest(\''+r.id+'\')">수락</button><button class="btn btn-ghost" onclick="rejectRequest(\''+r.id+'\')">거절</button></span></div>';
+    });
+    box.innerHTML=H;
+  }catch(e){}
+}
+function acceptRequest(id){
+  try{ if(!fbDb){ return; } fbDb.collection('friendRequests').doc(id).update({status:'accepted'}).then(function(){ toast('친구가 됐어요!'); }, function(){ toast('수락에 실패했어요.'); }); }catch(e){}
+}
+function rejectRequest(id){
+  try{ if(!fbDb){ return; } fbDb.collection('friendRequests').doc(id).update({status:'rejected'}).then(function(){ toast('요청을 거절했어요.'); }, function(){ toast('처리에 실패했어요.'); }); }catch(e){}
+}
 function loadFriendsRanking(){
   try{
     var box=document.getElementById('friendRank'); if(!box){ return; }
-    __friendUnsubs.forEach(function(u){ try{ u(); }catch(e){} }); __friendUnsubs=[];
+    if(__accFromUnsub){ try{ __accFromUnsub(); }catch(e){} __accFromUnsub=null; }
+    if(__accToUnsub){ try{ __accToUnsub(); }catch(e){} __accToUnsub=null; }
     if(!fbReady||!cloudUser||!fbDb){ box.innerHTML='<span class="muted">로그인 후 이용할 수 있어요.</span>'; return; }
-    var d=loadDB(); var friends=d.friends||[];
-    if(!friends.length){ box.innerHTML='<span class="muted">아직 친구가 없어요. 위에서 친구 아이디를 추가해 보세요.</span>'; return; }
-    window.__friendResults={};
-    box.innerHTML='<span class="muted">친구 결과를 불러오는 중…</span>';
-    friends.forEach(function(fuid){
-      var unsub=fbDb.collection('results').doc(fuid).onSnapshot(function(doc){
-        if(doc.exists){ window.__friendResults[fuid]=doc.data(); } else { delete window.__friendResults[fuid]; }
-        renderFriendRanking();
-      }, function(){});
-      __friendUnsubs.push(unsub);
-    });
+    window.__accFrom={}; window.__accTo={}; window.__friendResults=window.__friendResults||{};
+    box.innerHTML='<span class="muted">친구 목록을 불러오는 중…</span>';
+    __accFromUnsub=fbDb.collection('friendRequests').where('from','==',cloudUser.uid).where('status','==','accepted').onSnapshot(function(s){
+      window.__accFrom={}; s.forEach(function(d){ window.__accFrom[d.id]=d.data().to; }); recomputeFriends();
+    }, function(){});
+    __accToUnsub=fbDb.collection('friendRequests').where('to','==',cloudUser.uid).where('status','==','accepted').onSnapshot(function(s){
+      window.__accTo={}; s.forEach(function(d){ window.__accTo[d.id]=d.data().from; }); recomputeFriends();
+    }, function(){});
   }catch(e){}
+}
+function recomputeFriends(){
+  try{
+    var set=acceptedFriendSet(); var fuid;
+    for(fuid in set){ if(!__resUnsubs[fuid]){ subscribeFriendResult(fuid); } }
+    for(fuid in __resUnsubs){ if(!set[fuid]){ try{ __resUnsubs[fuid](); }catch(e){} delete __resUnsubs[fuid]; if(window.__friendResults){ delete window.__friendResults[fuid]; } } }
+    renderFriendRanking();
+  }catch(e){}
+}
+function subscribeFriendResult(fuid){
+  __resUnsubs[fuid]=fbDb.collection('results').doc(fuid).onSnapshot(function(doc){
+    if(doc.exists){ window.__friendResults[fuid]=doc.data(); } else { delete window.__friendResults[fuid]; }
+    renderFriendRanking();
+  }, function(){});
 }
 function renderFriendRanking(){
   try{
     var box=document.getElementById('friendRank'); if(!box){ return; }
+    var set=acceptedFriendSet(); var nFriends=0; for(var k in set){ nFriends++; }
+    if(!nFriends){ box.innerHTML='<span class="muted">아직 친구가 없어요. 친구 아이디로 요청을 보내고, 상대가 수락하면 여기에 떠요.</span>'; return; }
     var myA=myAggDom();
     if(!myA){ box.innerHTML='<span class="muted">먼저 내 검사를 1회 이상 완료하면 친구와의 궁합 순위가 나와요.</span>'; return; }
-    var arr=[]; var fr=window.__friendResults||{};
-    for(var fuid in fr){ var r=fr[fuid]; if(r&&r.agg){ var sd=pairScoreDetail(myA.dom, r.agg); arr.push({uid:fuid, r:r, score:sd.score}); } }
+    var arr=[], withResult=0; var fr=window.__friendResults||{};
+    for(var fuid in set){ var r=fr[fuid]; if(r&&r.agg){ withResult++; var sd=pairScoreDetail(myA.dom, r.agg); arr.push({uid:fuid, r:r, score:sd.score}); } }
     arr.sort(function(a,b){ return b.score-a.score; });
     if(!arr.length){ box.innerHTML='<span class="muted">친구들이 아직 검사를 안 했어요. 친구가 검사하면 실시간으로 순위에 떠요.</span>'; return; }
     var H='';
@@ -1680,7 +1861,7 @@ function renderFriendRanking(){
       var col=it.score>=70?'#3f8f74':(it.score>=50?'#c08a3e':'#c0564a');
       var medal=(i===0?'🥇':(i===1?'🥈':(i===2?'🥉':(i+1)+'')));
       H+='<div class="rankrow" onclick="openFriendCompat(\''+it.uid+'\')">'
-        +'<span class="rk">'+medal+'</span>'
+        +'<span class="rk">'+medal+'</span>'+avatarSVG(it.r.avatar,38)
         +'<span class="rkname"><b>'+esc(it.r.displayName||it.r.handle||'친구')+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.r.handle||'')+' · '+esc(it.r.name||'')+'</span></span>'
         +'<span class="rkscore" style="color:'+col+'">'+it.score+'%<span class="rkgo">›</span></span></div>';
     });
@@ -1693,7 +1874,8 @@ function openFriendCompat(fuid){
     var myA=myAggDom(); if(!myA){ toast('먼저 내 검사를 완료해 주세요.'); return; }
     var d=loadDB(); var meName=(d.displayName||d.handle||'나');
     var sel=[ {name:meName, history:[{pct:myA.dom, fac:myA.fac}]}, {name:(fr.displayName||fr.handle||'친구'), history:[{pct:fr.agg, fac:null}]} ];
-    document.getElementById('compatResult').innerHTML=renderPairResult(sel); show('compat');
+    var head='<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:10px">'+avatarSVG(d.avatar,48)+'<span style="font-size:20px;color:#b7c0d4">×</span>'+avatarSVG(fr.avatar,48)+'</div>';
+    document.getElementById('compatResult').innerHTML=head+renderPairResult(sel); show('compat');
   }catch(e){}
 }
 function mergeProfiles(localArr, cloudArr){
@@ -1716,6 +1898,7 @@ function loadCloud(u){
       saveDB({profiles:merged, curId:curId,
         handle:(cloud&&cloud.handle)||local.handle||null,
         displayName:(cloud&&cloud.displayName)||local.displayName||null,
+        avatar:(cloud&&cloud.avatar)||local.avatar||null,
         friends:(cloud&&cloud.friends)||local.friends||[]});
       pushCloud();
       enterHome();
@@ -1728,7 +1911,7 @@ function pushCloud(){
   if(!fbDb || !cloudUser){ return; }
   if(pushTimer){ clearTimeout(pushTimer); }
   pushTimer=setTimeout(function(){
-    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, handle:db.handle||null, displayName:db.displayName||null, friends:db.friends||[], updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
+    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, handle:db.handle||null, displayName:db.displayName||null, avatar:db.avatar||null, friends:db.friends||[], updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
   }, 700);
 }
 function openAuth(){ try{ document.getElementById('authMsg').textContent=''; }catch(e){} show('auth'); try{ setInappWarn(); }catch(e){} if(!fbReady){ try{ document.getElementById('authMsg').innerHTML='<span style="color:#c0564a">로그인 서버에 연결할 수 없어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.</span>'; }catch(e){} } }
