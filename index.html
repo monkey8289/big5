@@ -301,6 +301,17 @@
   .td-nm{flex:1;font-size:12.5px;font-weight:700;color:#3a4456;}
   .td-d{font-size:14px;font-weight:800;}
   .td-d.up{color:var(--good);} .td-d.down{color:var(--bad);} .td-d.same{color:#aab2c0;}
+  /* v45: 한국어 유형명 단어 중간 줄바꿈 방지(어절 단위) + 별명 메모 */
+  .rkname,.rq-info,.dex-cell,.avatar-nm,.dex-type,.who,.profile-name,.handle-set,.cc-nm,.td-nm,.fv-name{word-break:keep-all;overflow-wrap:break-word;}
+  .rkname b,.rq-info b{word-break:keep-all;}
+  .nick-row{margin-top:8px;}
+  .nick-edit{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#f7f9fc;border:1px solid #e6eaf3;border-radius:11px;padding:9px 11px;}
+  .nick-input{flex:1;min-width:120px;border:1.5px solid var(--line);border-radius:9px;padding:8px 10px;font-family:inherit;font-size:14px;}
+  .fv-name{font-size:13px;color:#9aa3b1;font-weight:600;}
+  .rel-help-btn{display:inline-block;margin-top:7px;background:none;border:none;color:#6b7891;font-size:11.5px;font-family:inherit;cursor:pointer;padding:2px 0;text-decoration:underline;text-underline-offset:2px;}
+  .rel-help-btn.on{color:#4a6fa5;}
+  .rel-help{margin-top:6px;font-size:11.5px;line-height:1.65;color:#5d6675;background:#f5f8fc;border:1px solid #e4eaf4;border-radius:11px;padding:10px 12px;}
+  .rel-help b{color:#3f5575;}
   .rel-comps{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
   .rel-comp{display:flex;align-items:center;gap:8px;font-size:11.5px;}
   .rel-comp .rcl{flex:none;width:86px;color:#5a6377;font-weight:700;}
@@ -411,7 +422,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v44 · 2026-06-28 15:15</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v45 · 2026-06-28 15:35</div>
   </section>
 
   <!-- MODE -->
@@ -501,7 +512,8 @@
   <section id="friendview" class="card" style="display:none;">
     <h2>친구 보기</h2>
     <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈</button></div>
-    <div class="relmode-toggle" style="margin-top:8px;">
+    <div id="fvNick" class="nick-row"></div>
+    <div class="relmode-toggle" style="margin-top:10px;">
       <button class="relmode-btn on" id="fvResBtn" onclick="fvShow('result')">📊 결과 보기</button>
       <button class="relmode-btn" id="fvCompBtn" onclick="fvShow('compat')">💞 궁합 보기</button>
     </div>
@@ -1904,7 +1916,7 @@ function aggReliability(profile){
   var countConf=Math.min(1, Math.pow(QU/23, 0.48));               /* 품질가중 누적단위 — 90%+엔 정밀·일관 8회급 필요 */
   var score=Math.round(100 * countConf * qualF * consF);
   score=Math.max(3, Math.min(99, score));
-  return {count:n, units:U, qunits:Math.round(QU*10)/10, quality:Math.round(avgQ*100), score:score, avgSd:Math.round(avgSd), consistency:Math.round(consF*100), countConf:Math.round(countConf*100)};
+  return {count:n, units:U, qunits:Math.round(QU*10)/10, quality:Math.round(avgQ*100), qualFactor:Math.round(qualF*100), capped:(avgQ>=0.9), score:score, avgSd:Math.round(avgSd), consistency:Math.round(consF*100), countConf:Math.round(countConf*100)};
 }
 function aggBoxHTML(profile){
   var ag=aggReliability(profile); if(!ag.count){ return ''; }
@@ -1936,11 +1948,17 @@ function renderHomeRel(){
   }catch(e){}
 }
 function relComponentBars(ag){
-  var items=[['검사 양·깊이',ag.countConf,'#5a7bc0'],['검사 간 일관성',ag.consistency,'#3f8f74'],['응답 품질',ag.quality,'#c08a3e']];
+  /* v45: 세 막대 모두 점수에 실제 곱해지는 기여 계수로 표시(응답 품질=qualFactor). 종합 = 세 값의 곱 */
+  var qf=(ag.qualFactor!=null)?ag.qualFactor:(ag.quality!=null?ag.quality:0);
+  var items=[['검사 양·깊이',ag.countConf,'#5a7bc0'],['검사 간 일관성',ag.consistency,'#3f8f74'],['응답 품질',qf,'#c08a3e']];
   var H='<div class="rel-comps">';
   items.forEach(function(it){ var v=(it[1]==null?0:it[1]); H+='<div class="rel-comp"><span class="rcl">'+it[0]+'</span><div class="rcbar"><i style="width:'+v+'%;background:'+it[2]+'"></i></div><span class="rcv">'+v+'%</span></div>'; });
-  H+='</div>'; return H;
+  H+='</div>';
+  H+='<button type="button" class="rel-help-btn" onclick="toggleRelHelp(this)">ⓘ 신뢰도는 어떻게 계산되나요?</button>';
+  H+='<div class="rel-help" style="display:none">신뢰도는 <b>검사 양·깊이</b> · <b>검사 간 일관성</b> · <b>응답 성의</b> 세 가지를 <b>곱해서</b> 계산해요. 그래서 <b>셋이 다 높아야</b> 올라가고, 하나라도 낮으면 전체가 내려가요. 많이 한다고 무조건 오르는 게 아니라, <b>일관되고 성의 있게</b> 검사할수록 올라가요(대충 하거나 앞뒤가 안 맞으면 오히려 떨어질 수도 있어요).'+(ag.capped?'<br><span style="color:#8a93a4">· 응답 성의 '+ag.quality+'%는 0.9 이상이라 점수엔 <b>만점(100%)</b>으로 반영돼요.</span>':'')+'</div>';
+  return H;
 }
+function toggleRelHelp(btn){ try{ var p=btn.nextSibling; while(p&&p.nodeType!==1){ p=p.nextSibling; } if(p){ var open=(p.style.display!=='none'); p.style.display=open?'none':'block'; btn.classList.toggle('on',!open); } }catch(e){} }
 
 /* v24: MBTI 근사 (HEXACO 점수 기반 단순 매핑 — 정식 검사와 측정 방식 다름) */
 var MBTI_DESC={
@@ -2420,7 +2438,7 @@ function renderFriendRanking(){
       var medal=(i===0?'🥇':(i===1?'🥈':(i===2?'🥉':(i+1)+'')));
       H+='<div class="rankrow" onclick="openFriendDetail(\''+it.uid+'\')">'
         +'<span class="rk">'+medal+'</span>'+avatarSVG(it.r.avatar,38)
-        +'<span class="rkname"><b>'+esc(it.r.displayName||it.r.handle||'친구')+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.r.handle||'')+' · '+esc(it.r.name||'')+'</span>'+(it.r.reliability!=null?('<span style="display:inline-block;margin-top:3px">'+relChip(it.r.reliability)+'</span>'):'')+'</span>'
+        +'<span class="rkname"><b>'+esc(friendMainName(it.uid, it.r))+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.r.handle||'')+' · '+esc(it.r.name||'')+'</span>'+(it.r.reliability!=null?('<span style="display:inline-block;margin-top:3px">'+relChip(it.r.reliability)+'</span>'):'')+'</span>'
         +'<span class="rkscore" style="color:'+col+'">'+it.score+'%<span class="rkgo">›</span></span></div>';
     });
     box.innerHTML=H;
@@ -2429,7 +2447,7 @@ function renderFriendRanking(){
 }
 function buildFriendCompatHTML(fr){
   var myA=myAggDom(); if(!myA){ return '<span class="muted">먼저 내 검사를 완료해 주세요.</span>'; }
-  var d=loadDB(); var meName=(d.displayName||d.handle||'나'); var frName=(fr.displayName||fr.handle||'친구');
+  var d=loadDB(); var meName=(d.displayName||d.handle||'나'); var frName=friendMainName(fr.uid, fr);
   var sel=[ {name:meName, history:[{pct:myA.dom, fac:myA.fac}]}, {name:frName, history:[{pct:fr.agg, fac:null}]} ];
   var head='<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px">'+avatarSVG(d.avatar,48)+'<span style="font-size:20px;color:#b7c0d4">×</span>'+avatarSVG(fr.avatar,48)+'</div>';
   head+='<div class="ccard" style="padding:12px 10px 6px"><div class="cc-h" style="text-align:center">나 vs '+esc(frName)+' · 6각 비교</div>'+buildDualRadarSVG(myA.dom, fr.agg, meName, frName)+'</div>';
@@ -2449,7 +2467,8 @@ function relChip(score){ if(score==null){ return ''; } var lv=(typeof relLevel==
 function friendResultHTML(fr){
   var vis=fr.visibility||'public';
   var dom=fr.agg; var prof=topProfile(dom);
-  var H='<div class="center">'+avatarSVG(fr.avatar,76)+'<div class="profile-name" style="margin-top:8px">'+esc(fr.name||prof.name)+'</div><div class="who">@'+esc(fr.handle||'')+(fr.count?(' · '+fr.count+'회 검사'):'')+'</div>'+(fr.reliability!=null?('<div style="margin-top:5px">'+relChip(fr.reliability)+'</div>'):'')+'</div>';
+  var _nk=friendNick(fr.uid); var _person=friendMainName(fr.uid, fr);
+  var H='<div class="center">'+avatarSVG(fr.avatar,76)+'<div class="fv-name" style="margin-top:8px;font-size:15px;color:#3a4254">'+esc(_person)+(_nk?' <span class="muted" style="font-size:11px;font-weight:500">(나만의 별명)</span>':'')+'</div><div class="profile-name" style="margin-top:2px">'+esc(fr.name||prof.name)+'</div><div class="who">@'+esc(fr.handle||'')+(fr.count?(' · '+fr.count+'회 검사'):'')+'</div>'+(fr.reliability!=null?('<div style="margin-top:5px">'+relChip(fr.reliability)+'</div>'):'')+'</div>';
   try{ H+='<div class="char-wrap">'+charCardHTML(prof, dom)+'</div>'; }catch(e){}
   try{ H+='<div class="muted" style="text-align:center;margin-top:2px">'+charHeadline(prof,dom)+'</div>'; }catch(e){}
   if(vis==='summary'){
@@ -2478,7 +2497,7 @@ function friendResultHTML(fr){
 function openFriendDetail(fuid){
   try{
     var fr=(window.__friendResults||{})[fuid]; if(!fr||!fr.agg){ toast('친구 결과를 불러오지 못했어요.'); return; }
-    window.__fvUid=fuid; window.__fvMode='result'; fvSync(); show('friendview');
+    window.__fvUid=fuid; window.__fvMode='result'; renderFvNick(fuid); fvSync(); show('friendview');
   }catch(e){}
 }
 function fvShow(mode){ try{ window.__fvMode=mode; fvSync(); }catch(e){} }
@@ -2492,6 +2511,19 @@ function fvSync(){
     body.innerHTML=(mode==='compat')?buildFriendCompatHTML(fr):friendResultHTML(fr);
   }catch(e){}
 }
+/* v45: 친구 별명 메모 (본인만 보는 개인 메모 — users.friendNicknames) */
+function friendNick(fuid){ try{ var d=loadDB(); return (d.friendNicknames&&d.friendNicknames[fuid])||''; }catch(e){ return ''; } }
+function friendMainName(fuid, fr){ var nk=friendNick(fuid); if(nk){ return nk; } return (fr&&(fr.displayName||fr.handle))||'친구'; }
+function setFriendNick(fuid, nick){ try{ var d=loadDB(); d.friendNicknames=d.friendNicknames||{}; nick=(nick||'').trim(); if(nick){ d.friendNicknames[fuid]=nick; } else { delete d.friendNicknames[fuid]; } saveDB(d); }catch(e){} }
+function renderFvNick(fuid){
+  try{
+    var box=document.getElementById('fvNick'); if(!box){ return; }
+    var fr=(window.__friendResults||{})[fuid]; var nk=friendNick(fuid); var ph=fr?(fr.displayName||fr.handle||''):'';
+    box.innerHTML='<div class="nick-edit"><span class="muted" style="font-size:11.5px;flex:none">✏️ 별명(나만 봐요)</span><input id="nickInput" class="nick-input" maxlength="16" value="'+esc(nk)+'" placeholder="'+esc(ph)+'" onkeydown="if(event.key===\'Enter\')saveNick()"><button class="btn btn-pri btn-sm" onclick="saveNick()">저장</button>'+(nk?'<button class="btn btn-ghost btn-sm" onclick="clearNick()">삭제</button>':'')+'</div>';
+  }catch(e){}
+}
+function saveNick(){ try{ var v=((document.getElementById('nickInput')||{}).value)||''; setFriendNick(window.__fvUid, v); renderFvNick(window.__fvUid); fvSync(); try{ loadFriendsRanking(); }catch(e){} toast(v.trim()?'별명을 저장했어요.':'별명을 지웠어요.'); }catch(e){} }
+function clearNick(){ try{ setFriendNick(window.__fvUid, ''); var i=document.getElementById('nickInput'); if(i){ i.value=''; } renderFvNick(window.__fvUid); fvSync(); try{ loadFriendsRanking(); }catch(e){} toast('별명을 지웠어요.'); }catch(e){} }
 /* v34: 그룹 궁합 */
 function openGroup(){ try{ renderGroupPick(); var g=document.getElementById('groupResult'); if(g){ g.innerHTML=''; } show('group'); }catch(e){} }
 function renderGroupPick(){
@@ -2499,7 +2531,7 @@ function renderGroupPick(){
     var box=document.getElementById('groupPick'); if(!box){ return; }
     var set=acceptedFriendSet(); var fr=window.__friendResults||{}; var any=false, H='';
     for(var fuid in set){ var r=fr[fuid]; if(r&&r.agg){ any=true;
-      H+='<label class="reqcard" style="cursor:pointer"><input type="checkbox" class="grp-chk" value="'+fuid+'" style="width:18px;height:18px;flex:none">'+avatarSVG(r.avatar,34)+'<span class="rq-info"><b>'+esc(r.displayName||r.handle||'친구')+'</b> <span class="muted" style="font-size:11px">@'+esc(r.handle||'')+'</span> '+(r.reliability!=null?relChip(r.reliability):'')+'</span></label>';
+      H+='<label class="reqcard" style="cursor:pointer"><input type="checkbox" class="grp-chk" value="'+fuid+'" style="width:18px;height:18px;flex:none">'+avatarSVG(r.avatar,34)+'<span class="rq-info"><b>'+esc(friendMainName(fuid, r))+'</b> <span class="muted" style="font-size:11px">@'+esc(r.handle||'')+'</span> '+(r.reliability!=null?relChip(r.reliability):'')+'</span></label>';
     } }
     if(!any){ H='<span class="muted">검사를 완료한 친구가 있어야 그룹 분석을 할 수 있어요.</span>'; }
     box.innerHTML=H;
@@ -2510,7 +2542,7 @@ function runGroupCompat(){
     var myA=myAggDom(); if(!myA){ toast('먼저 내 검사를 완료해 주세요.'); return; }
     var d=loadDB(); var sel=[{name:(d.displayName||d.handle||'나'), history:[{pct:myA.dom}]}];
     var chks=document.querySelectorAll('.grp-chk'); var fr=window.__friendResults||{};
-    for(var i=0;i<chks.length;i++){ if(chks[i].checked){ var r=fr[chks[i].value]; if(r&&r.agg){ sel.push({name:(r.displayName||r.handle||'친구'), history:[{pct:r.agg}]}); } } }
+    for(var i=0;i<chks.length;i++){ if(chks[i].checked){ var r=fr[chks[i].value]; if(r&&r.agg){ sel.push({name:friendMainName(chks[i].value, r), history:[{pct:r.agg}]}); } } }
     if(sel.length<2){ toast('친구를 1명 이상 선택해 주세요.'); return; }
     document.getElementById('groupResult').innerHTML=(sel.length<3)?renderPairResult(sel):renderTeamResult(sel);
   }catch(e){}
@@ -2531,7 +2563,7 @@ function renderCollection(){
     var frr=window.__friendResults||{}; var accSet=acceptedFriendSet();
     var typeMembers={};
     if(myType){ (typeMembers[myType]=typeMembers[myType]||[]).push({name:myName,avatar:d.avatar,isMe:true}); }
-    for(var fu in accSet){ var r=frr[fu]; if(r&&r.agg){ var tnm=r.name||topProfile(r.agg).name; (typeMembers[tnm]=typeMembers[tnm]||[]).push({name:r.displayName||r.handle||'친구',avatar:r.avatar,isMe:false}); } }
+    for(var fu in accSet){ var r=frr[fu]; if(r&&r.agg){ var tnm=r.name||topProfile(r.agg).name; (typeMembers[tnm]=typeMembers[tnm]||[]).push({name:friendMainName(fu, r),avatar:r.avatar,isMe:false}); } }
     AVATARS.forEach(function(a){ if((typeMembers[mascotType[a.name]]||[]).length){ nUnlocked++; } });
     var H='<div class="muted" style="margin-bottom:10px;line-height:1.6">나와 친구들이 어떤 유형인지 보는 <b>내 주변 유형 지도</b>예요. 친구가 검사하면 실시간으로 채워져요.</div>';
     H+='<div class="center" style="margin-bottom:11px"><span class="dex-prog">7개 유형 중 <b>'+nUnlocked+'개</b> 만남</span></div>';
@@ -2594,7 +2626,8 @@ function loadCloud(u){
         displayName:(cloud&&cloud.displayName)||local.displayName||null,
         avatar:(cloud&&cloud.avatar)||local.avatar||null,
         visibility:(cloud&&cloud.visibility)||local.visibility||'public',
-        friends:(cloud&&cloud.friends)||local.friends||[]});
+        friends:(cloud&&cloud.friends)||local.friends||[],
+        friendNicknames:(cloud&&cloud.friendNicknames)||local.friendNicknames||{}});
       pushCloud();
       enterHome();
       try{ publishMyResult(); }catch(e){}
@@ -2606,7 +2639,7 @@ function pushCloud(){
   if(!fbDb || !cloudUser){ return; }
   if(pushTimer){ clearTimeout(pushTimer); }
   pushTimer=setTimeout(function(){
-    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, handle:db.handle||null, displayName:db.displayName||null, avatar:db.avatar||null, visibility:db.visibility||'public', friends:db.friends||[], updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
+    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, handle:db.handle||null, displayName:db.displayName||null, avatar:db.avatar||null, visibility:db.visibility||'public', friends:db.friends||[], friendNicknames:db.friendNicknames||{}, updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
   }, 700);
 }
 function openAuth(){ try{ document.getElementById('authMsg').textContent=''; }catch(e){} show('auth'); try{ setInappWarn(); }catch(e){} if(!fbReady){ try{ document.getElementById('authMsg').innerHTML='<span style="color:#c0564a">로그인 서버에 연결할 수 없어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.</span>'; }catch(e){} } }
