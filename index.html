@@ -237,9 +237,21 @@
   .dex-cell.locked .avatar-nm{color:#aeb6c4;}
   .dex-lock{position:absolute;top:7px;right:9px;font-size:13px;}
   /* v35: 홈 신뢰도 카드 */
-  .rel-card{background:linear-gradient(135deg,#eef4fb,#f3f0fb);border:1px solid #e2e7f3;border-radius:14px;padding:14px 15px;}
+  .rel-card{background:linear-gradient(135deg,#eef4fb,#f3f0fb);border:1px solid #e2e7f3;border-radius:14px;padding:13px 14px;}
   .rel-head{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;font-weight:700;color:#3a4456;}
   .rel-head b{font-size:23px;}
+  /* v37: 홈 신뢰도 배지형 2행 */
+  .rel-row1{display:flex;align-items:center;gap:9px;}
+  .rel-lvl{color:#fff;font-size:12px;font-weight:800;padding:3px 11px;border-radius:999px;flex:none;}
+  .rel-pct{font-size:18px;font-weight:800;}
+  .rel-row2{display:flex;flex-wrap:wrap;gap:6px;}
+  .rel-chip{font-size:11.5px;font-weight:700;color:#5a6377;background:#fff;border:1px solid #e3e8f1;border-radius:999px;padding:4px 10px;}
+  .rel-comps{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+  .rel-comp{display:flex;align-items:center;gap:8px;font-size:11.5px;}
+  .rel-comp .rcl{flex:none;width:86px;color:#5a6377;font-weight:700;}
+  .rel-comp .rcbar{flex:1;height:7px;background:#e6eaf2;border-radius:4px;overflow:hidden;}
+  .rel-comp .rcbar i{display:block;height:100%;border-radius:4px;}
+  .rel-comp .rcv{flex:none;width:34px;text-align:right;font-weight:800;color:#48526a;}
   /* v24: MBTI 근사 · 인물상 */
   .mbti-card{background:linear-gradient(135deg,#eef3fb,#eef8f4);border:1px solid #d8e3ee;border-radius:15px;padding:15px;}
   .mbti-row{display:flex;align-items:center;gap:12px;}
@@ -341,7 +353,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v36 · 2026-06-28 11:15</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v37 · 2026-06-28 11:45</div>
   </section>
 
   <!-- MODE -->
@@ -418,6 +430,17 @@
     <h2>친구 궁합 분석</h2>
     <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈</button></div>
     <div id="compatResult" style="margin-top:14px;"></div>
+  </section>
+
+  <!-- FRIEND VIEW (v37: 친구 개인 결과/궁합) -->
+  <section id="friendview" class="card" style="display:none;">
+    <h2>친구 보기</h2>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈</button></div>
+    <div class="relmode-toggle" style="margin-top:8px;">
+      <button class="relmode-btn on" id="fvResBtn" onclick="fvShow('result')">📊 결과 보기</button>
+      <button class="relmode-btn" id="fvCompBtn" onclick="fvShow('compat')">💞 궁합 보기</button>
+    </div>
+    <div id="friendViewBody" style="margin-top:14px;"></div>
   </section>
 
   <!-- GROUP (v34: 그룹 궁합) -->
@@ -852,7 +875,7 @@ function currentProfile(){ var db=loadDB(); return getProfile(db.curId); }
 
 /* ===================== 화면 전환 ===================== */
 function $(id){return document.getElementById(id);}
-var SCREENS=["splash","setup","home","mode","quiz","result","trend","compat","group","collection","data","crossctx","pastelink","auth"];
+var SCREENS=["splash","setup","home","mode","quiz","result","trend","compat","friendview","group","collection","data","crossctx","pastelink","auth"];
 function show(s){ for(var i=0;i<SCREENS.length;i++){ var el=$(SCREENS[i]); if(el) el.style.display=(SCREENS[i]===s)?"block":"none"; } window.scrollTo(0,0); }
 function goHome(){ if(typeof fbReady!=='undefined' && fbReady && !cloudUser){ try{ show("auth"); if(typeof setInappWarn==='function') setInappWarn(); }catch(e){} return; } if(typeof fbReady!=='undefined' && fbReady && cloudUser && typeof profileComplete==='function' && !profileComplete()){ try{ renderSetup(); show("setup"); }catch(e){} return; } renderHome(); show("home"); try{ loadCounters(); }catch(e){} }
 function toast(msg){ try{ var t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){ t.className='toast on'; },20); setTimeout(function(){ t.className='toast'; setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },320); },3400); }catch(e){} }
@@ -1670,35 +1693,48 @@ function aggReliability(profile){
     sds.push(Math.sqrt(sv/sw));
   });
   var avgSd=sds.reduce(function(a,b){return a+b;},0)/sds.length;
-  var consistency=(n<2)?0.8:Math.max(0, 1 - avgSd/26);   /* 분산 작을수록 ↑, 들쭉날쭉하면 ↓ */
-  var countConf=Math.min(1, QU/5);                        /* 품질가중 단위 — 대충 본 검사는 거의 기여 못함 */
-  var score=Math.round((0.5*countConf + 0.3*consistency + 0.2*avgQ)*100);  /* 응답 품질이 낮으면 전체 하락 */
-  score=Math.max(5, Math.min(99, score));
-  return {count:n, units:U, qunits:Math.round(QU*10)/10, quality:Math.round(avgQ*100), score:score, avgSd:Math.round(avgSd), consistency:Math.round(consistency*100), countConf:Math.round(countConf*100)};
+  /* v37: 곡선을 빡세게 — 양(누적단위)은 멱곡선으로 천천히 상한 접근, 품질·일관은 곱셈 계수로(낮으면 전체 끌어내림) */
+  var consF=(n<2)?0.90:Math.max(0.2, Math.min(1, 1 - avgSd/22));   /* 일관성 계수: 들쭉날쭉하면 ↓ */
+  var qualF=Math.max(0.2, Math.min(1, avgQ/0.9));                  /* 응답 품질 계수: 성의 없으면 ↓ */
+  var countConf=Math.min(1, Math.pow(QU/23, 0.48));               /* 품질가중 누적단위 — 90%+엔 정밀·일관 8회급 필요 */
+  var score=Math.round(100 * countConf * qualF * consF);
+  score=Math.max(3, Math.min(99, score));
+  return {count:n, units:U, qunits:Math.round(QU*10)/10, quality:Math.round(avgQ*100), score:score, avgSd:Math.round(avgSd), consistency:Math.round(consF*100), countConf:Math.round(countConf*100)};
 }
 function aggBoxHTML(profile){
   var ag=aggReliability(profile); if(!ag.count){ return ''; }
   var col=ag.score>=70?'#3f8f74':(ag.score>=45?'#c08a3e':'#c0564a');
   var H='<div class="val" style="color:'+col+'">'+ag.count+'회 검사 기반 · 신뢰도 '+ag.score+'%</div>';
   H+='<div class="relbar" style="margin-top:8px"><i style="width:'+ag.score+'%;background:'+col+'"></i></div>';
+  H+=relComponentBars(ag);
   H+='<div class="muted" style="margin-top:9px;line-height:1.7"><b>일관되고 성의 있게</b> 여러 번 검사할수록 올라가요. <b>정밀 검사</b>는 문항이 많아 더 크게 올려줘요. 반대로 <b>대충·들쭉날쭉</b> 응답하면 오히려 내려갈 수 있어요.';
   if(ag.units<3){ H+=' <b>정밀 검사</b>를 한 번 해보면 크게 올라가요.'; }
   H+='</div>';
   H+='<div class="muted" style="margin-top:3px;font-size:11.5px">· 누적 '+ag.count+'회(문항수 가중) · 일관성 '+ag.consistency+'% · 응답 성의 '+ag.quality+'% · 참고용 추정치예요.</div>';
   return H;
 }
+function relLevel(s){ return s>=85?{t:'매우 높음',c:'#2f8f6e'}:(s>=65?{t:'높음',c:'#3f8f74'}:(s>=40?{t:'보통',c:'#c08a3e'}:{t:'낮음',c:'#c0564a'})); }
 function renderHomeRel(){
   try{
     var box=document.getElementById('homeRel'); if(!box){ return; }
     var p=(typeof currentMyProfile==='function')?currentMyProfile():null;
     var ag=p?aggReliability(p):null;
     if(!ag||!ag.count){ box.innerHTML='<span class="muted">검사를 1회 완료하면 내 결과 신뢰도가 표시돼요.</span>'; return; }
-    var col=ag.score>=70?'#3f8f74':(ag.score>=45?'#c08a3e':'#c0564a');
-    var H='<div class="rel-head"><span>내 결과 신뢰도</span><b style="color:'+col+'">'+ag.score+'%</b></div>';
-    H+='<div class="relbar" style="margin-top:6px"><i style="width:'+ag.score+'%;background:'+col+'"></i></div>';
-    H+='<div class="muted" style="margin-top:8px;font-size:12px;line-height:1.6">'+ag.count+'회 검사 기반 · 검사를 더 할수록 올라가요. <b>정밀 검사</b>를 하면 더 빨리 올라가요.</div>';
+    var lv=relLevel(ag.score);
+    var next=ag.score<40?40:(ag.score<65?65:(ag.score<85?85:100));
+    var H='<div class="rel-row1"><span class="rel-lvl" style="background:'+lv.c+'">'+lv.t+'</span><span class="rel-pct" style="color:'+lv.c+'">신뢰도 '+ag.score+'%</span></div>';
+    H+='<div class="relbar" style="height:6px;margin:8px 0 9px"><i style="width:'+ag.score+'%;background:'+lv.c+'"></i></div>';
+    H+='<div class="rel-row2"><span class="rel-chip">📋 '+ag.count+'회 기반</span>'+((ag.score<99)?('<span class="rel-chip">⬆ 다음 '+next+'%까지 '+(next-ag.score)+'%p</span>'):'<span class="rel-chip">🏆 최고 수준</span>')+'</div>';
+    H+=relComponentBars(ag);
+    H+='<div class="muted" style="margin-top:8px;font-size:11.5px;line-height:1.6">검사를 많이 한다고 무조건 오르지 않아요. <b>일관되고 성의 있게</b> 검사할수록 올라가요(대충 하면 떨어질 수도 있어요).</div>';
     box.innerHTML=H;
   }catch(e){}
+}
+function relComponentBars(ag){
+  var items=[['검사 양·깊이',ag.countConf,'#5a7bc0'],['검사 간 일관성',ag.consistency,'#3f8f74'],['응답 품질',ag.quality,'#c08a3e']];
+  var H='<div class="rel-comps">';
+  items.forEach(function(it){ var v=(it[1]==null?0:it[1]); H+='<div class="rel-comp"><span class="rcl">'+it[0]+'</span><div class="rcbar"><i style="width:'+v+'%;background:'+it[2]+'"></i></div><span class="rcv">'+v+'%</span></div>'; });
+  H+='</div>'; return H;
 }
 
 /* v24: MBTI 근사 (HEXACO 점수 기반 단순 매핑 — 정식 검사와 측정 방식 다름) */
@@ -2157,7 +2193,7 @@ function renderFriendRanking(){
     arr.forEach(function(it,i){
       var col=it.score>=70?'#3f8f74':(it.score>=50?'#c08a3e':'#c0564a');
       var medal=(i===0?'🥇':(i===1?'🥈':(i===2?'🥉':(i+1)+'')));
-      H+='<div class="rankrow" onclick="openFriendCompat(\''+it.uid+'\')">'
+      H+='<div class="rankrow" onclick="openFriendDetail(\''+it.uid+'\')">'
         +'<span class="rk">'+medal+'</span>'+avatarSVG(it.r.avatar,38)
         +'<span class="rkname"><b>'+esc(it.r.displayName||it.r.handle||'친구')+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.r.handle||'')+' · '+esc(it.r.name||'')+(it.r.reliability!=null?(' · 신뢰도 '+it.r.reliability+'%'):'')+'</span></span>'
         +'<span class="rkscore" style="color:'+col+'">'+it.score+'%<span class="rkgo">›</span></span></div>';
@@ -2165,17 +2201,49 @@ function renderFriendRanking(){
     box.innerHTML=H;
   }catch(e){}
 }
+function buildFriendCompatHTML(fr){
+  var myA=myAggDom(); if(!myA){ return '<span class="muted">먼저 내 검사를 완료해 주세요.</span>'; }
+  var d=loadDB(); var meName=(d.displayName||d.handle||'나'); var frName=(fr.displayName||fr.handle||'친구');
+  var sel=[ {name:meName, history:[{pct:myA.dom, fac:myA.fac}]}, {name:frName, history:[{pct:fr.agg, fac:null}]} ];
+  var head='<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px">'+avatarSVG(d.avatar,48)+'<span style="font-size:20px;color:#b7c0d4">×</span>'+avatarSVG(fr.avatar,48)+'</div>';
+  head+='<div class="ccard" style="padding:12px 10px 6px"><div class="cc-h" style="text-align:center">나 vs '+esc(frName)+' · 6각 비교</div>'+buildDualRadarSVG(myA.dom, fr.agg, meName, frName)+'</div>';
+  window.__cmp={a:myA.dom, b:fr.agg, n1:meName, n2:frName}; if(!window.__relMode){ window.__relMode='love'; }
+  head+='<div id="relModeBox">'+relModeBoxHTML()+'</div>';
+  return head+renderPairResult(sel);
+}
 function openFriendCompat(fuid){
   try{
     var fr=(window.__friendResults||{})[fuid]; if(!fr||!fr.agg){ toast('친구 결과를 불러오지 못했어요.'); return; }
     var myA=myAggDom(); if(!myA){ toast('먼저 내 검사를 완료해 주세요.'); return; }
-    var d=loadDB(); var meName=(d.displayName||d.handle||'나'); var frName=(fr.displayName||fr.handle||'친구');
-    var sel=[ {name:meName, history:[{pct:myA.dom, fac:myA.fac}]}, {name:frName, history:[{pct:fr.agg, fac:null}]} ];
-    var head='<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px">'+avatarSVG(d.avatar,48)+'<span style="font-size:20px;color:#b7c0d4">×</span>'+avatarSVG(fr.avatar,48)+'</div>';
-    head+='<div class="ccard" style="padding:12px 10px 6px"><div class="cc-h" style="text-align:center">나 vs '+esc(frName)+' · 6각 비교</div>'+buildDualRadarSVG(myA.dom, fr.agg, meName, frName)+'</div>';
-    window.__cmp={a:myA.dom, b:fr.agg, n1:meName, n2:frName}; if(!window.__relMode){ window.__relMode='love'; }
-    head+='<div id="relModeBox">'+relModeBoxHTML()+'</div>';
-    document.getElementById('compatResult').innerHTML=head+renderPairResult(sel); show('compat');
+    document.getElementById('compatResult').innerHTML=buildFriendCompatHTML(fr); show('compat');
+  }catch(e){}
+}
+/* v37: 친구 개인 결과 보기 */
+function friendResultHTML(fr){
+  var dom=fr.agg; var prof=topProfile(dom);
+  var H='<div class="center">'+avatarSVG(fr.avatar,76)+'<div class="profile-name" style="margin-top:8px">'+esc(fr.name||prof.name)+'</div><div class="who">@'+esc(fr.handle||'')+(fr.reliability!=null?(' · 신뢰도 '+fr.reliability+'%'):'')+(fr.count?(' · '+fr.count+'회 검사'):'')+'</div></div>';
+  try{ H+='<div class="char-wrap">'+charCardHTML(prof, dom)+'</div>'; }catch(e){}
+  H+='<div class="radar-wrap" style="margin-top:6px">'+buildRadarSVG(dom)+'</div>';
+  H+='<div class="ccard"><div class="cc-h">요인 점수</div>';
+  DORDER.forEach(function(k){ H+='<div class="cc-bar"><span class="cc-nm">'+DNAME[k]+'</span><div class="cbar"><i style="width:'+dom[k]+'%;background:'+DHEX[k]+'"></i></div><span class="cc-v">'+dom[k]+'</span></div>'; });
+  H+='</div><div class="muted" style="text-align:center;font-size:11.5px;margin-top:8px">친구의 결과 요약이에요. 개별 응답은 비공개예요.</div>';
+  return H;
+}
+function openFriendDetail(fuid){
+  try{
+    var fr=(window.__friendResults||{})[fuid]; if(!fr||!fr.agg){ toast('친구 결과를 불러오지 못했어요.'); return; }
+    window.__fvUid=fuid; window.__fvMode='result'; fvSync(); show('friendview');
+  }catch(e){}
+}
+function fvShow(mode){ try{ window.__fvMode=mode; fvSync(); }catch(e){} }
+function fvSync(){
+  try{
+    var fr=(window.__friendResults||{})[window.__fvUid]; if(!fr){ return; }
+    var mode=window.__fvMode||'result';
+    var rb=document.getElementById('fvResBtn'), cb=document.getElementById('fvCompBtn');
+    if(rb){ rb.className='relmode-btn'+(mode==='result'?' on':''); } if(cb){ cb.className='relmode-btn'+(mode==='compat'?' on':''); }
+    var body=document.getElementById('friendViewBody'); if(!body){ return; }
+    body.innerHTML=(mode==='compat')?buildFriendCompatHTML(fr):friendResultHTML(fr);
   }catch(e){}
 }
 /* v34: 그룹 궁합 */
