@@ -361,7 +361,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v38 · 2026-06-28 12:15</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v39 · 2026-06-28 12:45</div>
   </section>
 
   <!-- MODE -->
@@ -1927,9 +1927,18 @@ function profileComplete(){ try{ var d=loadDB(); return !!(d.handle && d.avatar)
 function enterHome(){
   try{
     if(fbReady && cloudUser && !profileComplete()){ renderSetup(); show('setup'); return; }
+    try{ if(typeof selfHealResult==='function') selfHealResult(); }catch(e){}  /* v39: 자가치유 — 홈 진입 시 현재 산식으로 신뢰도 재계산·재저장 */
     renderHome(); show('home');
   }catch(e){ try{ show('home'); }catch(_){} }
   try{ afterImportFlow(); }catch(e){}
+}
+/* v39: 신뢰도 자가치유 — history에서 현재(v37) 산식으로 재계산해 results 문서를 항상 새 스케일로 갱신 */
+function selfHealResult(){
+  try{
+    if(!fbReady||!cloudUser||!fbDb){ return; }
+    var p=(typeof currentMyProfile==='function')?currentMyProfile():null; if(!p||!p.history||!p.history.length){ return; }
+    publishMyResult();   /* publishMyResult가 aggReliability(현재 산식)로 reliability를 다시 계산해 results에 set */
+  }catch(e){}
 }
 function paintAuthBar(){
   try{
@@ -2027,7 +2036,7 @@ function publishMyResult(){
     if(!fbReady||!cloudUser||!fbDb){ return; }
     var d=loadDB(); var p=currentMyProfile(); var ag=p?aggProfile(p):null;
     var base={ uid:cloudUser.uid, handle:d.handle||'', displayName:d.displayName||d.handle||'', avatar:d.avatar||'', updatedAt:Date.now() };
-    if(ag){ var rel=aggReliability(p); var tp=topProfile(ag.dom); base.agg=ag.dom; base.fac=ag.fac||null; base.count=ag.count; base.reliability=rel.score; base.name=tp.name; }
+    if(ag){ var rel=aggReliability(p); var tp=topProfile(ag.dom); base.agg=ag.dom; base.fac=ag.fac||null; base.count=ag.count; base.reliability=rel.score; base.relV=39; base.name=tp.name; }
     fbDb.collection('results').doc(cloudUser.uid).set(base, {merge:true}).then(function(){}, function(){});
   }catch(e){}
 }
