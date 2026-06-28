@@ -341,7 +341,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v35 · 2026-06-28 10:45</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v36 · 2026-06-28 11:15</div>
   </section>
 
   <!-- MODE -->
@@ -503,7 +503,7 @@ var DORDER=["H","E","X","A","C","O"];
 var DNAME={H:"정직-겸손",E:"정서성",X:"외향성",A:"친화성",C:"성실성",O:"개방성"};
 var DHEX={H:"#b5683e",E:"#8a6cc0",X:"#d9774a",A:"#4a9d8e",C:"#4a6fa5",O:"#c0894a"};
 
-/* ===================== 문항 은행 (24 facet × 5 = 120) ===================== */
+/* ===================== 문항 은행 (24 facet × 10 = 240) ===================== */
 var QUESTION_BANK=[
  {d:"H",fc:"진실성",t:"잘 보이려고 마음에도 없는 칭찬은 하지 않는다.",rev:false},
  {d:"H",fc:"진실성",t:"뭔가 얻으려고 남의 비위를 맞추는 건 잘 못한다.",rev:false},
@@ -629,7 +629,128 @@ var QUESTION_BANK=[
  {d:"O",fc:"비관습성",t:"전통이나 관습에 얽매이지 않으려 한다.",rev:false},
  {d:"O",fc:"비관습성",t:"낯설고 독특한 생각도 열린 마음으로 들어본다.",rev:false},
  {d:"O",fc:"비관습성",t:"새로운 것보다 익숙하고 검증된 방식이 좋다.",rev:true},
- {d:"O",fc:"비관습성",t:"틀에서 벗어난 생각은 불편하게 느껴진다.",rev:true}
+ {d:"O",fc:"비관습성",t:"틀에서 벗어난 생각은 불편하게 느껴진다.",rev:true},
+ /* ===== v36 확장 문항 (facet당 +5 → 10개, 총 240) — 쉬운 일상어 ===== */
+ {d:"H",fc:"진실성",t:"친구가 부탁해도 거짓말은 잘 못한다.",rev:false},
+ {d:"H",fc:"진실성",t:"이득을 보려고 없는 말을 지어내지 않는다.",rev:false},
+ {d:"H",fc:"진실성",t:"마음에 없는 빈말은 잘 안 한다.",rev:false},
+ {d:"H",fc:"진실성",t:"필요하면 듣기 좋은 거짓말도 할 수 있다.",rev:true},
+ {d:"H",fc:"진실성",t:"잘 보이려고 일부러 과장해서 말할 때가 있다.",rev:true},
+ {d:"H",fc:"공정성",t:"거스름돈을 더 받으면 돌려준다.",rev:false},
+ {d:"H",fc:"공정성",t:"내 차례가 아니면 새치기하지 않는다.",rev:false},
+ {d:"H",fc:"공정성",t:"친한 사이라도 공과 사는 구분한다.",rev:false},
+ {d:"H",fc:"공정성",t:"내게 유리하면 규칙을 슬쩍 어길 수 있다.",rev:true},
+ {d:"H",fc:"공정성",t:"들키지만 않으면 작은 부정은 괜찮다고 생각한다.",rev:true},
+ {d:"H",fc:"욕심없음",t:"남보다 많이 갖는 데 큰 욕심이 없다.",rev:false},
+ {d:"H",fc:"욕심없음",t:"비싼 차나 큰 집이 꼭 필요하다고 느끼지 않는다.",rev:false},
+ {d:"H",fc:"욕심없음",t:"지금 가진 것에 대체로 만족한다.",rev:false},
+ {d:"H",fc:"욕심없음",t:"돈을 더 벌 수 있다면 무리해서라도 하고 싶다.",rev:true},
+ {d:"H",fc:"욕심없음",t:"남들보다 더 좋은 걸 가지고 싶은 마음이 크다.",rev:true},
+ {d:"H",fc:"겸손함",t:"칭찬을 받으면 쑥스러워서 손사래를 친다.",rev:false},
+ {d:"H",fc:"겸손함",t:"내 자랑을 늘어놓는 건 영 어색하다.",rev:false},
+ {d:"H",fc:"겸손함",t:"나도 남들처럼 평범한 사람이라고 생각한다.",rev:false},
+ {d:"H",fc:"겸손함",t:"사람들이 내 능력을 알아봐 줬으면 한다.",rev:true},
+ {d:"H",fc:"겸손함",t:"나는 보통 사람들과는 좀 다르다고 느낀다.",rev:true},
+ {d:"E",fc:"두려움",t:"높은 곳에 올라가면 무서워서 손에 땀이 난다.",rev:false},
+ {d:"E",fc:"두려움",t:"밤에 혼자 다니는 게 좀 무섭다.",rev:false},
+ {d:"E",fc:"두려움",t:"무서운 놀이기구는 되도록 안 탄다.",rev:false},
+ {d:"E",fc:"두려움",t:"겁나는 상황도 오히려 짜릿하게 느낀다.",rev:true},
+ {d:"E",fc:"두려움",t:"위험해 보여도 한번 해보고 싶어진다.",rev:true},
+ {d:"E",fc:"불안",t:"잠들기 전에 이런저런 걱정이 떠오른다.",rev:false},
+ {d:"E",fc:"불안",t:"결과를 기다릴 때 마음을 졸인다.",rev:false},
+ {d:"E",fc:"불안",t:"안 좋은 일이 생길까 봐 자주 신경 쓴다.",rev:false},
+ {d:"E",fc:"불안",t:"큰일을 앞두고도 별로 떨리지 않는다.",rev:true},
+ {d:"E",fc:"불안",t:"걱정거리가 있어도 잠은 잘 자는 편이다.",rev:true},
+ {d:"E",fc:"의존성",t:"속상한 일은 누군가에게 털어놔야 풀린다.",rev:false},
+ {d:"E",fc:"의존성",t:"혼자 정하기보다 누군가의 조언을 구하고 싶다.",rev:false},
+ {d:"E",fc:"의존성",t:"곁에 기댈 사람이 있으면 마음이 든든하다.",rev:false},
+ {d:"E",fc:"의존성",t:"고민이 있어도 혼자 삭이는 편이다.",rev:true},
+ {d:"E",fc:"의존성",t:"도움을 청하기보다 스스로 해결하려 한다.",rev:true},
+ {d:"E",fc:"감상성",t:"감동적인 장면에서 눈물이 핑 돈다.",rev:false},
+ {d:"E",fc:"감상성",t:"반려동물이나 아기를 보면 마음이 말랑해진다.",rev:false},
+ {d:"E",fc:"감상성",t:"가까운 사람의 일이면 내 일처럼 느껴진다.",rev:false},
+ {d:"E",fc:"감상성",t:"감정에 크게 휘둘리지 않는 편이다.",rev:true},
+ {d:"E",fc:"감상성",t:"남의 슬픔에 그렇게 깊이 빠지지는 않는다.",rev:true},
+ {d:"X",fc:"사회적자존감",t:"모임에서 내가 환영받는다고 느낀다.",rev:false},
+ {d:"X",fc:"사회적자존감",t:"사람들과 있을 때 마음이 편하고 당당하다.",rev:false},
+ {d:"X",fc:"사회적자존감",t:"내 모습 그대로 사람들 앞에 서도 괜찮다.",rev:false},
+ {d:"X",fc:"사회적자존감",t:"사람들 사이에서 자꾸 주눅이 든다.",rev:true},
+ {d:"X",fc:"사회적자존감",t:"내가 끼면 분위기가 어색해질까 걱정된다.",rev:true},
+ {d:"X",fc:"사회적대담성",t:"발표나 건배사를 시켜도 부담이 적다.",rev:false},
+ {d:"X",fc:"사회적대담성",t:"모르는 사람들 사이에서도 금방 말을 튼다.",rev:false},
+ {d:"X",fc:"사회적대담성",t:"회의에서 내 의견을 먼저 꺼내는 편이다.",rev:false},
+ {d:"X",fc:"사회적대담성",t:"시선이 쏠리면 긴장돼서 말이 막힌다.",rev:true},
+ {d:"X",fc:"사회적대담성",t:"앞에 나서야 하는 자리는 되도록 피한다.",rev:true},
+ {d:"X",fc:"사교성",t:"약속이 많은 주말이 즐겁다.",rev:false},
+ {d:"X",fc:"사교성",t:"사람들과 수다 떠는 시간이 좋다.",rev:false},
+ {d:"X",fc:"사교성",t:"새 모임에 끼는 걸 망설이지 않는다.",rev:false},
+ {d:"X",fc:"사교성",t:"약속이 많으면 금방 지친다.",rev:true},
+ {d:"X",fc:"사교성",t:"주말엔 사람 만나기보다 집에 있고 싶다.",rev:true},
+ {d:"X",fc:"활기",t:"아침에 비교적 기운차게 시작하는 편이다.",rev:false},
+ {d:"X",fc:"활기",t:"신나는 일이 있으면 들떠서 활기가 넘친다.",rev:false},
+ {d:"X",fc:"활기",t:"주변에서 나를 에너지 넘친다고 한다.",rev:false},
+ {d:"X",fc:"활기",t:"하루 종일 나른하고 기운이 없을 때가 많다.",rev:true},
+ {d:"X",fc:"활기",t:"신나는 일이 있어도 별로 들뜨지 않는다.",rev:true},
+ {d:"A",fc:"용서",t:"사과를 받으면 금세 마음이 풀린다.",rev:false},
+ {d:"A",fc:"용서",t:"다툰 다음 날이면 대개 화가 가라앉는다.",rev:false},
+ {d:"A",fc:"용서",t:"오래 미워하는 게 나도 피곤해서 잘 잊는다.",rev:false},
+ {d:"A",fc:"용서",t:"한 번 상처받으면 그 사람이 계속 밉다.",rev:true},
+ {d:"A",fc:"용서",t:"사과를 받아도 서운함이 잘 안 가신다.",rev:true},
+ {d:"A",fc:"온화함",t:"화가 나도 말을 부드럽게 하려고 한다.",rev:false},
+ {d:"A",fc:"온화함",t:"남을 탓하기보다 사정을 먼저 헤아린다.",rev:false},
+ {d:"A",fc:"온화함",t:"후배나 약한 사람에게 너그럽게 대한다.",rev:false},
+ {d:"A",fc:"온화함",t:"마음에 안 들면 말투가 퉁명스러워진다.",rev:true},
+ {d:"A",fc:"온화함",t:"상대의 잘못을 콕콕 집어내는 편이다.",rev:true},
+ {d:"A",fc:"유연성",t:"메뉴를 고를 때 상대에게 잘 맞춰준다.",rev:false},
+ {d:"A",fc:"유연성",t:"다른 의견도 일단 받아들여 보려 한다.",rev:false},
+ {d:"A",fc:"유연성",t:"내 계획이 틀어져도 융통성 있게 바꾼다.",rev:false},
+ {d:"A",fc:"유연성",t:"내가 정한 건 웬만하면 안 바꾼다.",rev:true},
+ {d:"A",fc:"유연성",t:"남이 내 방식에 맞춰줬으면 한다.",rev:true},
+ {d:"A",fc:"인내",t:"줄을 오래 서도 짜증 내지 않고 기다린다.",rev:false},
+ {d:"A",fc:"인내",t:"답답한 상황에서도 차분히 넘긴다.",rev:false},
+ {d:"A",fc:"인내",t:"누가 약 올려도 웬만하면 참는다.",rev:false},
+ {d:"A",fc:"인내",t:"일이 안 풀리면 금방 신경질이 난다.",rev:true},
+ {d:"A",fc:"인내",t:"조금만 거슬려도 욱하고 올라온다.",rev:true},
+ {d:"C",fc:"조직성",t:"책상이나 가방 속이 늘 정돈돼 있다.",rev:false},
+ {d:"C",fc:"조직성",t:"할 일을 목록으로 적어 관리한다.",rev:false},
+ {d:"C",fc:"조직성",t:"약속과 일정을 미리미리 챙긴다.",rev:false},
+ {d:"C",fc:"조직성",t:"정리는 자꾸 미루다 어질러 놓는다.",rev:true},
+ {d:"C",fc:"조직성",t:"일정을 자주 깜빡하거나 놓친다.",rev:true},
+ {d:"C",fc:"근면성",t:"해야 할 일은 미루지 않고 바로 시작한다.",rev:false},
+ {d:"C",fc:"근면성",t:"지루한 일도 끝까지 붙잡고 마무리한다.",rev:false},
+ {d:"C",fc:"근면성",t:"남들이 쉴 때도 할 일은 해두는 편이다.",rev:false},
+ {d:"C",fc:"근면성",t:"할 일을 자꾸 나중으로 미룬다.",rev:true},
+ {d:"C",fc:"근면성",t:"조금 지치면 금방 손을 놓아버린다.",rev:true},
+ {d:"C",fc:"완벽주의",t:"보내기 전에 오타가 없는지 다시 본다.",rev:false},
+ {d:"C",fc:"완벽주의",t:"맡은 일은 작은 부분까지 점검한다.",rev:false},
+ {d:"C",fc:"완벽주의",t:"마무리가 깔끔해야 마음이 놓인다.",rev:false},
+ {d:"C",fc:"완벽주의",t:"대충 됐다 싶으면 더 안 들여다본다.",rev:true},
+ {d:"C",fc:"완벽주의",t:"자잘한 실수는 그냥 넘기는 편이다.",rev:true},
+ {d:"C",fc:"신중함",t:"큰돈 쓸 일은 며칠 고민하고 정한다.",rev:false},
+ {d:"C",fc:"신중함",t:"결정 전에 여러 경우를 따져본다.",rev:false},
+ {d:"C",fc:"신중함",t:"서두르기보다 차분히 준비하고 움직인다.",rev:false},
+ {d:"C",fc:"신중함",t:"끌리면 깊이 안 따지고 바로 지른다.",rev:true},
+ {d:"C",fc:"신중함",t:"계획보다 그때 기분대로 행동할 때가 많다.",rev:true},
+ {d:"O",fc:"심미안",t:"노을이나 꽃을 보면 한참 바라본다.",rev:false},
+ {d:"O",fc:"심미안",t:"마음에 드는 음악은 몇 번이고 다시 듣는다.",rev:false},
+ {d:"O",fc:"심미안",t:"잘 꾸며진 공간에 있으면 기분이 좋다.",rev:false},
+ {d:"O",fc:"심미안",t:"예술 작품을 봐도 별 느낌이 없다.",rev:true},
+ {d:"O",fc:"심미안",t:"겉모습보다 기능이 좋으면 그만이다.",rev:true},
+ {d:"O",fc:"탐구심",t:"처음 듣는 이야기가 나오면 귀가 솔깃하다.",rev:false},
+ {d:"O",fc:"탐구심",t:"관심이 생긴 주제는 깊이 파고든다.",rev:false},
+ {d:"O",fc:"탐구심",t:"다큐멘터리나 새 정보 보는 걸 좋아한다.",rev:false},
+ {d:"O",fc:"탐구심",t:"복잡한 원리까지 알고 싶지는 않다.",rev:true},
+ {d:"O",fc:"탐구심",t:"새로운 걸 배우는 건 귀찮게 느껴진다.",rev:true},
+ {d:"O",fc:"창의성",t:"평범한 것도 다르게 바꿔볼 생각을 한다.",rev:false},
+ {d:"O",fc:"창의성",t:"엉뚱한 상상을 자주 한다.",rev:false},
+ {d:"O",fc:"창의성",t:"문제가 막히면 새로운 방법을 떠올린다.",rev:false},
+ {d:"O",fc:"창의성",t:"하던 방식이 편하고 새 방법은 번거롭다.",rev:true},
+ {d:"O",fc:"창의성",t:"기발한 아이디어를 떠올리는 건 어렵다.",rev:true},
+ {d:"O",fc:"비관습성",t:"남들이 안 가본 길도 한번 가볼 만하다고 본다.",rev:false},
+ {d:"O",fc:"비관습성",t:"독특한 취향을 가진 사람을 재미있어한다.",rev:false},
+ {d:"O",fc:"비관습성",t:"꼭 다수를 따라야 한다고 생각하지 않는다.",rev:false},
+ {d:"O",fc:"비관습성",t:"다들 하는 대로 따라가는 게 마음 편하다.",rev:true},
+ {d:"O",fc:"비관습성",t:"관습을 벗어난 행동은 눈에 거슬린다.",rev:true}
 ];
 var QUESTIONS=[];
 function shuffle(arr){ for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp; } return arr; }
@@ -1535,31 +1656,35 @@ function aggProfile(profile){
   var fac={}; for(var f in fsum){ fac[f]=Math.round(fsum[f]/fw[f]); }
   return {dom:dom, fac:fac, count:h.length, units:sw};
 }
+/* v36: 검사별 응답 품질(성의) — reliability(ans)가 직선응답·극단편중·역문항 비일관 감지해 rec.rel.score로 저장 */
+function recQuality(r){ var q=(r&&r.rel&&r.rel.score!=null)?(r.rel.score/100):0.8; return Math.max(0.2, Math.min(1, q)); }
+/* v36: 신뢰도 = 양·깊이(품질가중 단위) + 검사 간 일관성 + 응답 품질의 복합 (단조 증가 아님 — 대충/모순 검사는 하락) */
 function aggReliability(profile){
-  var h=(profile&&profile.history)?profile.history:[]; var n=h.length; if(!n){ return {count:0,units:0,score:0,avgSd:0,consistency:0}; }
-  var U=0; h.forEach(function(r){ U+=modeWeight(r.mode); });   /* 가중 합(weighted units): 정밀 1회 = 간편 3회 */
-  var sds=[]; DORDER.forEach(function(k){
+  var h=(profile&&profile.history)?profile.history:[]; var n=h.length; if(!n){ return {count:0,units:0,qunits:0,quality:0,score:0,avgSd:0,consistency:0}; }
+  var U=0, QU=0; h.forEach(function(r){ var w=modeWeight(r.mode); U+=w; QU+=w*recQuality(r); });   /* U=가중 단위, QU=품질가중 단위 */
+  var avgQ=QU/U;
+  var sds=[]; DORDER.forEach(function(k){   /* 검사 간 일관성: 결과(pct) 분산 — 문항수 가중(모순 검사는 결과가 달라 일관성↓) */
     var sw=0, swv=0; h.forEach(function(r){ var w=modeWeight(r.mode); var v=(r.pct&&r.pct[k]!=null)?r.pct[k]:50; sw+=w; swv+=w*v; });
     var m=swv/sw;
     var sv=0; h.forEach(function(r){ var w=modeWeight(r.mode); var v=(r.pct&&r.pct[k]!=null)?r.pct[k]:50; sv+=w*(v-m)*(v-m); });
     sds.push(Math.sqrt(sv/sw));
   });
   var avgSd=sds.reduce(function(a,b){return a+b;},0)/sds.length;
-  var consistency=(n<2)?0.8:Math.max(0, 1 - avgSd/30);   /* 1회는 일관성 측정 불가 → 중립값(정밀 1회가 충분히 인정받게) */
-  var countConf=Math.min(1, U/5);                        /* 가중 5단위면 만점(정밀≈1.7회, 간편 5회) */
-  var score=Math.round((0.65*countConf + 0.35*consistency)*100);
-  score=Math.max(8, Math.min(99, score));
-  return {count:n, units:U, score:score, avgSd:Math.round(avgSd), consistency:Math.round(consistency*100), countConf:Math.round(countConf*100)};
+  var consistency=(n<2)?0.8:Math.max(0, 1 - avgSd/26);   /* 분산 작을수록 ↑, 들쭉날쭉하면 ↓ */
+  var countConf=Math.min(1, QU/5);                        /* 품질가중 단위 — 대충 본 검사는 거의 기여 못함 */
+  var score=Math.round((0.5*countConf + 0.3*consistency + 0.2*avgQ)*100);  /* 응답 품질이 낮으면 전체 하락 */
+  score=Math.max(5, Math.min(99, score));
+  return {count:n, units:U, qunits:Math.round(QU*10)/10, quality:Math.round(avgQ*100), score:score, avgSd:Math.round(avgSd), consistency:Math.round(consistency*100), countConf:Math.round(countConf*100)};
 }
 function aggBoxHTML(profile){
   var ag=aggReliability(profile); if(!ag.count){ return ''; }
   var col=ag.score>=70?'#3f8f74':(ag.score>=45?'#c08a3e':'#c0564a');
   var H='<div class="val" style="color:'+col+'">'+ag.count+'회 검사 기반 · 신뢰도 '+ag.score+'%</div>';
   H+='<div class="relbar" style="margin-top:8px"><i style="width:'+ag.score+'%;background:'+col+'"></i></div>';
-  H+='<div class="muted" style="margin-top:9px;line-height:1.7">여러 번 검사할수록, 또 검사 간 결과가 일관될수록 추정이 안정돼요. <b>정밀 검사</b>는 문항이 많아 신뢰도를 더 많이 올려줘요.';
+  H+='<div class="muted" style="margin-top:9px;line-height:1.7"><b>일관되고 성의 있게</b> 여러 번 검사할수록 올라가요. <b>정밀 검사</b>는 문항이 많아 더 크게 올려줘요. 반대로 <b>대충·들쭉날쭉</b> 응답하면 오히려 내려갈 수 있어요.';
   if(ag.units<3){ H+=' <b>정밀 검사</b>를 한 번 해보면 크게 올라가요.'; }
   H+='</div>';
-  H+='<div class="muted" style="margin-top:3px;font-size:11.5px">· 누적 '+ag.count+'회(문항수 가중) · 검사 간 평균 편차 '+ag.avgSd+'점 · 일관성 '+ag.consistency+'% · 참고용 추정치예요.</div>';
+  H+='<div class="muted" style="margin-top:3px;font-size:11.5px">· 누적 '+ag.count+'회(문항수 가중) · 일관성 '+ag.consistency+'% · 응답 성의 '+ag.quality+'% · 참고용 추정치예요.</div>';
   return H;
 }
 function renderHomeRel(){
@@ -2034,7 +2159,7 @@ function renderFriendRanking(){
       var medal=(i===0?'🥇':(i===1?'🥈':(i===2?'🥉':(i+1)+'')));
       H+='<div class="rankrow" onclick="openFriendCompat(\''+it.uid+'\')">'
         +'<span class="rk">'+medal+'</span>'+avatarSVG(it.r.avatar,38)
-        +'<span class="rkname"><b>'+esc(it.r.displayName||it.r.handle||'친구')+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.r.handle||'')+' · '+esc(it.r.name||'')+'</span></span>'
+        +'<span class="rkname"><b>'+esc(it.r.displayName||it.r.handle||'친구')+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.r.handle||'')+' · '+esc(it.r.name||'')+(it.r.reliability!=null?(' · 신뢰도 '+it.r.reliability+'%'):'')+'</span></span>'
         +'<span class="rkscore" style="color:'+col+'">'+it.score+'%<span class="rkgo">›</span></span></div>';
     });
     box.innerHTML=H;
@@ -2060,7 +2185,7 @@ function renderGroupPick(){
     var box=document.getElementById('groupPick'); if(!box){ return; }
     var set=acceptedFriendSet(); var fr=window.__friendResults||{}; var any=false, H='';
     for(var fuid in set){ var r=fr[fuid]; if(r&&r.agg){ any=true;
-      H+='<label class="reqcard" style="cursor:pointer"><input type="checkbox" class="grp-chk" value="'+fuid+'" style="width:18px;height:18px;flex:none">'+avatarSVG(r.avatar,34)+'<span class="rq-info"><b>'+esc(r.displayName||r.handle||'친구')+'</b> <span class="muted" style="font-size:11px">@'+esc(r.handle||'')+'</span></span></label>';
+      H+='<label class="reqcard" style="cursor:pointer"><input type="checkbox" class="grp-chk" value="'+fuid+'" style="width:18px;height:18px;flex:none">'+avatarSVG(r.avatar,34)+'<span class="rq-info"><b>'+esc(r.displayName||r.handle||'친구')+'</b> <span class="muted" style="font-size:11px">@'+esc(r.handle||'')+(r.reliability!=null?(' · 신뢰도 '+r.reliability+'%'):'')+'</span></span></label>';
     } }
     if(!any){ H='<span class="muted">검사를 완료한 친구가 있어야 그룹 분석을 할 수 있어요.</span>'; }
     box.innerHTML=H;
@@ -2093,10 +2218,25 @@ function renderCollection(){
       H+='<div class="dex-cell'+(unlocked?'':' locked')+'"><span class="avatar" style="width:64px;height:64px;background:'+a.color+'1f">'+mascotArtSVG(a.id,64)+'</span><span class="avatar-nm">'+a.name+'</span>'+(unlocked?'':'<span class="dex-lock">🔒</span>')+'</div>';
     });
     H+='</div><div class="center muted" style="margin-top:8px">'+nUnlocked+' / '+AVATARS.length+' 수집</div>';
-    var totalTests=0; (d.profiles||[]).forEach(function(p){ if(!p.imported&&p.history){ totalTests+=p.history.length; } });
+    var totalTests=0, preciseCnt=0, days={};
+    (d.profiles||[]).forEach(function(p){ if(!p.imported&&p.history){ p.history.forEach(function(rec){ totalTests++; if(rec.mode===3){ preciseCnt++; } if(rec.date){ days[(''+rec.date).slice(0,10)]=1; } }); } });
+    var nDays=0; for(var dd in days){ nDays++; }
     var nFriends=0; var set=acceptedFriendSet(); for(var k in set){ nFriends++; }
     var nTypes=0; for(var t in types){ nTypes++; }
-    var badges=[ {on:totalTests>=1,t:'🎯 첫 검사'},{on:totalTests>=3,t:'🔁 3회 검사'},{on:totalTests>=5,t:'🏅 5회 검사'},{on:totalTests>=10,t:'👑 10회 검사'},{on:nFriends>=1,t:'🤝 첫 친구'},{on:nFriends>=3,t:'👥 친구 3명'},{on:nTypes>=3,t:'🌈 3유형'},{on:nUnlocked>=7,t:'📖 도감 완성'} ];
+    var myP=(typeof currentMyProfile==='function')?currentMyProfile():null; var myRel=myP?aggReliability(myP).score:0;
+    var nextRel=myRel<50?50:(myRel<70?70:(myRel<90?90:100));
+    H+='<div class="section-title" style="margin-top:18px">내 신뢰도</div>';
+    H+='<div class="rel-card"><div class="rel-head"><span>현재 신뢰도</span><b style="color:#4a6fa5">'+myRel+'%</b></div><div class="relbar" style="margin-top:6px"><i style="width:'+myRel+'%;background:#5a7bc0"></i></div>';
+    H+=(myRel<90)?('<div class="muted" style="margin-top:7px;font-size:12px"><b>'+nextRel+'%</b>까지 '+(nextRel-myRel)+'%p 남았어요. <b>재검사</b>·<b>정밀 검사</b>로 올려보세요.</div>'):'<div class="muted" style="margin-top:7px;font-size:12px">최고 수준이에요! 꾸준히 유지해 보세요.</div>';
+    H+='</div>';
+    var badges=[
+      {on:totalTests>=1,t:'🎯 첫 검사'},{on:totalTests>=3,t:'🔁 재검사 3회'},{on:totalTests>=5,t:'🏅 재검사 5회'},{on:totalTests>=10,t:'👑 재검사 10회'},
+      {on:preciseCnt>=1,t:'🔬 정밀검사 1회'},{on:preciseCnt>=3,t:'🔬 정밀검사 3회'},
+      {on:myRel>=50,t:'📊 신뢰도 50%'},{on:myRel>=70,t:'📈 신뢰도 70%'},{on:myRel>=90,t:'💎 신뢰도 90%'},
+      {on:nDays>=3,t:'📅 꾸준함(3일)'},
+      {on:nFriends>=1,t:'🤝 첫 친구'},{on:nFriends>=3,t:'👥 친구 3명'},
+      {on:nTypes>=3,t:'🌈 3유형 수집'},{on:nUnlocked>=7,t:'📖 도감 완성'}
+    ];
     H+='<div class="section-title" style="margin-top:18px">배지</div><div class="pillrow">';
     badges.forEach(function(b){ H+='<span class="pill'+(b.on?' g':'')+'" style="opacity:'+(b.on?1:0.38)+'">'+b.t+'</span>'; });
     H+='</div>';
