@@ -176,6 +176,10 @@
   .relbar,.dbar,.fbar,.cbar{box-shadow:inset 0 0 0 1px rgba(0,0,0,.02);}
   .summary-box{font-size:14.5px;}
   #result .rolebox .rn{font-size:18px;}
+  /* v23: 공개 검사 카운터 */
+  .stats{background:var(--soft);border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin:14px 0 2px;text-align:center;font-size:13px;color:#48526a;line-height:1.7;}
+  .stats b{color:var(--accent);font-weight:800;}
+  .stats-sub{font-size:12px;color:var(--sub);}
 </style>
 </head>
 <body>
@@ -196,6 +200,8 @@
       <div class="facet"><span class="dot" style="background:var(--O)"></span>개방성</div>
     </div>
 
+    <div id="homeStats" class="stats no-print">📊 검사 통계를 불러오는 중…</div>
+
     <div id="resumeBox" style="display:none;"></div>
 
     <div class="section-title" style="margin-top:18px;">프로필 선택 / 만들기</div>
@@ -213,7 +219,7 @@
       <button class="btn btn-ghost" onclick="openData()">데이터 관리</button>
     </div>
     <div class="note blue">친구와 <b>궁합</b>을 보려면 결과 화면의 <b>‘💬 내 결과 공유하기’</b>로 링크를 보내세요(받은 친구가 열면 자동으로 결과가 추가돼요). 그냥 <b>검사만 추천</b>하려면 아래 <b>‘🔗 검사 추천하기’</b>로 앱 링크만 보낼 수 있어요(내 결과는 포함되지 않아요).</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v22 · 2026-06-28 04:30</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v23 · 2026-06-28 05:00</div>
   </section>
 
   <!-- MODE -->
@@ -272,6 +278,7 @@
       <button class="btn btn-ghost" onclick="goHome()">🏠 홈</button>
     </div>
     <p class="muted no-print" style="text-align:center;margin-top:8px;font-size:12px;line-height:1.6;">💡 받은 친구가 ‘내 결과 답장 보내기’를 누르면 <b>두 분 모두</b> 궁합을 볼 수 있어요.</p>
+    <div id="resultStats" class="muted no-print" style="text-align:center;margin-top:6px;font-size:11.5px;"></div>
     <p class="foot-note">본 테스트는 자기이해를 돕기 위한 참고용이며 전문적 진단이 아닙니다.</p>
   </section>
 
@@ -557,7 +564,7 @@ function currentProfile(){ var db=loadDB(); return getProfile(db.curId); }
 function $(id){return document.getElementById(id);}
 var SCREENS=["home","mode","quiz","result","trend","compat","data"];
 function show(s){ for(var i=0;i<SCREENS.length;i++){ var el=$(SCREENS[i]); if(el) el.style.display=(SCREENS[i]===s)?"block":"none"; } window.scrollTo(0,0); }
-function goHome(){ renderHome(); show("home"); }
+function goHome(){ renderHome(); show("home"); try{ loadCounters(); }catch(e){} }
 function toast(msg){ try{ var t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){ t.className='toast on'; },20); setTimeout(function(){ t.className='toast'; setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },320); },3400); }catch(e){} }
 function clamp(x){ return x<0?0:(x>100?100:x); }
 
@@ -717,6 +724,7 @@ function finish(){
   for(var pi=0;pi<db.profiles.length;pi++){ if(db.profiles[pi].id===db.curId){ p=db.profiles[pi]; break; } }
   if(p){ p.history=p.history||[]; p.history.push(rec); saveDB(db); }
   clearProgress();
+  try{ bumpCounters(curMode); }catch(e){} /* v23: 검사 완료 시에만 +1 */
   renderResult(p?p.name:"게스트", rec, p); show("result");
 }
 function renderResult(who, rec, profile, opts){
@@ -774,6 +782,7 @@ function renderResult(who, rec, profile, opts){
     if(fn){ rh.innerHTML='<div class="note blue" style="margin-top:16px">💌 <b>'+esc(fn)+'</b>님이 결과를 보내줬어요. 아래 버튼으로 <b>내 결과를 답장</b>하면 '+esc(fn)+'님도 우리 궁합을 볼 수 있어요.</div><div class="btn-row no-print"><button class="btn btn-pri btn-block" onclick="replyMyResult()">💬 '+esc(fn)+'님께 내 결과 답장 보내기</button></div>'; rh.style.display="block"; }
     else { rh.style.display="none"; rh.innerHTML=""; } }
   try{ $("comprehensive").innerHTML=comprehensiveHTML(dom, prof, who); }catch(e){ $("comprehensive").innerHTML=""; }
+  try{ paintCounters(); }catch(e){}
   if(isPast){ $("trendDeltaSec").style.display="none"; $("histSec").style.display="none"; var rhp=$("replyHint"); if(rhp){ rhp.style.display="none"; rhp.innerHTML=""; } }
   window._lastDom=dom; window._lastProfile=prof; window._lastWho=who;
 }
@@ -1039,6 +1048,7 @@ function init(){
   try{ show("home"); }catch(e){ try{ var hm=$("home"); if(hm) hm.style.display="block"; }catch(_){ } }
   if(!lsOK) showStorageNotice();
   try{ afterImportFlow(); }catch(e){}
+  try{ loadCounters(); }catch(e){}
 }
 if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
 
@@ -1219,6 +1229,47 @@ function growTogether(a,b){
   if(Math.abs(a.A-b.A)>=30){ arr.push('한 사람은 너그럽고 한 사람은 직설적이라, 표현의 온도를 서로 맞춰가면 오해가 줄어요.'); }
   arr.push('가끔 둘이 함께 검사 결과를 다시 보며 달라진 점을 이야기해보세요.');
   return arr.slice(0,4);
+}
+
+/* ===================== v23: 공개 검사 카운터 (무인증 Abacus) ===================== */
+/* 검사 완료(finish) 시에만 hit(+1). 재열람/가져오기/답장/새로고침에서는 증가하지 않음(get만). */
+var CNT_BASE='https://abacus.jasoncameron.dev';
+var CNT_NS='big5hexaco-monkey8289';
+var CNTV={total:null,today:null,easy:null,balanced:null,precise:null};
+function cntModeKey(m){ return m===1?'easy':(m===3?'precise':'balanced'); }
+function cntTodayKey(){ var d=new Date(); function p(n){return(n<10?'0':'')+n;} return 'd_'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate()); }
+function cntReq(path, cb){
+  try{
+    fetch(CNT_BASE+path, {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){
+      if(j && typeof j.value==='number'){ try{ cb(j.value); }catch(e){} }
+    }, function(){}); /* 실패 무시 → 값 null 유지 → '—' 표시 */
+  }catch(e){}
+}
+function cntNum(v){ return (v==null)?'—':String(v); }
+function paintCounters(){
+  try{
+    var hs=document.getElementById('homeStats');
+    if(hs){ hs.innerHTML='📊 오늘 <b>'+cntNum(CNTV.today)+'</b>회 · 누적 <b>'+cntNum(CNTV.total)+'</b>회 검사 완료'
+      +'<br><span class="stats-sub">간편 '+cntNum(CNTV.easy)+' · 균형 '+cntNum(CNTV.balanced)+' · 정밀 '+cntNum(CNTV.precise)+' · 같은 사람이 여러 번 하면 중복 집계</span>'; }
+    var rs=document.getElementById('resultStats');
+    if(rs){ rs.innerHTML='지금까지 누적 <b>'+cntNum(CNTV.total)+'</b>회 · 오늘 <b>'+cntNum(CNTV.today)+'</b>회 검사 완료'; }
+  }catch(e){}
+}
+function loadCounters(){
+  cntReq('/get/'+CNT_NS+'/total', function(v){ CNTV.total=v; paintCounters(); });
+  cntReq('/get/'+CNT_NS+'/'+cntTodayKey(), function(v){ CNTV.today=v; paintCounters(); });
+  cntReq('/get/'+CNT_NS+'/m_easy', function(v){ CNTV.easy=v; paintCounters(); });
+  cntReq('/get/'+CNT_NS+'/m_balanced', function(v){ CNTV.balanced=v; paintCounters(); });
+  cntReq('/get/'+CNT_NS+'/m_precise', function(v){ CNTV.precise=v; paintCounters(); });
+}
+function bumpCounters(mode){
+  try{
+    var mk=cntModeKey(mode);
+    cntReq('/hit/'+CNT_NS+'/total', function(v){ CNTV.total=v; paintCounters(); });
+    cntReq('/hit/'+CNT_NS+'/'+cntTodayKey(), function(v){ CNTV.today=v; paintCounters(); });
+    cntReq('/hit/'+CNT_NS+'/m_'+mk, function(v){ CNTV[mk]=v; paintCounters(); });
+    ['easy','balanced','precise'].forEach(function(mm){ if(mm!==mk){ cntReq('/get/'+CNT_NS+'/m_'+mm, function(v){ CNTV[mm]=v; paintCounters(); }); } });
+  }catch(e){}
 }
 </script>
 </body>
