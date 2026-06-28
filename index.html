@@ -246,6 +246,16 @@
   .dex-info-h{font-size:13px;font-weight:800;color:#3f5575;margin-bottom:8px;}
   .dex-info-list{display:flex;flex-wrap:wrap;gap:8px;}
   .dex-info-mem{display:flex;align-items:center;gap:5px;font-size:13px;color:#46506a;background:#fff;border:1px solid #e6eaf3;border-radius:20px;padding:3px 10px 3px 4px;}
+  /* v49: 요인별 미니 추이 그래프(스몰 멀티플) */
+  .spark-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .spark-card{background:#fafbfd;border:1px solid #eef1f7;border-radius:12px;padding:8px 10px 5px;}
+  .spark-top{display:flex;align-items:baseline;justify-content:space-between;gap:4px;margin-bottom:1px;}
+  .spark-nm{font-size:11.5px;font-weight:700;color:#46506a;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+  .spark-nm i{width:9px;height:9px;border-radius:3px;display:inline-block;flex:none;}
+  .spark-val{font-size:16px;font-weight:800;color:#3a4254;line-height:1;}
+  .spark-d{font-size:11px;font-weight:700;}
+  .spark{width:100%;height:auto;display:block;margin-top:1px;}
+  .spark-range{font-size:11px;text-align:center;margin-top:10px;line-height:1.5;}
   .dex-mem{position:relative;display:inline-flex;}
   .dex-me{position:absolute;bottom:-3px;right:-3px;background:#4a6fa5;color:#fff;font-size:7px;font-weight:800;border-radius:999px;padding:0 3px;border:1px solid #fff;}
   /* v35: 홈 신뢰도 카드 */
@@ -426,7 +436,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v48 · 2026-06-28 17:05</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v49 · 2026-06-28 17:25</div>
   </section>
 
   <!-- MODE -->
@@ -1209,18 +1219,31 @@ function buildDualRadarSVG(domA, domB, nameA, nameB){
   var leg='<div class="pillrow" style="justify-content:center;margin-top:2px"><span class="pill" style="border-color:'+colA+';color:'+colA+';font-weight:700">● '+esc(nameA)+'</span><span class="pill" style="border-color:'+colB+';color:'+colB+';font-weight:700">● '+esc(nameB)+'</span></div>';
   return '<div style="text-align:center">'+svg+'</div>'+leg;
 }
+/* v49: 요인 1개짜리 미니 추이선(스파크라인) */
+function sparkline(history, k){
+  var w=160,h=44,pl=4,pr=4,pt=7,pb=7, n=history.length, hex=DHEX[k];
+  var X=function(i){ return pl+(n<=1?(w-pl-pr)/2:i*(w-pl-pr)/(n-1)); };
+  var Y=function(v){ return pt+(100-v)/100*(h-pt-pb); };
+  var gv=function(rec){ return (rec.pct&&rec.pct[k]!=null)?rec.pct[k]:50; };
+  var svg='<svg viewBox="0 0 '+w+' '+h+'" class="spark" xmlns="http://www.w3.org/2000/svg">';
+  svg+='<line x1="'+pl+'" y1="'+Y(50).toFixed(1)+'" x2="'+(w-pr)+'" y2="'+Y(50).toFixed(1)+'" stroke="#e7ebf3" stroke-dasharray="3 3"/>';
+  var d=""; history.forEach(function(rec,i){ d+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(gv(rec)).toFixed(1)+" "; });
+  svg+='<path d="'+d+'" fill="none" stroke="'+hex+'" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+  history.forEach(function(rec,i){ var last=(i===n-1); svg+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(gv(rec)).toFixed(1)+'" r="'+(last?3.2:1.8)+'" fill="'+hex+'"'+(last?' stroke="#fff" stroke-width="1.3"':'')+'/>'; });
+  svg+='</svg>'; return svg;
+}
+/* v49: 6요인을 한 차트에 겹치면 알아보기 어려워 → 요인별 미니 그래프로 분리 */
 function buildLineChart(history){
-  var W=320,H=200,padL=30,padR=12,padT=12,padB=26, n=history.length;
-  var x=function(i){ return padL+(n<=1?(W-padL-padR)/2:i*(W-padL-padR)/(n-1)); };
-  var y=function(v){ return padT+(100-v)/100*(H-padT-padB); };
-  var svg='<svg viewBox="0 0 '+W+' '+H+'" class="linechart" xmlns="http://www.w3.org/2000/svg">';
-  [0,25,50,75,100].forEach(function(g){ svg+='<line x1="'+padL+'" y1="'+y(g).toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y(g).toFixed(1)+'" stroke="#eef1f7"/>'; svg+='<text x="'+(padL-4)+'" y="'+(y(g)+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="#9aa3b1">'+g+'</text>'; });
-  DORDER.forEach(function(k){ var hex=DHEX[k]; var d=""; history.forEach(function(rec,i){ d+=(i?"L":"M")+x(i).toFixed(1)+" "+y(rec.pct[k]).toFixed(1)+" "; });
-    svg+='<path d="'+d+'" fill="none" stroke="'+hex+'" stroke-width="2" stroke-linejoin="round"/>';
-    history.forEach(function(rec,i){ svg+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(rec.pct[k]).toFixed(1)+'" r="2.5" fill="'+hex+'"/>'; }); });
-  history.forEach(function(rec,i){ svg+='<text x="'+x(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="8.5" fill="#9aa3b1">'+shortDate(rec.date)+'</text>'; });
-  svg+='</svg>'; var leg='<div class="pillrow">'; DORDER.forEach(function(k){ leg+='<span class="pill" style="border-color:'+DHEX[k]+';color:'+DHEX[k]+'">'+DNAME[k]+'</span>'; }); leg+='</div>';
-  return svg+leg;
+  var H='<div class="spark-grid">';
+  DORDER.forEach(function(k){
+    var first=(history[0].pct&&history[0].pct[k]!=null)?history[0].pct[k]:50;
+    var last=(history[history.length-1].pct&&history[history.length-1].pct[k]!=null)?history[history.length-1].pct[k]:50;
+    var dd=last-first; var arrow=dd>0?"▲":(dd<0?"▼":"–"); var dcol=dd>0?"#2e8b6f":(dd<0?"#c0564a":"#9aa3b1");
+    H+='<div class="spark-card"><div class="spark-top"><span class="spark-nm"><i style="background:'+DHEX[k]+'"></i>'+DNAME[k]+'</span><span class="spark-val">'+last+'<span class="spark-d" style="color:'+dcol+'"> '+arrow+(dd===0?"":Math.abs(dd))+'</span></span></div>'+sparkline(history,k)+'</div>';
+  });
+  H+='</div>';
+  H+='<div class="muted spark-range">'+shortDate(history[0].date)+' → '+shortDate(history[history.length-1].date)+' · 총 '+history.length+'회 · 세로 0~100, 점선 = 50 기준</div>';
+  return H;
 }
 function shortDate(iso){ try{ var d=new Date(iso); return (d.getMonth()+1)+"/"+d.getDate(); }catch(e){ return ""; } }
 function fullDate(iso){ try{ var d=new Date(iso); function p(n){return(n<10?'0':'')+n;} return d.getFullYear()+"."+p(d.getMonth()+1)+"."+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes()); }catch(e){ return ""; } }
