@@ -186,6 +186,29 @@
   .authbar .ab-stat b{color:var(--accent);}
   .authbar button{flex:none;min-height:38px;padding:7px 12px;font-size:13px;}
   .auth-input{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;font-family:inherit;font-size:16px;margin-top:9px;}
+  .splash-logo{font-size:34px;font-weight:800;letter-spacing:3px;background:linear-gradient(135deg,#4a6fa5,#8a6cc0,#c0894a);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  /* v29 홈 리디자인 */
+  .home-hero{text-align:center;padding:22px 14px 18px;border-radius:18px;background:linear-gradient(150deg,#f3f0fb 0%,#eef4fb 55%,#f6f1ec 100%);border:1px solid #e7e3f3;margin-bottom:14px;}
+  .home-hero h1{font-size:23px;font-weight:800;letter-spacing:-.4px;background:linear-gradient(120deg,#4a6fa5,#8a6cc0);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hero-sub{margin-top:7px;font-size:12.5px;color:#6c7488;font-weight:600;line-height:1.6;}
+  .facet-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:13px;}
+  .fchip{font-size:11px;font-weight:700;color:var(--c);background:#fff;border:1.5px solid var(--c);border-radius:999px;padding:3px 10px;opacity:.92;}
+  .home-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:4px 0 6px;}
+  .home-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:74px;padding:10px 4px;border-radius:14px;font-size:13px;font-weight:700;line-height:1.2;}
+  .home-btn .hb-ico{font-size:21px;line-height:1;}
+  .live-dot{color:#e0564a;font-size:9px;vertical-align:middle;animation:livep 1.4s infinite;}
+  @keyframes livep{0%,100%{opacity:.3}50%{opacity:1}}
+  .handle-set{display:flex;align-items:center;gap:8px;font-size:15px;color:#2c3550;background:#f5f7fc;border:1px solid #e6eaf3;border-radius:12px;padding:11px 13px;}
+  .handle-set b{color:#4a6fa5;}
+  .handle-set .btn{margin-left:auto;}
+  .rankbox{display:flex;flex-direction:column;gap:8px;min-height:20px;}
+  .rankrow{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #e9ecf4;border-radius:13px;padding:11px 13px;cursor:pointer;transition:.15s;box-shadow:0 1px 3px rgba(40,50,90,.04);}
+  .rankrow:hover,.rankrow:active{border-color:#c9d3ec;background:#fafbff;}
+  .rankrow .rk{font-size:17px;font-weight:800;min-width:26px;text-align:center;}
+  .rankrow .rkname{flex:1;min-width:0;font-size:14px;color:#2c3550;}
+  .rankrow .rkname b{font-weight:700;}
+  .rankrow .rkscore{font-size:17px;font-weight:800;display:flex;align-items:center;gap:3px;white-space:nowrap;}
+  .rankrow .rkgo{font-size:18px;color:#b7c0d4;font-weight:700;}
   /* v24: MBTI 근사 · 인물상 */
   .mbti-card{background:linear-gradient(135deg,#eef3fb,#eef8f4);border:1px solid #d8e3ee;border-radius:15px;padding:15px;}
   .mbti-row{display:flex;align-items:center;gap:12px;}
@@ -200,44 +223,61 @@
 <body>
 <div class="app">
 
+  <!-- SPLASH (인증 상태 확인 중) -->
+  <section id="splash" class="card" style="display:none;">
+    <div class="center" style="padding:48px 8px;">
+      <div class="splash-logo">HEXACO</div>
+      <div class="muted" style="margin-top:14px;">불러오는 중…</div>
+    </div>
+  </section>
+
   <!-- HOME -->
   <section id="home" class="card">
-    <div class="center">
+    <div class="home-hero">
       <h1>HEXACO 성격 분석</h1>
-      <p class="muted" style="margin-top:8px;">6요인 24 facet 정밀 검사. 매 검사 문항 랜덤 · 모드 선택 · 추이 · 궁합/팀 · 링크공유.</p>
-    </div>
-    <div class="facet-list">
-      <div class="facet"><span class="dot" style="background:var(--H)"></span>정직-겸손</div>
-      <div class="facet"><span class="dot" style="background:var(--E)"></span>정서성</div>
-      <div class="facet"><span class="dot" style="background:var(--X)"></span>외향성</div>
-      <div class="facet"><span class="dot" style="background:var(--A)"></span>친화성</div>
-      <div class="facet"><span class="dot" style="background:var(--C)"></span>성실성</div>
-      <div class="facet"><span class="dot" style="background:var(--O)"></span>개방성</div>
+      <p class="hero-sub">6요인 24 facet · 검사할수록 정확해지고 · 친구와 실시간 궁합</p>
+      <div class="facet-chips">
+        <span class="fchip" style="--c:var(--H)">정직-겸손</span>
+        <span class="fchip" style="--c:var(--E)">정서성</span>
+        <span class="fchip" style="--c:var(--X)">외향성</span>
+        <span class="fchip" style="--c:var(--A)">친화성</span>
+        <span class="fchip" style="--c:var(--C)">성실성</span>
+        <span class="fchip" style="--c:var(--O)">개방성</span>
+      </div>
     </div>
 
-    <div id="authBar" class="authbar no-print"><span class="ab-stat">게스트 모드 · 로그인하면 어디서나 내 데이터</span><button class="btn btn-ghost btn-sm" onclick="openAuth()">로그인</button></div>
+    <div id="authBar" class="authbar no-print"><span class="ab-stat">로그인 확인 중…</span></div>
 
     <div id="homeStats" class="stats no-print">📊 검사 통계를 불러오는 중…</div>
 
     <div id="resumeBox" style="display:none;"></div>
 
-    <div class="section-title" style="margin-top:18px;">프로필 선택 / 만들기</div>
-    <div class="prof-row" id="profRow"></div>
-    <div class="newprof">
-      <input id="newName" type="text" placeholder="새 프로필 이름 (예: 홍길동)" maxlength="16" onkeydown="if(event.key==='Enter')addProfile()">
-      <button class="btn btn-ghost btn-sm" onclick="addProfile()">＋ 추가</button>
+    <div class="home-grid">
+      <button class="btn btn-pri home-btn" onclick="beginTest()"><span class="hb-ico">📝</span><span>검사 시작</span></button>
+      <button class="btn btn-ghost home-btn" onclick="openTrend()"><span class="hb-ico">📈</span><span>내 추이</span></button>
+      <button class="btn btn-ghost home-btn" onclick="shareApp()"><span class="hb-ico">🔗</span><span>검사 추천</span></button>
     </div>
 
-    <div class="btn-row">
-      <button class="btn btn-pri" onclick="beginTest()">검사 시작</button>
-      <button class="btn btn-ghost" onclick="openTrend()">내 추이</button>
-      <button class="btn btn-ghost" onclick="openCompat()">궁합·팀 분석</button>
-      <button class="btn btn-ghost" onclick="openPasteLink()">🔗 받은 링크로 궁합</button>
-      <button class="btn btn-ghost" onclick="shareApp()">🔗 검사 추천하기</button>
-      <button class="btn btn-ghost" onclick="openData()">데이터 관리</button>
+    <div class="section">
+      <div class="section-title">내 아이디</div>
+      <div id="handleBox"></div>
     </div>
-    <div class="note blue">친구와 <b>궁합</b>을 보려면 결과 화면의 <b>‘💬 내 결과 공유하기’</b>로 링크를 보내세요(받은 친구가 열면 자동으로 결과가 추가돼요). 그냥 <b>검사만 추천</b>하려면 아래 <b>‘🔗 검사 추천하기’</b>로 앱 링크만 보낼 수 있어요(내 결과는 포함되지 않아요).</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v28 · 2026-06-28 07:50</div>
+
+    <div class="section">
+      <div class="section-title">친구 추가</div>
+      <div class="newprof">
+        <input id="friendHandleInput" type="text" placeholder="친구 아이디 (예: hexfriend)" maxlength="16" onkeydown="if(event.key==='Enter')addFriendByHandle(this.value)">
+        <button class="btn btn-ghost btn-sm" onclick="addFriendByHandle(document.getElementById('friendHandleInput').value)">＋ 추가</button>
+      </div>
+      <div id="friendMsg" class="muted" style="margin-top:6px;font-size:12px;"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">친구 궁합 순위 <span class="live-dot">●</span> 실시간</div>
+      <div id="friendRank" class="rankbox"><span class="muted">로그인 후 이용할 수 있어요.</span></div>
+    </div>
+
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v29 · 2026-06-28 08:20</div>
   </section>
 
   <!-- MODE -->
@@ -278,6 +318,7 @@
     <div class="section"><div class="section-title">6요인 프로파일</div><div class="radar-wrap" id="radarWrap"></div></div>
     <div id="modeNote"></div>
     <div class="section"><div class="section-title">종합 요약</div><div class="summary-box" id="summaryBox"></div></div>
+    <div class="section" id="aggSec" style="display:none;"><div class="section-title">누적 검사 기반 신뢰도</div><div id="aggBox" class="mini"></div></div>
     <div class="section" id="mbtiSec"><div class="section-title">MBTI 근사 · 인물상</div><div id="mbtiBox"></div></div>
     <div class="section" id="trendDeltaSec" style="display:none;"><div class="section-title">지난번 대비 변화</div><div id="trendDelta" class="mini"></div></div>
     <div class="section"><div class="section-title">추천 직무·역할</div><div class="rolebox" id="roleBox"></div></div>
@@ -291,12 +332,11 @@
     <div class="section" id="histSec" style="display:none;"><div class="section-title">나의 검사 추이</div><div id="histChart"></div></div>
     <div id="replyHint" style="display:none;"></div>
     <div class="btn-row no-print">
-      <button class="btn btn-pri" onclick="shareKakao()">💬 내 결과 공유하기</button>
-      <button class="btn btn-ghost" onclick="exportPNG()">🖼 PNG</button>
-      <button class="btn btn-ghost" onclick="beginTest()">↻ 다시검사</button>
+      <button class="btn btn-pri" onclick="beginTest()">↻ 다시검사</button>
+      <button class="btn btn-ghost" onclick="exportPNG()">🖼 PNG 저장</button>
       <button class="btn btn-ghost" onclick="goHome()">🏠 홈</button>
     </div>
-    <p class="muted no-print" style="text-align:center;margin-top:8px;font-size:12px;line-height:1.6;">💡 받은 친구가 ‘내 결과 답장 보내기’를 누르면 <b>두 분 모두</b> 궁합을 볼 수 있어요.</p>
+    <p class="muted no-print" style="text-align:center;margin-top:8px;font-size:12px;line-height:1.6;">💡 홈의 <b>친구 궁합 순위</b>에서 친구들과의 궁합을 실시간으로 볼 수 있어요. 검사를 여러 번 할수록 결과가 더 정확해져요.</p>
     <div id="resultStats" class="muted no-print" style="text-align:center;margin-top:6px;font-size:11.5px;"></div>
     <p class="foot-note">본 테스트는 자기이해를 돕기 위한 참고용이며 전문적 진단이 아닙니다.</p>
   </section>
@@ -311,16 +351,9 @@
 
   <!-- COMPAT -->
   <section id="compat" class="card" style="display:none;">
-    <h2>궁합 · 팀 조합 분석</h2>
-    <p class="muted" style="margin-top:6px;">분석할 사람을 2명 이상 선택하세요. 친구 결과는 <b>‘🔗 받은 링크로 궁합’</b>에서 친구가 보낸 링크를 붙여넣어 가져올 수 있어요.</p>
-    <div class="prof-row" id="compatRow" style="margin-top:12px;"></div>
-    <div class="btn-row">
-      <button class="btn btn-pri" onclick="runCompat()">분석하기</button>
-      <button class="btn btn-ghost" onclick="goHome()">🏠 홈</button>
-    </div>
-    <div class="btn-row"><button class="btn btn-pri btn-block" onclick="replyMyResult()">💬 내 결과 답장 보내기</button></div>
-    <p class="muted" style="text-align:center;margin-top:8px;font-size:12px;line-height:1.6;">친구 결과를 링크로 받았다면, 위 버튼으로 <b>내 결과를 답장</b>해 보세요. 그래야 친구도 궁합을 볼 수 있어요.</p>
-    <div id="compatResult" style="margin-top:18px;"></div>
+    <h2>친구 궁합 분석</h2>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈</button></div>
+    <div id="compatResult" style="margin-top:14px;"></div>
   </section>
 
   <!-- DATA -->
@@ -617,7 +650,7 @@ function currentProfile(){ var db=loadDB(); return getProfile(db.curId); }
 
 /* ===================== 화면 전환 ===================== */
 function $(id){return document.getElementById(id);}
-var SCREENS=["home","mode","quiz","result","trend","compat","data","crossctx","pastelink","auth"];
+var SCREENS=["splash","home","mode","quiz","result","trend","compat","data","crossctx","pastelink","auth"];
 function show(s){ for(var i=0;i<SCREENS.length;i++){ var el=$(SCREENS[i]); if(el) el.style.display=(SCREENS[i]===s)?"block":"none"; } window.scrollTo(0,0); }
 function goHome(){ if(typeof fbReady!=='undefined' && fbReady && !cloudUser){ try{ show("auth"); if(typeof setInappWarn==='function') setInappWarn(); }catch(e){} return; } renderHome(); show("home"); try{ loadCounters(); }catch(e){} }
 function toast(msg){ try{ var t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){ t.className='toast on'; },20); setTimeout(function(){ t.className='toast'; setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },320); },3400); }catch(e){} }
@@ -625,15 +658,9 @@ function clamp(x){ return x<0?0:(x>100?100:x); }
 
 /* ===================== 홈/프로필 ===================== */
 function renderHome(){
-  var db=loadDB(); var row=$("profRow"); row.innerHTML="";
-  if(db.profiles.length===0){ row.innerHTML='<span class="muted">아직 프로필이 없습니다. 아래에서 새 프로필을 만들어 주세요.</span>'; }
-  db.profiles.forEach(function(p){
-    var on=(p.id===db.curId)?" on":""; var tag=p.imported?" ↧":""; var n="";
-    var c=document.createElement("span"); c.className="chip"+on;
-    c.innerHTML='<span onclick="selectProfile(\''+p.id+'\')">'+esc(p.name)+tag+'<span class="muted" style="font-weight:600">'+n+'</span></span><span class="x" onclick="delProfile(\''+p.id+'\')">✕</span>';
-    row.appendChild(c);
-  });
-  renderResumeBox();
+  try{ renderResumeBox(); }catch(e){}
+  try{ if(typeof renderHandleBox==='function') renderHandleBox(); }catch(e){}
+  try{ if(typeof loadFriendsRanking==='function') loadFriendsRanking(); }catch(e){}
 }
 function renderResumeBox(){
   var rb=$("resumeBox"); if(!rb) return;
@@ -660,7 +687,10 @@ function delProfile(id){
 }
 function ensureProfile(){
   var db=loadDB();
-  if(!db.curId){ var nm=(($("newName")&&$("newName").value)||"").trim()||"게스트"; var p={id:uid(),name:nm,imported:false,history:[]}; db.profiles.push(p); db.curId=p.id; saveDB(db); try{ if($("newName")) $("newName").value=""; }catch(e){} }
+  if(!db.curId || !getProfile(db.curId)){
+    var nm=db.displayName||db.handle||((typeof cloudUser!=='undefined'&&cloudUser&&cloudUser.email)?cloudUser.email.split('@')[0]:'')||'나';
+    var p={id:uid(),name:nm,imported:false,history:[]}; db.profiles.push(p); db.curId=p.id; saveDB(db);
+  }
 }
 function beginTest(){ ensureProfile(); renderHome(); show("mode"); }
 
@@ -780,6 +810,7 @@ function finish(){
   if(p){ p.history=p.history||[]; p.history.push(rec); saveDB(db); }
   clearProgress();
   try{ bumpCounters(curMode); }catch(e){} /* v23: 검사 완료 시에만 +1 */
+  try{ if(typeof publishMyResult==='function') publishMyResult(); }catch(e){} /* v29: 누적 결과 친구공유용 발행 */
   renderResult(p?p.name:"게스트", rec, p); show("result");
 }
 function renderResult(who, rec, profile, opts){
@@ -832,12 +863,10 @@ function renderResult(who, rec, profile, opts){
   var hs=$("histSec");
   if(profile && profile.history && profile.history.length>=2){ $("histChart").innerHTML=buildLineChart(profile.history); hs.style.display="block"; } else { hs.style.display="none"; }
 
-  var rh=$("replyHint");
-  if(rh){ var fn=latestImportedFriend();
-    if(fn){ rh.innerHTML='<div class="note blue" style="margin-top:16px">💌 <b>'+esc(fn)+'</b>님이 결과를 보내줬어요. 아래 버튼으로 <b>내 결과를 답장</b>하면 '+esc(fn)+'님도 우리 궁합을 볼 수 있어요.</div><div class="btn-row no-print"><button class="btn btn-pri btn-block" onclick="replyMyResult()">💬 '+esc(fn)+'님께 내 결과 답장 보내기</button></div>'; rh.style.display="block"; }
-    else { rh.style.display="none"; rh.innerHTML=""; } }
+  var rh=$("replyHint"); if(rh){ rh.style.display="none"; rh.innerHTML=""; }  /* v29: 링크 답장 기능 제거 */
   try{ $("comprehensive").innerHTML=comprehensiveHTML(dom, prof, who); }catch(e){ $("comprehensive").innerHTML=""; }
   try{ $("mbtiBox").innerHTML=mbtiBoxHTML(dom, prof); }catch(e){ $("mbtiBox").innerHTML=""; }
+  try{ var agh=aggBoxHTML(profile); if(agh){ $("aggBox").innerHTML=agh; $("aggSec").style.display="block"; } else { $("aggSec").style.display="none"; } }catch(e){ try{ $("aggSec").style.display="none"; }catch(_){} }
   try{ paintCounters(); }catch(e){}
   if(isPast){ $("trendDeltaSec").style.display="none"; $("histSec").style.display="none"; var rhp=$("replyHint"); if(rhp){ rhp.style.display="none"; rhp.innerHTML=""; } }
   window._lastDom=dom; window._lastProfile=prof; window._lastWho=who;
@@ -1045,11 +1074,9 @@ function shareApp(){ var link=appLink();
 function doImport(){ var obj=decodeRec($("importArea").value); var msg=$("importMsg"); if(!obj||!obj.pct||!obj.name){ msg.style.color="#c0564a"; msg.textContent="코드를 해석할 수 없습니다. 올바른 결과 코드인지 확인하세요."; return; } var who=addImportedRecord(obj); msg.style.color="#2c7a62"; msg.textContent="‘"+who+"’ 결과를 가져왔습니다. 홈/궁합 분석에서 사용할 수 있어요."; }
 function addImportedRecord(obj){ var db=loadDB(); var name=obj.name; var exist=null; for(var i=0;i<db.profiles.length;i++){ if(db.profiles[i].name===name && db.profiles[i].imported){ exist=db.profiles[i]; break; } } var rec={date:obj.date||new Date().toISOString(),pct:obj.pct,fac:obj.fac||null,rel:obj.rel||null}; if(exist){ exist.history.push(rec); } else { db.profiles.push({id:uid(),name:name,imported:true,history:[rec]}); } saveDB(db); return name; }
 
-/* ===================== 자동 가져오기 ===================== */
-function handleAutoImport(){ try{ var h=location.hash||""; var m=h.match(/import=([^&]+)/); if(!m){ return; } window.__importLink=location.href; var raw=m[1]; try{ raw=decodeURIComponent(raw); }catch(e){} var obj=b64urlDecode(raw);
-  try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){ try{ location.hash=""; }catch(_){} }
-  if(!obj||!obj.pct||!obj.name){ toast("공유 링크를 읽을 수 없어요. 링크가 손상됐을 수 있습니다."); return; } var who=addImportedRecord(obj); window.__importedName=who; }catch(e){} }
-function afterImportFlow(){ var who=window.__importedName; if(!who){ return; } window.__importedName=null; var db=loadDB(); var mine=db.profiles.filter(function(p){ return !p.imported && p.history && p.history.length; });
+/* ===================== 자동 가져오기 (v29: 링크 데이터 공유 제거 — 비활성) ===================== */
+function handleAutoImport(){ try{ var h=location.hash||""; if(/import=/.test(h)){ try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){ try{ location.hash=""; }catch(_){} } } }catch(e){} }
+function afterImportFlow(){ return; /* v29: 링크 자동 가져오기 제거 */ var who=window.__importedName; if(!who){ return; } window.__importedName=null; var db=loadDB(); var mine=db.profiles.filter(function(p){ return !p.imported && p.history && p.history.length; });
   if(mine.length){ openCompat(); var imp=null; for(var i=0;i<db.profiles.length;i++){ if(db.profiles[i].imported && db.profiles[i].name===who){ imp=db.profiles[i]; } } if(imp){ toggleCompat(imp.id); } toggleCompat(mine[0].id); runCompat(); toast("‘"+who+"’님의 결과를 받았어요! 바로 궁합 분석을 보여드릴게요."); }
   else { showCrossCtxGuidance(who); } }
 
@@ -1180,12 +1207,13 @@ function init(){
   try{ handleAutoImport(); }catch(e){}            /* 친구 링크 데이터는 잡아두고 로그인 후 처리 */
   try{ maybeAutoExternal(); }catch(e){}           /* v28: 인앱이면 외부 브라우저로 1회 자동 전환 시도 */
   try{ renderHome(); }catch(e){ try{ var pr=$("profRow"); if(pr) pr.innerHTML='<span class="muted">아직 프로필이 없습니다.</span>'; }catch(_){ } }
-  /* v27: 로그인 게이트 — 인증 전엔 로그인 화면만 */
-  try{ show("auth"); }catch(e){ try{ var hm=$("auth"); if(hm) hm.style.display="block"; }catch(_){ } }
-  try{ if(typeof setInappWarn==='function') setInappWarn(); }catch(e){}
+  /* v29: 스플래시 게이트 — 인증 상태 resolve까지 대기(깜빡임 없이 자동 로그인) */
+  try{ show("splash"); }catch(e){ try{ var hm=$("splash"); if(hm) hm.style.display="block"; }catch(_){ } }
   if(!lsOK) showStorageNotice();
   try{ loadCounters(); }catch(e){}
   try{ if(typeof startFirebase==='function') startFirebase(); }catch(e){}
+  /* 안전망: 5초 안에 인증 상태가 안 풀리면(예: SDK 로드 실패) 로그인 화면 표시 */
+  setTimeout(function(){ try{ if(!window.__authResolved){ show("auth"); if(typeof setInappWarn==='function') setInappWarn(); } }catch(e){} }, 5000);
 }
 if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
 
@@ -1313,6 +1341,44 @@ function charHeadline(prof, dom){
   if(prof.name==='균형 잡힌 올라운더'){ return '여섯 가지 성격이 고르게 어우러진, 균형 잡힌 사람이에요'; }
   var arr=DORDER.map(function(k){return {k:k,p:dom[k]};}).sort(function(a,b){return b.p-a.p;});
   return '‘'+DNAME[arr[0].k]+'’ 성향이 가장 돋보이는 사람이에요';
+}
+
+/* v29 Part4: 누적 검사 집계 + 신뢰도 (검사 횟수↑·검사 간 분산↓ → 신뢰도↑) */
+function aggProfile(profile){
+  var h=(profile&&profile.history)?profile.history:[]; if(!h.length){ return null; }
+  var sum={H:0,E:0,X:0,A:0,C:0,O:0}, n=h.length;
+  h.forEach(function(r){ DORDER.forEach(function(k){ sum[k]+=(r.pct&&r.pct[k]!=null)?r.pct[k]:50; }); });
+  var dom={}; DORDER.forEach(function(k){ dom[k]=Math.round(sum[k]/n); });
+  var fsum={},fcnt={}; h.forEach(function(r){ if(r.fac){ for(var f in r.fac){ fsum[f]=(fsum[f]||0)+r.fac[f]; fcnt[f]=(fcnt[f]||0)+1; } } });
+  var fac={}; for(var f in fsum){ fac[f]=Math.round(fsum[f]/fcnt[f]); }
+  return {dom:dom, fac:fac, count:n};
+}
+function aggReliability(profile){
+  var h=(profile&&profile.history)?profile.history:[]; var n=h.length; if(!n){ return {count:0,score:0,avgSd:0}; }
+  var sds=[]; DORDER.forEach(function(k){
+    var vals=h.map(function(r){ return (r.pct&&r.pct[k]!=null)?r.pct[k]:50; });
+    var m=vals.reduce(function(a,b){return a+b;},0)/n;
+    var v=vals.reduce(function(a,b){return a+(b-m)*(b-m);},0)/n;
+    sds.push(Math.sqrt(v));
+  });
+  var avgSd=sds.reduce(function(a,b){return a+b;},0)/sds.length;
+  var consistency=Math.max(0, 1 - avgSd/30);   /* 검사 간 분산 작을수록 1 */
+  var countConf=Math.min(1, n/5);              /* 5회 이상이면 만점 */
+  var score=Math.round((0.55*countConf + 0.45*consistency)*100);
+  if(n===1){ score=Math.min(score,55); }       /* 1회는 상한 */
+  score=Math.max(10, Math.min(99, score));
+  return {count:n, score:score, avgSd:Math.round(avgSd), consistency:Math.round(consistency*100), countConf:Math.round(countConf*100)};
+}
+function aggBoxHTML(profile){
+  var ag=aggReliability(profile); if(!ag.count){ return ''; }
+  var col=ag.score>=70?'#3f8f74':(ag.score>=45?'#c08a3e':'#c0564a');
+  var H='<div class="val" style="color:'+col+'">'+ag.count+'회 검사 기반 · 신뢰도 '+ag.score+'%</div>';
+  H+='<div class="relbar" style="margin-top:8px"><i style="width:'+ag.score+'%;background:'+col+'"></i></div>';
+  H+='<div class="muted" style="margin-top:9px;line-height:1.7">여러 번 검사할수록, 또 검사 간 결과가 일관될수록 추정이 안정돼요.';
+  if(ag.count<3){ H+=' <b>몇 번 더 검사하면</b> 신뢰도가 올라가요.'; }
+  H+='</div>';
+  H+='<div class="muted" style="margin-top:3px;font-size:11.5px">· 누적 '+ag.count+'회 · 검사 간 평균 편차 '+ag.avgSd+'점 · 일관성 '+ag.consistency+'% · 참고용 추정치예요.</div>';
+  return H;
 }
 
 /* v24: MBTI 근사 (HEXACO 점수 기반 단순 매핑 — 정식 검사와 측정 방식 다름) */
@@ -1474,22 +1540,23 @@ function loadFirebaseSDK(cb){
 function startFirebase(){
   try{
     loadFirebaseSDK(function(err){
-      if(err){ try{ paintAuthBar(); }catch(e){} return; }
+      if(err){ try{ window.__authResolved=true; show('auth'); setInappWarn(); authMsgSet('로그인 서버에 연결할 수 없어요. 인터넷 연결을 확인해 주세요.'); }catch(e){} return; }
       try{
-        if(!window.firebase || !firebase.initializeApp){ paintAuthBar(); return; }
+        if(!window.firebase || !firebase.initializeApp){ try{ window.__authResolved=true; show('auth'); }catch(e){} return; }
         firebase.initializeApp(FB_CONFIG);
         fbAuth=firebase.auth(); fbDb=firebase.firestore(); fbReady=true;
+        try{ fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}  /* 자동 로그인 유지 */
         fbAuth.onAuthStateChanged(function(u){ cloudUser=u||null; onAuthChanged(u); });
-        try{ fbAuth.getRedirectResult().then(function(r){ /* 성공 시 onAuthStateChanged가 처리 */ }, function(e){ try{ authMsgSet(fbErrMsg(e)); }catch(_){ } }); }catch(e){}
         paintAuthBar();
-      }catch(e){ try{ paintAuthBar(); }catch(_){ } }
+      }catch(e){ try{ window.__authResolved=true; show('auth'); }catch(_){ } }
     });
-  }catch(e){ try{ paintAuthBar(); }catch(_){ } }
+  }catch(e){ try{ window.__authResolved=true; show('auth'); }catch(_){ } }
 }
 function onAuthChanged(u){
+  window.__authResolved=true;
   cloudUser=u||null;
   paintAuthBar();
-  if(u){ loadCloud(u); }
+  if(u){ loadCloud(u); }            /* loadCloud → enterHome (홈 표시) */
   else { try{ show('auth'); if(typeof setInappWarn==='function') setInappWarn(); }catch(e){} }
 }
 function enterHome(){ try{ renderHome(); show('home'); }catch(e){} try{ afterImportFlow(); }catch(e){} }
@@ -1497,10 +1564,136 @@ function paintAuthBar(){
   try{
     var bar=document.getElementById('authBar'); if(!bar){ return; }
     if(cloudUser){
-      bar.innerHTML='<span class="ab-stat">☁️ <b>'+esc(cloudUser.email||'로그인됨')+'</b> · 클라우드 동기화 중</span><button class="btn btn-ghost btn-sm" onclick="authLogout()">로그아웃</button>';
+      var d=loadDB(); var hh=d.handle?(' · <b>@'+esc(d.handle)+'</b>'):'';
+      bar.innerHTML='<span class="ab-stat">☁️ '+esc(cloudUser.email||'로그인됨')+hh+'</span><button class="btn btn-ghost btn-sm" onclick="authLogout()">로그아웃</button>';
     } else {
-      bar.innerHTML='<span class="ab-stat">게스트 모드 · 로그인하면 어디서나 내 데이터</span><button class="btn btn-ghost btn-sm" onclick="openAuth()">로그인</button>';
+      bar.innerHTML='<span class="ab-stat">로그인이 필요해요</span>';
     }
+  }catch(e){}
+}
+
+/* ===================== v29 친구 시스템 (Firestore 실시간) ===================== */
+function validHandle(h){ return /^[A-Za-z0-9가-힣_]{2,16}$/.test(h); }
+function renderHandleBox(){
+  try{
+    var box=document.getElementById('handleBox'); if(!box){ return; }
+    if(!fbReady || !cloudUser){ box.innerHTML='<span class="muted">로그인하면 아이디를 설정할 수 있어요.</span>'; return; }
+    var d=loadDB();
+    if(d.handle){ box.innerHTML='<div class="handle-set">내 아이디 <b>@'+esc(d.handle)+'</b><button class="btn btn-ghost btn-sm" onclick="openHandleEdit()">변경</button></div><div class="muted" style="margin-top:6px;font-size:12px">친구가 이 아이디로 나를 추가할 수 있어요.</div>'; }
+    else { box.innerHTML=handleInputHTML(); }
+  }catch(e){}
+}
+function handleInputHTML(){
+  return '<div class="newprof"><input id="handleInput" type="text" placeholder="원하는 아이디 (한글/영문/숫자 2~16자)" maxlength="16" onkeydown="if(event.key===\'Enter\')setMyHandle(this.value)"><button class="btn btn-pri btn-sm" onclick="setMyHandle(document.getElementById(\'handleInput\').value)">설정</button></div><div id="handleMsg" class="muted" style="margin-top:6px;font-size:12px">친구가 이 아이디로 나를 추가할 수 있어요.</div>';
+}
+function openHandleEdit(){ try{ var box=document.getElementById('handleBox'); if(box){ box.innerHTML=handleInputHTML(); var i=document.getElementById('handleInput'); if(i){ i.value=(loadDB().handle||''); i.focus(); } } }catch(e){} }
+function setMyHandle(h){
+  var msg=document.getElementById('handleMsg');
+  function m(t,err){ if(msg){ msg.style.color=err?'#c0564a':'#2c7a62'; msg.textContent=t; } }
+  if(!fbReady||!cloudUser||!fbDb){ m('로그인이 필요해요.',1); return; }
+  h=(h||'').trim().replace(/^@/,'');
+  if(!validHandle(h)){ m('아이디는 한글/영문/숫자·밑줄 2~16자예요.',1); return; }
+  var lower=h.toLowerCase();
+  if(msg){ msg.style.color='#65718a'; msg.textContent='확인 중…'; }
+  fbDb.collection('handles').doc(lower).get().then(function(doc){
+    if(doc.exists && doc.data().uid!==cloudUser.uid){ m('이미 사용 중인 아이디예요.',1); return; }
+    fbDb.collection('handles').doc(lower).set({uid:cloudUser.uid, handle:h}).then(function(){
+      var d=loadDB(); d.handle=h; if(!d.displayName){ d.displayName=h; } saveDB(d);
+      try{ paintAuthBar(); }catch(e){}
+      try{ publishMyResult(); }catch(e){}
+      try{ renderHandleBox(); }catch(e){}
+      m('아이디 설정 완료: @'+h,0);
+    }, function(){ m('저장에 실패했어요. 다시 시도해 주세요.',1); });
+  }, function(){ m('확인에 실패했어요. 네트워크를 확인해 주세요.',1); });
+}
+function currentMyProfile(){
+  try{
+    var d=loadDB(); var ps=d.profiles||[];
+    var mine=ps.filter(function(p){ return p && !p.imported && p.history && p.history.length; });
+    var cur=null; ps.forEach(function(p){ if(p.id===d.curId){ cur=p; } });
+    if(mine.length){ if(cur && !cur.imported && cur.history && cur.history.length){ return cur; } return mine[mine.length-1]; }
+    return cur || ps[0] || null;
+  }catch(e){ return null; }
+}
+function myAggDom(){ var p=currentMyProfile(); var ag=p?aggProfile(p):null; return ag?ag:null; }
+function publishMyResult(){
+  try{
+    if(!fbReady||!cloudUser||!fbDb){ return; }
+    var d=loadDB(); var p=currentMyProfile(); var ag=p?aggProfile(p):null; if(!ag){ return; }
+    var rel=aggReliability(p); var tp=topProfile(ag.dom);
+    fbDb.collection('results').doc(cloudUser.uid).set({
+      uid:cloudUser.uid, handle:d.handle||'', displayName:d.displayName||d.handle||'',
+      agg:ag.dom, count:ag.count, reliability:rel.score, name:tp.name, updatedAt:Date.now()
+    }).then(function(){}, function(){});
+  }catch(e){}
+}
+function addFriendByHandle(h){
+  var msg=document.getElementById('friendMsg');
+  function m(t,c){ if(msg){ msg.style.color=c||'#c0564a'; msg.textContent=t; } }
+  if(!fbReady||!cloudUser||!fbDb){ m('로그인이 필요해요.'); return; }
+  h=(h||'').trim().replace(/^@/,'');
+  if(!h){ m('친구 아이디를 입력해 주세요.'); return; }
+  var lower=h.toLowerCase();
+  if(msg){ msg.style.color='#65718a'; msg.textContent='찾는 중…'; }
+  fbDb.collection('handles').doc(lower).get().then(function(doc){
+    if(!doc.exists){ m('그런 아이디를 찾을 수 없어요.'); return; }
+    var fuid=doc.data().uid;
+    if(fuid===cloudUser.uid){ m('자기 자신은 추가할 수 없어요.'); return; }
+    var d=loadDB(); d.friends=d.friends||[];
+    if(d.friends.indexOf(fuid)>=0){ m('이미 추가된 친구예요.', '#c08a3e'); return; }
+    d.friends.push(fuid); saveDB(d);
+    m('@'+h+' 친구 추가 완료!', '#2c7a62');
+    var inp=document.getElementById('friendHandleInput'); if(inp){ inp.value=''; }
+    loadFriendsRanking();
+  }, function(){ m('검색에 실패했어요. 네트워크를 확인해 주세요.'); });
+}
+var __friendUnsubs=[];
+function loadFriendsRanking(){
+  try{
+    var box=document.getElementById('friendRank'); if(!box){ return; }
+    __friendUnsubs.forEach(function(u){ try{ u(); }catch(e){} }); __friendUnsubs=[];
+    if(!fbReady||!cloudUser||!fbDb){ box.innerHTML='<span class="muted">로그인 후 이용할 수 있어요.</span>'; return; }
+    var d=loadDB(); var friends=d.friends||[];
+    if(!friends.length){ box.innerHTML='<span class="muted">아직 친구가 없어요. 위에서 친구 아이디를 추가해 보세요.</span>'; return; }
+    window.__friendResults={};
+    box.innerHTML='<span class="muted">친구 결과를 불러오는 중…</span>';
+    friends.forEach(function(fuid){
+      var unsub=fbDb.collection('results').doc(fuid).onSnapshot(function(doc){
+        if(doc.exists){ window.__friendResults[fuid]=doc.data(); } else { delete window.__friendResults[fuid]; }
+        renderFriendRanking();
+      }, function(){});
+      __friendUnsubs.push(unsub);
+    });
+  }catch(e){}
+}
+function renderFriendRanking(){
+  try{
+    var box=document.getElementById('friendRank'); if(!box){ return; }
+    var myA=myAggDom();
+    if(!myA){ box.innerHTML='<span class="muted">먼저 내 검사를 1회 이상 완료하면 친구와의 궁합 순위가 나와요.</span>'; return; }
+    var arr=[]; var fr=window.__friendResults||{};
+    for(var fuid in fr){ var r=fr[fuid]; if(r&&r.agg){ var sd=pairScoreDetail(myA.dom, r.agg); arr.push({uid:fuid, r:r, score:sd.score}); } }
+    arr.sort(function(a,b){ return b.score-a.score; });
+    if(!arr.length){ box.innerHTML='<span class="muted">친구들이 아직 검사를 안 했어요. 친구가 검사하면 실시간으로 순위에 떠요.</span>'; return; }
+    var H='';
+    arr.forEach(function(it,i){
+      var col=it.score>=70?'#3f8f74':(it.score>=50?'#c08a3e':'#c0564a');
+      var medal=(i===0?'🥇':(i===1?'🥈':(i===2?'🥉':(i+1)+'')));
+      H+='<div class="rankrow" onclick="openFriendCompat(\''+it.uid+'\')">'
+        +'<span class="rk">'+medal+'</span>'
+        +'<span class="rkname"><b>'+esc(it.r.displayName||it.r.handle||'친구')+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.r.handle||'')+' · '+esc(it.r.name||'')+'</span></span>'
+        +'<span class="rkscore" style="color:'+col+'">'+it.score+'%<span class="rkgo">›</span></span></div>';
+    });
+    box.innerHTML=H;
+  }catch(e){}
+}
+function openFriendCompat(fuid){
+  try{
+    var fr=(window.__friendResults||{})[fuid]; if(!fr||!fr.agg){ toast('친구 결과를 불러오지 못했어요.'); return; }
+    var myA=myAggDom(); if(!myA){ toast('먼저 내 검사를 완료해 주세요.'); return; }
+    var d=loadDB(); var meName=(d.displayName||d.handle||'나');
+    var sel=[ {name:meName, history:[{pct:myA.dom, fac:myA.fac}]}, {name:(fr.displayName||fr.handle||'친구'), history:[{pct:fr.agg, fac:null}]} ];
+    document.getElementById('compatResult').innerHTML=renderPairResult(sel); show('compat');
   }catch(e){}
 }
 function mergeProfiles(localArr, cloudArr){
@@ -1520,9 +1713,13 @@ function loadCloud(u){
       var merged=mergeProfiles(local.profiles, cloudProfiles);
       var curId=local.curId || (cloud && cloud.curId) || (merged.length?merged[0].id:null);
       var hasCur=false; merged.forEach(function(p){ if(p.id===curId){ hasCur=true; } }); if(!hasCur && merged.length){ curId=merged[0].id; }
-      saveDB({profiles:merged, curId:curId});
+      saveDB({profiles:merged, curId:curId,
+        handle:(cloud&&cloud.handle)||local.handle||null,
+        displayName:(cloud&&cloud.displayName)||local.displayName||null,
+        friends:(cloud&&cloud.friends)||local.friends||[]});
       pushCloud();
       enterHome();
+      try{ publishMyResult(); }catch(e){}
       toast('로그인됨 · 클라우드 데이터와 동기화했어요.');
     }, function(){ enterHome(); });
   }catch(e){ enterHome(); }
@@ -1531,7 +1728,7 @@ function pushCloud(){
   if(!fbDb || !cloudUser){ return; }
   if(pushTimer){ clearTimeout(pushTimer); }
   pushTimer=setTimeout(function(){
-    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
+    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, handle:db.handle||null, displayName:db.displayName||null, friends:db.friends||[], updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
   }, 700);
 }
 function openAuth(){ try{ document.getElementById('authMsg').textContent=''; }catch(e){} show('auth'); try{ setInappWarn(); }catch(e){} if(!fbReady){ try{ document.getElementById('authMsg').innerHTML='<span style="color:#c0564a">로그인 서버에 연결할 수 없어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.</span>'; }catch(e){} } }
@@ -1557,12 +1754,12 @@ function authGoogle(){
   catch(e){ authMsgSet('구글 로그인을 시작할 수 없어요. 이메일/비밀번호를 이용해 주세요.'); }
 }
 function setInappWarn(){
+  /* v29: 안내 텍스트 제거 — v28 자동 외부전환이 처리. iOS 등 자동 실패 대비 최소 버튼만 */
   try{
     var w=document.getElementById('inappWarn'); if(!w){ return; }
     if(typeof isInAppBrowser==='function' && isInAppBrowser()){
-      w.innerHTML='⚠️ <b>카카오톡 등 인앱 브라우저</b>로 열려 있어요. 인앱에서는 <b>구글 로그인</b>과 일부 기능이 제한돼요. <b>기본 브라우저(크롬·사파리)</b>에서 열면 모든 기능이 정상 동작해요.'
-        +'<div class="btn-row" style="margin-top:9px;"><button class="btn btn-pri btn-sm" onclick="tryOpenExternal()">🌐 기본 브라우저에서 열기</button><button class="btn btn-ghost btn-sm" onclick="copyCurrentLink()">🔗 링크 복사</button></div>'
-        +'<div class="muted" style="margin-top:8px;font-size:11.5px;line-height:1.6;">자동으로 안 열리면 화면 <b>우측 위 ⋯(또는 공유 버튼)</b> → <b>‘다른 브라우저로 열기 / Safari·Chrome으로 열기’</b>를 눌러주세요.</div>';
+      w.className='';
+      w.innerHTML='<div class="btn-row" style="margin:4px 0 0;"><button class="btn btn-ghost btn-sm btn-block" onclick="tryOpenExternal()">🌐 기본 브라우저에서 열기</button></div>';
       w.style.display='block';
     } else { w.style.display='none'; w.innerHTML=''; }
   }catch(e){}
