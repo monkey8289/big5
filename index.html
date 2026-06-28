@@ -225,6 +225,10 @@
   .reqcard .rq-btns{display:flex;gap:6px;flex:none;}
   .reqcard .btn{min-height:34px;padding:0 11px;font-size:12.5px;}
   .ab-ava{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+  /* v33: 관계별 모드 토글 */
+  .relmode-toggle{display:flex;gap:6px;margin:6px 0 2px;}
+  .relmode-btn{flex:1;padding:9px 4px;border:1.5px solid #e3e7f0;background:#fff;border-radius:10px;font-family:inherit;font-size:12.5px;font-weight:700;color:#5a6377;cursor:pointer;}
+  .relmode-btn.on{border-color:#5a7bc0;background:#eef3fc;color:#34466b;}
   /* v24: MBTI 근사 · 인물상 */
   .mbti-card{background:linear-gradient(135deg,#eef3fb,#eef8f4);border:1px solid #d8e3ee;border-radius:15px;padding:15px;}
   .mbti-row{display:flex;align-items:center;gap:12px;}
@@ -317,7 +321,7 @@
       <div id="friendRank" class="rankbox"><span class="muted">로그인 후 이용할 수 있어요.</span></div>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v32 · 2026-06-28 10:00</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v33 · 2026-06-28 10:15</div>
   </section>
 
   <!-- MODE -->
@@ -1908,10 +1912,58 @@ function recomputeFriends(){
 }
 function subscribeFriendResult(fuid){
   __resUnsubs[fuid]=fbDb.collection('results').doc(fuid).onSnapshot(function(doc){
-    if(doc.exists){ window.__friendResults[fuid]=doc.data(); } else { delete window.__friendResults[fuid]; }
+    if(doc.exists){
+      var data=doc.data();
+      try{
+        var ua=data.updatedAt||0; window.__seenAct=window.__seenAct||{};
+        if(window.__seenAct[fuid]!=null && ua>window.__seenAct[fuid] && data.count){
+          toast('🔔 '+(data.handle?('@'+data.handle):'친구')+'님이 검사를 갱신했어요 · 궁합이 업데이트됐어요');
+        }
+        window.__seenAct[fuid]=ua;
+      }catch(e){}
+      window.__friendResults[fuid]=data;
+    } else { delete window.__friendResults[fuid]; }
     renderFriendRanking();
   }, function(){});
 }
+/* v33: 관계별 모드 (연애/직장/친구) */
+var REL_MODES=[ {id:'love',name:'연애',icon:'💕'}, {id:'work',name:'직장 동료',icon:'💼'}, {id:'friend',name:'친구',icon:'🤝'} ];
+function relScore(a,b,mode){
+  function diff(k){ return Math.abs(a[k]-b[k]); } function mean(k){ return (a[k]+b[k])/2; }
+  var s;
+  if(mode==='work'){ s=0.30*(100-diff('C'))+0.22*mean('C')+0.20*(100-diff('O'))+0.16*Math.max(0,100-Math.abs(diff('X')-25))+0.12*mean('H'); }
+  else if(mode==='friend'){ s=0.28*mean('A')+0.24*(100-diff('O'))+0.20*Math.max(0,100-Math.abs(diff('X')-25))+0.16*mean('X')+0.12*(100-diff('E')); }
+  else { s=0.30*mean('A')+0.22*mean('H')+0.18*(100-diff('E'))+0.15*(100-diff('O'))+0.15*Math.max(0,100-Math.abs(diff('X')-20)); }
+  s=Math.round(s); return Math.max(5,Math.min(99,s));
+}
+function relTips(a,b,mode){
+  function mean(k){return (a[k]+b[k])/2;} function diff(k){return Math.abs(a[k]-b[k]);} var t=[];
+  if(mode==='work'){
+    t.push({ok:diff('C')<=15, txt:diff('C')<=15?'일 속도·꼼꼼함이 비슷해 협업이 매끄러워요.':'업무 페이스가 달라, 역할·마감 기준을 미리 맞추면 좋아요.'});
+    t.push({ok:diff('O')<=18, txt:diff('O')<=18?'새 시도에 대한 태도가 비슷해 합의가 빨라요.':'아이디어 수용도가 달라, 변화 도입 속도를 조율해 보세요.'});
+    t.push({ok:(diff('X')>=18&&diff('X')<=38), txt:(diff('X')>=18&&diff('X')<=38)?'외향성 차이가 적당해 추진·정리 역할이 잘 나뉘어요.':'에너지 스타일이 비슷해 회의·실행 역할을 의식적으로 나눠보세요.'});
+  } else if(mode==='friend'){
+    t.push({ok:mean('X')>=55, txt:mean('X')>=55?'둘 다 활발해 함께 노는 에너지가 좋아요.':'소수·조용한 만남이 더 편안할 수 있어요.'});
+    t.push({ok:diff('O')<=18, txt:diff('O')<=18?'관심사·취향 결이 맞아 같이 할 거리가 많아요.':'취향이 달라, 서로의 세계를 구경하듯 즐겨보세요.'});
+    t.push({ok:mean('A')>=58, txt:mean('A')>=58?'서로 너그러워 오래 편한 친구가 될 수 있어요.':'작은 서운함은 그때그때 솔직히 풀어보세요.'});
+  } else {
+    t.push({ok:mean('A')>=58, txt:mean('A')>=58?'둘 다 다정해 서로를 배려하는 연애가 기대돼요.':'서로의 입장을 한 번 더 헤아려 주면 좋아요.'});
+    t.push({ok:mean('H')>=56, txt:mean('H')>=56?'정직·신의가 높아 신뢰가 단단해요.':'약속·솔직함을 의식적으로 챙기면 신뢰가 깊어져요.'});
+    t.push({ok:diff('E')<=20, txt:diff('E')<=20?'감정 표현 결이 비슷해 공감이 잘 맞아요.':'감정 표현 방식이 달라, 표현 방법을 맞춰보면 좋아요.'});
+  }
+  return t;
+}
+function relModeBoxHTML(){
+  var c=window.__cmp; if(!c){ return ''; } var mode=window.__relMode||'love';
+  var tg='<div class="relmode-toggle">'; REL_MODES.forEach(function(m){ tg+='<button class="relmode-btn'+(m.id===mode?' on':'')+'" onclick="setRelMode(\''+m.id+'\')">'+m.icon+' '+m.name+'</button>'; }); tg+='</div>';
+  var sc=relScore(c.a,c.b,mode), col=sc>=70?'#3f8f74':(sc>=50?'#c08a3e':'#c0564a');
+  var mn=REL_MODES.filter(function(m){return m.id===mode;})[0].name;
+  var H='<div class="ccard"><div class="cc-h">관계별 궁합 보기</div>'+tg;
+  H+='<div class="center" style="margin-top:8px"><div class="profile-name" style="color:'+col+';font-size:30px">'+sc+'%</div><div class="muted" style="margin-top:2px">'+mn+' 관점 궁합</div></div>';
+  relTips(c.a,c.b,mode).forEach(function(tp){ H+='<div class="tip'+(tp.ok?' ok':'')+'">'+(tp.ok?'✓ ':'• ')+tp.txt+'</div>'; });
+  H+='</div>'; return H;
+}
+function setRelMode(mode){ try{ window.__relMode=mode; var b=document.getElementById('relModeBox'); if(b){ b.innerHTML=relModeBoxHTML(); } }catch(e){} }
 function renderFriendRanking(){
   try{
     var box=document.getElementById('friendRank'); if(!box){ return; }
@@ -1943,6 +1995,8 @@ function openFriendCompat(fuid){
     var sel=[ {name:meName, history:[{pct:myA.dom, fac:myA.fac}]}, {name:frName, history:[{pct:fr.agg, fac:null}]} ];
     var head='<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px">'+avatarSVG(d.avatar,48)+'<span style="font-size:20px;color:#b7c0d4">×</span>'+avatarSVG(fr.avatar,48)+'</div>';
     head+='<div class="ccard" style="padding:12px 10px 6px"><div class="cc-h" style="text-align:center">나 vs '+esc(frName)+' · 6각 비교</div>'+buildDualRadarSVG(myA.dom, fr.agg, meName, frName)+'</div>';
+    window.__cmp={a:myA.dom, b:fr.agg, n1:meName, n2:frName}; if(!window.__relMode){ window.__relMode='love'; }
+    head+='<div id="relModeBox">'+relModeBoxHTML()+'</div>';
     document.getElementById('compatResult').innerHTML=head+renderPairResult(sel); show('compat');
   }catch(e){}
 }
