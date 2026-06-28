@@ -236,6 +236,10 @@
   .dex-cell.locked .avatar{filter:grayscale(1);opacity:0.42;}
   .dex-cell.locked .avatar-nm{color:#aeb6c4;}
   .dex-lock{position:absolute;top:7px;right:9px;font-size:13px;}
+  /* v35: 홈 신뢰도 카드 */
+  .rel-card{background:linear-gradient(135deg,#eef4fb,#f3f0fb);border:1px solid #e2e7f3;border-radius:14px;padding:14px 15px;}
+  .rel-head{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;font-weight:700;color:#3a4456;}
+  .rel-head b{font-size:23px;}
   /* v24: MBTI 근사 · 인물상 */
   .mbti-card{background:linear-gradient(135deg,#eef3fb,#eef8f4);border:1px solid #d8e3ee;border-radius:15px;padding:15px;}
   .mbti-row{display:flex;align-items:center;gap:12px;}
@@ -304,6 +308,10 @@
       <button class="btn btn-ghost home-btn" onclick="shareApp()"><span class="hb-ico">🔗</span><span>검사 추천</span></button>
     </div>
 
+    <div class="section" id="homeRelSection">
+      <div class="rel-card" id="homeRel"></div>
+    </div>
+
     <div class="section">
       <div class="section-title">내 프로필</div>
       <div id="handleBox"></div>
@@ -333,7 +341,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v34 · 2026-06-28 10:30</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v35 · 2026-06-28 10:45</div>
   </section>
 
   <!-- MODE -->
@@ -732,6 +740,7 @@ function clamp(x){ return x<0?0:(x>100?100:x); }
 /* ===================== 홈/프로필 ===================== */
 function renderHome(){
   try{ renderResumeBox(); }catch(e){}
+  try{ if(typeof renderHomeRel==='function') renderHomeRel(); }catch(e){}
   try{ if(typeof renderHandleBox==='function') renderHandleBox(); }catch(e){}
   try{ if(typeof watchFriendRequests==='function') watchFriendRequests(); }catch(e){}
   try{ if(typeof renderFriendRequests==='function') renderFriendRequests(); }catch(e){}
@@ -1515,41 +1524,56 @@ function charHeadline(prof, dom){
 }
 
 /* v29 Part4: 누적 검사 집계 + 신뢰도 (검사 횟수↑·검사 간 분산↓ → 신뢰도↑) */
+/* v35: 검사 수준별 가중치 (간편1 : 균형2 : 정밀3 = 문항수 24:48:72 비례) */
+function modeWeight(m){ return (m===1)?1:((m===3)?3:2); }
 function aggProfile(profile){
   var h=(profile&&profile.history)?profile.history:[]; if(!h.length){ return null; }
-  var sum={H:0,E:0,X:0,A:0,C:0,O:0}, n=h.length;
-  h.forEach(function(r){ DORDER.forEach(function(k){ sum[k]+=(r.pct&&r.pct[k]!=null)?r.pct[k]:50; }); });
-  var dom={}; DORDER.forEach(function(k){ dom[k]=Math.round(sum[k]/n); });
-  var fsum={},fcnt={}; h.forEach(function(r){ if(r.fac){ for(var f in r.fac){ fsum[f]=(fsum[f]||0)+r.fac[f]; fcnt[f]=(fcnt[f]||0)+1; } } });
-  var fac={}; for(var f in fsum){ fac[f]=Math.round(fsum[f]/fcnt[f]); }
-  return {dom:dom, fac:fac, count:n};
+  var sw=0, sum={H:0,E:0,X:0,A:0,C:0,O:0};
+  h.forEach(function(r){ var w=modeWeight(r.mode); sw+=w; DORDER.forEach(function(k){ sum[k]+=w*((r.pct&&r.pct[k]!=null)?r.pct[k]:50); }); });
+  var dom={}; DORDER.forEach(function(k){ dom[k]=Math.round(sum[k]/sw); });
+  var fsum={},fw={}; h.forEach(function(r){ var w=modeWeight(r.mode); if(r.fac){ for(var f in r.fac){ fsum[f]=(fsum[f]||0)+w*r.fac[f]; fw[f]=(fw[f]||0)+w; } } });
+  var fac={}; for(var f in fsum){ fac[f]=Math.round(fsum[f]/fw[f]); }
+  return {dom:dom, fac:fac, count:h.length, units:sw};
 }
 function aggReliability(profile){
-  var h=(profile&&profile.history)?profile.history:[]; var n=h.length; if(!n){ return {count:0,score:0,avgSd:0}; }
+  var h=(profile&&profile.history)?profile.history:[]; var n=h.length; if(!n){ return {count:0,units:0,score:0,avgSd:0,consistency:0}; }
+  var U=0; h.forEach(function(r){ U+=modeWeight(r.mode); });   /* 가중 합(weighted units): 정밀 1회 = 간편 3회 */
   var sds=[]; DORDER.forEach(function(k){
-    var vals=h.map(function(r){ return (r.pct&&r.pct[k]!=null)?r.pct[k]:50; });
-    var m=vals.reduce(function(a,b){return a+b;},0)/n;
-    var v=vals.reduce(function(a,b){return a+(b-m)*(b-m);},0)/n;
-    sds.push(Math.sqrt(v));
+    var sw=0, swv=0; h.forEach(function(r){ var w=modeWeight(r.mode); var v=(r.pct&&r.pct[k]!=null)?r.pct[k]:50; sw+=w; swv+=w*v; });
+    var m=swv/sw;
+    var sv=0; h.forEach(function(r){ var w=modeWeight(r.mode); var v=(r.pct&&r.pct[k]!=null)?r.pct[k]:50; sv+=w*(v-m)*(v-m); });
+    sds.push(Math.sqrt(sv/sw));
   });
   var avgSd=sds.reduce(function(a,b){return a+b;},0)/sds.length;
-  var consistency=Math.max(0, 1 - avgSd/30);   /* 검사 간 분산 작을수록 1 */
-  var countConf=Math.min(1, n/5);              /* 5회 이상이면 만점 */
-  var score=Math.round((0.55*countConf + 0.45*consistency)*100);
-  if(n===1){ score=Math.min(score,55); }       /* 1회는 상한 */
-  score=Math.max(10, Math.min(99, score));
-  return {count:n, score:score, avgSd:Math.round(avgSd), consistency:Math.round(consistency*100), countConf:Math.round(countConf*100)};
+  var consistency=(n<2)?0.8:Math.max(0, 1 - avgSd/30);   /* 1회는 일관성 측정 불가 → 중립값(정밀 1회가 충분히 인정받게) */
+  var countConf=Math.min(1, U/5);                        /* 가중 5단위면 만점(정밀≈1.7회, 간편 5회) */
+  var score=Math.round((0.65*countConf + 0.35*consistency)*100);
+  score=Math.max(8, Math.min(99, score));
+  return {count:n, units:U, score:score, avgSd:Math.round(avgSd), consistency:Math.round(consistency*100), countConf:Math.round(countConf*100)};
 }
 function aggBoxHTML(profile){
   var ag=aggReliability(profile); if(!ag.count){ return ''; }
   var col=ag.score>=70?'#3f8f74':(ag.score>=45?'#c08a3e':'#c0564a');
   var H='<div class="val" style="color:'+col+'">'+ag.count+'회 검사 기반 · 신뢰도 '+ag.score+'%</div>';
   H+='<div class="relbar" style="margin-top:8px"><i style="width:'+ag.score+'%;background:'+col+'"></i></div>';
-  H+='<div class="muted" style="margin-top:9px;line-height:1.7">여러 번 검사할수록, 또 검사 간 결과가 일관될수록 추정이 안정돼요.';
-  if(ag.count<3){ H+=' <b>몇 번 더 검사하면</b> 신뢰도가 올라가요.'; }
+  H+='<div class="muted" style="margin-top:9px;line-height:1.7">여러 번 검사할수록, 또 검사 간 결과가 일관될수록 추정이 안정돼요. <b>정밀 검사</b>는 문항이 많아 신뢰도를 더 많이 올려줘요.';
+  if(ag.units<3){ H+=' <b>정밀 검사</b>를 한 번 해보면 크게 올라가요.'; }
   H+='</div>';
-  H+='<div class="muted" style="margin-top:3px;font-size:11.5px">· 누적 '+ag.count+'회 · 검사 간 평균 편차 '+ag.avgSd+'점 · 일관성 '+ag.consistency+'% · 참고용 추정치예요.</div>';
+  H+='<div class="muted" style="margin-top:3px;font-size:11.5px">· 누적 '+ag.count+'회(문항수 가중) · 검사 간 평균 편차 '+ag.avgSd+'점 · 일관성 '+ag.consistency+'% · 참고용 추정치예요.</div>';
   return H;
+}
+function renderHomeRel(){
+  try{
+    var box=document.getElementById('homeRel'); if(!box){ return; }
+    var p=(typeof currentMyProfile==='function')?currentMyProfile():null;
+    var ag=p?aggReliability(p):null;
+    if(!ag||!ag.count){ box.innerHTML='<span class="muted">검사를 1회 완료하면 내 결과 신뢰도가 표시돼요.</span>'; return; }
+    var col=ag.score>=70?'#3f8f74':(ag.score>=45?'#c08a3e':'#c0564a');
+    var H='<div class="rel-head"><span>내 결과 신뢰도</span><b style="color:'+col+'">'+ag.score+'%</b></div>';
+    H+='<div class="relbar" style="margin-top:6px"><i style="width:'+ag.score+'%;background:'+col+'"></i></div>';
+    H+='<div class="muted" style="margin-top:8px;font-size:12px;line-height:1.6">'+ag.count+'회 검사 기반 · 검사를 더 할수록 올라가요. <b>정밀 검사</b>를 하면 더 빨리 올라가요.</div>';
+    box.innerHTML=H;
+  }catch(e){}
 }
 
 /* v24: MBTI 근사 (HEXACO 점수 기반 단순 매핑 — 정식 검사와 측정 방식 다름) */
