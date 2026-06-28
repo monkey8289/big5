@@ -236,6 +236,14 @@
   .dex-cell.locked .avatar{filter:grayscale(1);opacity:0.42;}
   .dex-cell.locked .avatar-nm{color:#aeb6c4;}
   .dex-lock{position:absolute;top:7px;right:9px;font-size:13px;}
+  /* v38: 내 주변 유형 지도 */
+  .dex-prog{display:inline-block;background:#eef3fc;border:1px solid #d6e0f2;border-radius:999px;padding:6px 16px;font-size:14px;font-weight:700;color:#3a4456;}
+  .dex-prog b{color:#4a6fa5;}
+  .dex-type{font-size:10px;color:#7a8294;font-weight:600;text-align:center;line-height:1.2;}
+  .dex-cnt{font-size:11px;font-weight:800;color:#4a6fa5;}
+  .dex-members{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:1px;}
+  .dex-mem{position:relative;display:inline-flex;}
+  .dex-me{position:absolute;bottom:-3px;right:-3px;background:#4a6fa5;color:#fff;font-size:7px;font-weight:800;border-radius:999px;padding:0 3px;border:1px solid #fff;}
   /* v35: 홈 신뢰도 카드 */
   .rel-card{background:linear-gradient(135deg,#eef4fb,#f3f0fb);border:1px solid #e2e7f3;border-radius:14px;padding:13px 14px;}
   .rel-head{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;font-weight:700;color:#3a4456;}
@@ -353,7 +361,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v37 · 2026-06-28 11:45</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v38 · 2026-06-28 12:15</div>
   </section>
 
   <!-- MODE -->
@@ -2199,6 +2207,7 @@ function renderFriendRanking(){
         +'<span class="rkscore" style="color:'+col+'">'+it.score+'%<span class="rkgo">›</span></span></div>';
     });
     box.innerHTML=H;
+    try{ var cs=document.getElementById('collection'); if(cs && getComputedStyle(cs).display!=='none' && typeof renderCollection==='function'){ renderCollection(); } }catch(e){}  /* v38: 도감 실시간 갱신 */
   }catch(e){}
 }
 function buildFriendCompatHTML(fr){
@@ -2280,12 +2289,27 @@ function renderCollection(){
     var types=obtainedTypes(); var d=loadDB(); var myAv=d.avatar;
     var mascotType={}; for(var tn in CHAR){ mascotType[CHAR[tn].m]=tn; }
     var nUnlocked=0;
-    var H='<div class="muted" style="margin-bottom:10px;line-height:1.6">검사 결과로 나온 유형의 마스코트와 내가 고른 프로필 캐릭터를 모으는 도감이에요.</div><div class="dex-grid">';
+    var myP0=(typeof currentMyProfile==='function')?currentMyProfile():null; var myAg=myP0?aggProfile(myP0):null; var myType=myAg?topProfile(myAg.dom).name:null;
+    var myName=d.displayName||d.handle||'나';
+    var frr=window.__friendResults||{}; var accSet=acceptedFriendSet();
+    var typeMembers={};
+    if(myType){ (typeMembers[myType]=typeMembers[myType]||[]).push({name:myName,avatar:d.avatar,isMe:true}); }
+    for(var fu in accSet){ var r=frr[fu]; if(r&&r.agg){ var tnm=r.name||topProfile(r.agg).name; (typeMembers[tnm]=typeMembers[tnm]||[]).push({name:r.displayName||r.handle||'친구',avatar:r.avatar,isMe:false}); } }
+    AVATARS.forEach(function(a){ if((typeMembers[mascotType[a.name]]||[]).length){ nUnlocked++; } });
+    var H='<div class="muted" style="margin-bottom:10px;line-height:1.6">나와 친구들이 어떤 유형인지 보는 <b>내 주변 유형 지도</b>예요. 친구가 검사하면 실시간으로 채워져요.</div>';
+    H+='<div class="center" style="margin-bottom:11px"><span class="dex-prog">7개 유형 중 <b>'+nUnlocked+'개</b> 만남</span></div>';
+    H+='<div class="dex-grid">';
     AVATARS.forEach(function(a){
-      var typeName=mascotType[a.name]; var unlocked=(typeName && types[typeName]) || (a.id===myAv); if(unlocked){ nUnlocked++; }
-      H+='<div class="dex-cell'+(unlocked?'':' locked')+'"><span class="avatar" style="width:64px;height:64px;background:'+a.color+'1f">'+mascotArtSVG(a.id,64)+'</span><span class="avatar-nm">'+a.name+'</span>'+(unlocked?'':'<span class="dex-lock">🔒</span>')+'</div>';
+      var typeName=mascotType[a.name]; var members=typeMembers[typeName]||[]; var unlocked=members.length>0;
+      H+='<div class="dex-cell'+(unlocked?'':' locked')+'"><span class="avatar" style="width:56px;height:56px;background:'+a.color+'1f">'+mascotArtSVG(a.id,56)+'</span><span class="avatar-nm">'+a.name+'</span><span class="dex-type">'+esc(typeName||'')+'</span>';
+      if(unlocked){
+        H+='<span class="dex-cnt">'+members.length+'명</span><div class="dex-members">';
+        members.slice(0,4).forEach(function(mm){ H+='<span class="dex-mem">'+avatarSVG(mm.avatar,20)+(mm.isMe?'<span class="dex-me">나</span>':'')+'</span>'; });
+        H+='</div>';
+      } else { H+='<span class="dex-lock">🔒</span><span class="dex-cnt" style="color:#aeb6c4">아직 없음</span>'; }
+      H+='</div>';
     });
-    H+='</div><div class="center muted" style="margin-top:8px">'+nUnlocked+' / '+AVATARS.length+' 수집</div>';
+    H+='</div>';
     var totalTests=0, preciseCnt=0, days={};
     (d.profiles||[]).forEach(function(p){ if(!p.imported&&p.history){ p.history.forEach(function(rec){ totalTests++; if(rec.mode===3){ preciseCnt++; } if(rec.date){ days[(''+rec.date).slice(0,10)]=1; } }); } });
     var nDays=0; for(var dd in days){ nDays++; }
