@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a557e"/>
+      <stop offset="1" stop-color="#22365a"/>
+    </linearGradient>
+  </defs>
+  <!-- full-bleed background (maskable: 플랫폼이 모서리를 잘라도 네이비가 채움) -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- 안전영역(중앙 ~64%) 내부 콘텐츠 -->
+  <g stroke-linejoin="round" fill="none">
+    <!-- 그리드 링 -->
+    <polygon points="256,143 354,199.5 354,312.5 256,369 158,312.5 158,199.5" stroke="#4f6c97" stroke-width="3"/>
+    <!-- 외곽 육각 (골드) -->
+    <polygon points="256,106 385.9,181 385.9,331 256,406 126.1,331 126.1,181" stroke="#c0894a" stroke-width="14"/>
+    <!-- 스포크 -->
+    <g stroke="#4f6c97" stroke-width="3">
+      <line x1="256" y1="256" x2="256" y2="106"/>
+      <line x1="256" y1="256" x2="385.9" y2="181"/>
+      <line x1="256" y1="256" x2="385.9" y2="331"/>
+      <line x1="256" y1="256" x2="256" y2="406"/>
+      <line x1="256" y1="256" x2="126.1" y2="331"/>
+      <line x1="256" y1="256" x2="126.1" y2="181"/>
+    </g>
+  </g>
+  <!-- 레이더 프로필 (흰색 반투명) -->
+  <polygon points="256,136 325.3,216 351.3,311 256,326 169.4,306 178.1,211"
+           fill="rgba(255,255,255,0.20)" stroke="#ffffff" stroke-width="8" stroke-linejoin="round"/>
+  <!-- 꼭짓점 점 -->
+  <g fill="#ffffff">
+    <circle cx="256" cy="136" r="7"/>
+    <circle cx="325.3" cy="216" r="7"/>
+    <circle cx="351.3" cy="311" r="7"/>
+    <circle cx="256" cy="326" r="7"/>
+    <circle cx="169.4" cy="306" r="7"/>
+    <circle cx="178.1" cy="211" r="7"/>
+  </g>
+  <circle cx="256" cy="256" r="11" fill="#c0894a"/>
+</svg>

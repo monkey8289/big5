@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HEXACO 성격 분석 · 프로필/궁합/추이</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#22365a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="성격분석">
+<link rel="apple-touch-icon" href="./icon.svg">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
 <style>
   :root{
     --bg:#eef1f6; --card:#ffffff; --ink:#28303d; --sub:#65718a;
@@ -170,7 +178,7 @@
       <button class="btn btn-ghost" onclick="openData()">데이터·공유</button>
     </div>
     <div class="note blue">프로필과 기록은 <b>이 브라우저에만</b> 저장됩니다. 친구와 비교하려면 <b>데이터·공유 → 링크 공유</b>로 결과를 보내거나 받으세요.</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v15 · 2026-06-28 01:10</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v16 · 2026-06-28 01:40</div>
   </section>
 
   <!-- MODE -->
@@ -985,6 +993,9 @@ function init(){
   try{ afterImportFlow(); }catch(e){}
 }
 if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+
+/* v16: PWA — Service Worker 등록 (상대경로, 실패 무시) */
+if('serviceWorker' in navigator){ window.addEventListener('load', function(){ try{ navigator.serviceWorker.register('./sw.js').then(function(){}, function(){}); }catch(e){} }); }
 </script>
 </body>
 </html>
