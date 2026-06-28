@@ -170,7 +170,7 @@
       <button class="btn btn-ghost" onclick="openData()">데이터·공유</button>
     </div>
     <div class="note blue">프로필과 기록은 <b>이 브라우저에만</b> 저장됩니다. 친구와 비교하려면 <b>데이터·공유 → 링크 공유</b>로 결과를 보내거나 받으세요.</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v14 · 2026-06-28 00:40</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v15 · 2026-06-28 01:10</div>
   </section>
 
   <!-- MODE -->
@@ -583,7 +583,7 @@ function resumeQuiz(){
   if(idx>=QUESTIONS.length) idx=QUESTIONS.length-1; renderQ(); show("quiz");
 }
 function renderQ(){
-  var q=QUESTIONS[idx]; $("qfacet").textContent=DNAME[q.d]+" · "+q.fc;
+  var q=QUESTIONS[idx]; $("qfacet").textContent="";/* v15: 검사 중 요인/facet 라벨 숨김(응답 왜곡 방지). 데이터 태그/채점은 그대로 */
   $("qnum").textContent=(idx+1)+" / "+QUESTIONS.length;
   $("pbar").style.width=Math.round(idx/QUESTIONS.length*100)+"%"; $("qtext").textContent=q.t;
   var h=""; for(var v=1;v<=5;v++){ var sel=(answers[idx]===v)?" sel":""; h+='<button class="lk'+sel+'" onclick="pick('+v+')"><span class="rb"></span><span>'+LIKERT[v-1]+'</span></button>'; }
