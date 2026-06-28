@@ -12,6 +12,20 @@
 <meta name="apple-mobile-web-app-title" content="성격분석">
 <link rel="apple-touch-icon" href="./icon.svg">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
+<!-- v50: 링크 공유 미리보기(OG/Twitter) -->
+<meta name="description" content="검사할수록 정확해지는 HEXACO 6요인 성격 분석. 친구와 실시간 궁합까지 무료로.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HEXACO 성격 분석">
+<meta property="og:title" content="HEXACO 성격 분석 · 6요인 성격 + 친구 궁합">
+<meta property="og:description" content="검사할수록 정확해지는 성격 분석. 친구와 실시간 궁합까지 무료로 — 지금 바로 검사해보세요.">
+<meta property="og:url" content="https://monkey8289.github.io/big5/">
+<meta property="og:image" content="https://monkey8289.github.io/big5/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HEXACO 성격 분석 · 6요인 성격 + 친구 궁합">
+<meta name="twitter:description" content="검사할수록 정확해지는 성격 분석 + 친구 궁합. 무료.">
+<meta name="twitter:image" content="https://monkey8289.github.io/big5/og.png">
 <style>
   :root{
     --bg:#eef1f6; --card:#ffffff; --ink:#28303d; --sub:#65718a;
@@ -92,7 +106,6 @@
   .section-title{font-size:12.5px;font-weight:800;color:var(--sub);letter-spacing:1.4px;margin:0 2px 11px;}
   .radar-wrap{display:flex;justify-content:center;}
   .radar-wrap svg{width:100%;max-width:340px;height:auto;}
-  .linechart{width:100%;height:auto;}
   #histChart svg{width:100%;height:auto;}
   .summary-box{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:16px;font-size:15px;line-height:1.75;}
   .summary-box .pf{color:var(--accent);font-weight:800;}
@@ -300,15 +313,6 @@
   /* v43 */
   .this-test{margin-top:8px;font-size:12px;color:#6c7488;background:#f4f6fb;border:1px solid #e6eaf3;border-radius:999px;padding:4px 12px;display:inline-block;}
   .mindset-note{background:#fff7e9;border:1px solid #f0e0b8;border-radius:13px;padding:11px 13px;font-size:12.5px;line-height:1.6;color:#7a5d23;margin:2px 0 12px;}
-  .quiz-frame{text-align:center;font-size:11.5px;font-weight:700;color:#8089a0;background:#f3f5fa;border-radius:999px;padding:5px 12px;margin:0 0 8px;}
-  .dunno-wrap{text-align:center;margin-top:14px;}
-  .dunno-btn{border:1.5px solid #e2d3a8;background:#fdf8ec;color:#9c7d3a;font-family:inherit;font-size:13px;font-weight:700;border-radius:999px;padding:8px 16px;cursor:pointer;}
-  .dunno-btn:active{transform:scale(.97);}
-  .dunno-panel{margin-top:11px;background:#fffdf6;border:1px solid #ecdcb6;border-radius:13px;padding:13px 14px;text-align:left;animation:qfadein .22s ease;}
-  .dunno-h{font-size:11px;font-weight:800;color:#b08a36;letter-spacing:.3px;}
-  .dunno-d{font-size:14.5px;font-weight:800;color:#3a4456;margin-top:3px;}
-  .dunno-ex{font-size:13px;color:#4a5268;line-height:1.65;margin-top:8px;background:#fff;border:1px solid #efe6cf;border-radius:9px;padding:9px 11px;}
-  .dunno-scale{font-size:12.5px;color:#5a6377;line-height:1.7;margin-top:9px;}
   .trend-deltas{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:4px;}
   .td-item{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #ecf0f6;border-radius:11px;padding:8px 11px;}
   .td-item .dot{width:9px;height:9px;border-radius:50%;flex:none;}
@@ -396,6 +400,7 @@
     <div id="homeStats" class="stats no-print">📊 검사 통계를 불러오는 중…</div>
 
     <div id="resumeBox" style="display:none;"></div>
+    <div id="retestReminder"></div>
 
     <div class="home-grid">
       <button class="btn btn-pri home-btn" onclick="beginTest()"><span class="hb-ico">📝</span><span>검사 시작</span></button>
@@ -436,7 +441,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v49 · 2026-06-28 17:25</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v50 · 2026-06-28 17:45</div>
   </section>
 
   <!-- MODE -->
@@ -555,9 +560,17 @@
       <div class="note blue">공유는 두 가지로 간단해요. <b>‘💬 내 결과 공유하기’</b>(결과 화면) — 내 결과를 담은 링크로, 받은 사람이 열면 자동 추가되어 바로 궁합을 봅니다. <b>‘🔗 검사 추천하기’</b>(홈) — 내 결과 없이 앱 링크만 보내 검사를 권합니다.</div>
     </div>
     <div class="section">
-      <div class="section-title">저장된 데이터</div>
-      <p class="muted">프로필과 검사 기록은 <b>이 브라우저에만</b> 저장됩니다. 개별 프로필은 홈 화면에서 ✕ 버튼으로 삭제할 수 있어요.</p>
-      <div class="btn-row" style="justify-content:flex-start;margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="resetAllData()">🗑 모든 데이터 초기화</button></div>
+      <div class="section-title">내 데이터 내보내기</div>
+      <p class="muted">내 프로필·검사 기록 전부를 <b>JSON 파일</b>로 내려받아 따로 보관할 수 있어요.</p>
+      <div class="btn-row" style="justify-content:flex-start;margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="exportMyData()">📥 내 데이터 내보내기(JSON)</button></div>
+    </div>
+    <div class="section">
+      <div class="section-title">데이터·계정 삭제</div>
+      <p class="muted"><b>모든 데이터 초기화</b>는 이 기기의 기록만 지워요. <b>계정·데이터 완전 삭제</b>는 클라우드의 결과·프로필·친구 연결까지 영구 삭제해요(되돌릴 수 없어요).</p>
+      <div class="btn-row" style="justify-content:flex-start;margin-top:10px;flex-wrap:wrap;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="resetAllData()">🗑 이 기기 데이터 초기화</button>
+        <button class="btn btn-ghost btn-sm" style="color:#c0564a;border-color:#e3b4ad" onclick="deleteMyAccount()">⚠ 계정·데이터 완전 삭제</button>
+      </div>
     </div>
     <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈으로</button></div>
   </section>
@@ -970,8 +983,21 @@ function toast(msg){ try{ var t=document.createElement('div'); t.className='toas
 function clamp(x){ return x<0?0:(x>100?100:x); }
 
 /* ===================== 홈/프로필 ===================== */
+function renderRetestReminder(){
+  try{
+    var box=document.getElementById('retestReminder'); if(!box){ return; }
+    var p=(typeof currentMyProfile==='function')?currentMyProfile():null;
+    var h=(p&&p.history)?p.history:[]; if(!h.length){ box.innerHTML=''; return; }
+    var ms=Date.parse(h[h.length-1].date); if(!ms||isNaN(ms)){ box.innerHTML=''; return; }
+    var days=Math.floor((Date.now()-ms)/86400000);
+    if(days<90){ box.innerHTML=''; return; }   /* 3개월 이상 지났을 때만 */
+    var mo=Math.floor(days/30); var ago=(mo>=1?(mo+'개월'):(days+'일'));
+    box.innerHTML='<div class="note blue" style="margin-top:12px">🔄 마지막 검사가 <b>'+ago+' 전</b>이에요. 사람은 시간이 지나며 조금씩 변해요 — 다시 검사하면 <b>지금의 나</b>로 결과가 새로워지고(최근 검사가 더 크게 반영) 신뢰도도 올라가요.<div class="btn-row" style="margin-top:8px"><button class="btn btn-pri btn-sm" onclick="beginTest()">📝 다시 검사하기</button></div></div>';
+  }catch(e){}
+}
 function renderHome(){
   try{ renderResumeBox(); }catch(e){}
+  try{ renderRetestReminder(); }catch(e){}
   try{ if(typeof renderHomeRel==='function') renderHomeRel(); }catch(e){}
   try{ if(typeof renderHandleBox==='function') renderHandleBox(); }catch(e){}
   try{ if(typeof watchFriendRequests==='function') watchFriendRequests(); }catch(e){}
@@ -1028,52 +1054,7 @@ function startQuiz(perFacet){
   __qLastT=Date.now(); __fastRun=0; __sameRun=0; __lastVal=0; __nudgedAt=0;
   saveProgress(); renderQ(); show("quiz");
 }
-/* v43: 문항별 "잘 모르겠어요" 도움 — facet 단위 예시·설명·척도 */
-var FACET_HELP={
- '진실성':{d:'꾸밈없이 솔직하게 표현하는 편인지를 봐요',e:'<b>화면의 이 문장</b>을 기준으로, 평소의 내가 꾸밈없이 솔직한 편이면 ‘그렇다’, 상황을 봐가며 표현을 다듬는 편이면 ‘아니다’ 쪽으로 골라요.'},
- '공정성':{d:'손해를 보더라도 규칙·정직을 지키는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 손해를 봐도 규칙·공정을 지키는 편이면 ‘그렇다’, 이득을 위해 융통성을 두는 편이면 ‘아니다’ 쪽으로.'},
- '욕심없음':{d:'부·지위·물질에 대한 욕심이 적은 편인지를 봐요',e:'<b>이 문장</b>이 말하는 것에 대해, 욕심이 적고 지금에 만족하는 편이면 ‘그렇다’, 더 갖고 싶은 마음이 큰 편이면 ‘아니다’ 쪽으로.'},
- '겸손함':{d:'자신을 낮추고 내세우지 않는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 나를 낮추고 잘 내세우지 않는 편이면 ‘그렇다’, 인정·대우를 바라는 편이면 ‘아니다’ 쪽으로.'},
- '두려움':{d:'위험·아픔을 조심하고 겁을 느끼는 편인지를 봐요',e:'사람마다 무서워하는 게 달라요. <b>화면에 나온 그 상황</b>만 기준으로, 평소의 내가 겁이 나서 조심하는 편이면 ‘그렇다’, 별로 무섭지 않은 편이면 ‘아니다’ 쪽으로. (다른 상황은 생각하지 말고 이 문장만요.)'},
- '불안':{d:'걱정·긴장을 잘 느끼는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 걱정·긴장을 잘 느끼는 편이면 ‘그렇다’, 비교적 느긋한 편이면 ‘아니다’ 쪽으로.'},
- '의존성':{d:'힘들 때 누군가에게 기대고 싶은 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 누군가에게 기대고 함께하고 싶은 편이면 ‘그렇다’, 혼자 해결하는 게 편한 편이면 ‘아니다’ 쪽으로.'},
- '감상성':{d:'정이 깊고 감정에 잘 공감하는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 마음이 잘 움직이고 깊이 공감하는 편이면 ‘그렇다’, 비교적 담담한 편이면 ‘아니다’ 쪽으로.'},
- '사회적자존감':{d:'사람들 사이에서 자신감이 있는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 평소 마음이 편하고 당당한 편이면 ‘그렇다’, 위축되는 편이면 ‘아니다’ 쪽으로.'},
- '사회적대담성':{d:'나서고 표현하는 데 거리낌이 적은 편인지를 봐요',e:'사람마다 편한 자리가 달라요. <b>이 문장</b> 기준으로, 나서는 게 부담이 적은 편이면 ‘그렇다’, 부담스러운 편이면 ‘아니다’ 쪽으로.'},
- '사교성':{d:'어울리고 모이는 것을 즐기는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 어울리고 모이는 게 즐거운 편이면 ‘그렇다’, 혼자가 더 편한 편이면 ‘아니다’ 쪽으로.'},
- '활기':{d:'밝고 에너지가 넘치는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 평소 밝고 기운이 넘치는 편이면 ‘그렇다’, 차분하고 잔잔한 편이면 ‘아니다’ 쪽으로.'},
- '용서':{d:'서운함을 빨리 풀고 잘 용서하는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 서운함을 빨리 풀고 잊는 편이면 ‘그렇다’, 마음에 오래 남는 편이면 ‘아니다’ 쪽으로.'},
- '온화함':{d:'부드럽고 너그럽게 대하는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 부드럽고 너그럽게 대하는 편이면 ‘그렇다’, 분명하게 짚고 직설적인 편이면 ‘아니다’ 쪽으로.'},
- '유연성':{d:'잘 양보하고 맞춰주는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 잘 양보하고 절충점을 찾는 편이면 ‘그렇다’, 내 방식을 지키는 편이면 ‘아니다’ 쪽으로.'},
- '인내':{d:'화를 참고 침착함을 지키는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 웬만하면 참고 침착한 편이면 ‘그렇다’, 비교적 쉽게 욱하는 편이면 ‘아니다’ 쪽으로.'},
- '조직성':{d:'정리·계획을 잘하는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 정리·계획을 잘하는 편이면 ‘그렇다’, 그때그때 즉흥적인 편이면 ‘아니다’ 쪽으로.'},
- '근면성':{d:'부지런하고 끈기 있게 해내는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 부지런히 끝까지 하는 편이면 ‘그렇다’, 힘들면 미루거나 놓는 편이면 ‘아니다’ 쪽으로.'},
- '완벽주의':{d:'꼼꼼하게 빈틈을 챙기는 편인지를 봐요',e:'<b>이 문장이 말하는 것</b>에 대해, 꼼꼼히 챙기고 확인하는 편이면 ‘그렇다’, 사소한 건 대범하게 넘기는 편이면 ‘아니다’ 쪽으로.'},
- '신중함':{d:'따져보고 신중히 결정하는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 충분히 따져보고 신중한 편이면 ‘그렇다’, 끌리면 즉흥적으로 하는 편이면 ‘아니다’ 쪽으로.'},
- '심미안':{d:'아름다움에 깊이 감응하는 편인지를 봐요',e:'사람마다 마음이 가는 게 달라요. <b>이 문장</b> 기준으로, 아름다움에 마음이 깊이 움직이는 편이면 ‘그렇다’, 실용이 더 와닿는 편이면 ‘아니다’ 쪽으로.'},
- '탐구심':{d:'새 지식·원리에 호기심이 큰 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 궁금해서 알아보고 파고드는 편이면 ‘그렇다’, 익숙한 것에 집중하는 편이면 ‘아니다’ 쪽으로.'},
- '창의성':{d:'새 아이디어를 잘 떠올리는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 새롭게 떠올리고 바꿔보는 편이면 ‘그렇다’, 검증된 방식이 더 편한 편이면 ‘아니다’ 쪽으로.'},
- '비관습성':{d:'색다른 생각에 열려 있는 편인지를 봐요',e:'<b>이 문장이 말하는 것</b>에 대해, 색다른 생각도 열린 마음으로 받아들이는 편이면 ‘그렇다’, 익숙·전통이 더 편한 편이면 ‘아니다’ 쪽으로.'}
-};
-/* v47: '답 고르는 법'을 성향(trait) 기준이 아니라 "화면의 문장 그대로 동의 여부" 기준으로 통일.
-   역문항(‘~지 않는다/아니다’)에서 안내가 거꾸로 되던 문제 해결(채점은 내부에서 rev 처리). '이 문항이 묻는 것'(d)은 유지. */
-(function(){
-  var base='<b>화면의 이 문장</b> 그대로에 내가 얼마나 해당하는지로 답해요. 문장이 ‘~지 않는다 / 아니다’처럼 <b>부정형</b>일 수 있으니, 성향을 머릿속에서 뒤집지 말고 <b>문장 내용이 평소 나와 맞으면 ‘그렇다’, 안 맞으면 ‘아니다’</b>를 고르면 정확해요. (정·역 채점은 자동으로 처리돼요.)';
-  var varies={ '두려움':1, '사회적대담성':1, '심미안':1 };
-  for(var k in FACET_HELP){ if(FACET_HELP.hasOwnProperty(k)){ FACET_HELP[k].e=(varies[k]?'사람마다 느끼는 게 달라요. ':'')+base; } }
-})();
-function toggleDunno(){
-  try{
-    var panel=document.getElementById('dunnoPanel'); if(!panel){ return; }
-    if(panel.style.display!=='none'){ panel.style.display='none'; return; }
-    var q=QUESTIONS[idx]; var fh=FACET_HELP[q.fc]||{d:'이 문항이 묻는 성향',e:''};
-    var H='<div class="dunno-h">이 문항이 묻는 것</div><div class="dunno-d">'+esc(fh.d)+'</div>';
-    if(fh.e){ H+='<div class="dunno-ex">'+fh.e+'</div>'; }
-    H+='<div class="dunno-scale"><b>답 고르는 법</b><br>‘전혀 아니다’ = 나와 정말 안 맞음 · ‘보통이다’ = 반반/상황 따라 · ‘매우 그렇다’ = 나와 딱 맞음.<br>애매하면 <b>최근 몇 주, 평소의 나</b>에 더 가까운 쪽으로 골라요.</div>';
-    H+='<div class="muted" style="font-size:11.5px;margin-top:8px">읽고 나서 위에서 답을 골라주세요. (이 버튼은 ‘미응답’이 아니에요)</div>';
-    panel.innerHTML=H; panel.style.display='block';
-  }catch(e){}
-}
+/* v50: ‘잘 모르겠어요’ 도움 기능 제거 — FACET_HELP/toggleDunno 죽은 코드 정리 */
 function resumeQuiz(){
   var pr=loadProgress(); if(!pr||!pr.q||!pr.q.length){ toast("이어할 검사가 없어요."); renderResumeBox(); return; }
   var db=loadDB(); if(pr.curId && getProfile(pr.curId)){ db.curId=pr.curId; saveDB(db); }
@@ -1117,7 +1098,6 @@ function renderQ(){
   $("qtext").textContent=q.t;
   var h=""; for(var v=1;v<=5;v++){ var sel=(answers[idx]===v)?" sel":""; h+='<button class="lk'+sel+'" onclick="pick('+v+')"><span class="rb"></span><span>'+LIKERT[v-1]+'</span></button>'; }
   $("likert").innerHTML=h; $("prevBtn").style.visibility=idx>0?"visible":"hidden";
-  try{ var dp=document.getElementById('dunnoPanel'); if(dp){ dp.style.display='none'; } }catch(e){}  /* v43: 새 문항이면 도움 패널 닫기 */
   try{ ["qtext","likert"].forEach(function(id){ var el=$(id); if(el){ el.classList.remove("qfade"); void el.offsetWidth; el.classList.add("qfade"); } }); }catch(e){}
 }
 var LIKERT=["전혀 아니다","아니다","보통이다","그렇다","매우 그렇다"];
@@ -1195,7 +1175,8 @@ function recommendRole(dom){
 function radarPoints(vals,cx,cy,R){ var p=[]; for(var i=0;i<vals.length;i++){ var a=(-90+i*60)*Math.PI/180; var r=Math.max(0,Math.min(100,vals[i]))/100*R; p.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]); } return p; }
 function buildRadarSVG(dom){
   var cx=170,cy=160,R=108,vals=DORDER.map(function(k){return dom[k];});
-  var svg='<svg viewBox="0 0 340 320" xmlns="http://www.w3.org/2000/svg">';
+  var aria=DORDER.map(function(k){ return DNAME[k]+' '+dom[k]+'점'; }).join(', ');
+  var svg='<svg viewBox="0 0 340 320" role="img" aria-label="6요인 레이더 차트: '+aria+'" xmlns="http://www.w3.org/2000/svg">';
   [0.25,0.5,0.75,1].forEach(function(g){ var ring=radarPoints([100*g,100*g,100*g,100*g,100*g,100*g],cx,cy,R),d=ring.map(function(p,i){return(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1);}).join(" ")+" Z"; svg+='<path d="'+d+'" fill="none" stroke="#dde3ed"/>'; });
   var ae=radarPoints([100,100,100,100,100,100],cx,cy,R),lp=radarPoints([126,126,126,126,126,126],cx,cy,R);
   for(var i=0;i<6;i++){ svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+ae[i][0].toFixed(1)+'" y2="'+ae[i][1].toFixed(1)+'" stroke="#dde3ed"/>'; var lx=lp[i][0],ly=lp[i][1],an=Math.abs(lx-cx)<6?"middle":(lx<cx?"end":"start"); svg+='<text x="'+lx.toFixed(1)+'" y="'+(ly+4).toFixed(1)+'" text-anchor="'+an+'" font-size="12.5" font-weight="700" fill="#48526a">'+DNAME[DORDER[i]]+'</text>'; }
@@ -1225,7 +1206,8 @@ function sparkline(history, k){
   var X=function(i){ return pl+(n<=1?(w-pl-pr)/2:i*(w-pl-pr)/(n-1)); };
   var Y=function(v){ return pt+(100-v)/100*(h-pt-pb); };
   var gv=function(rec){ return (rec.pct&&rec.pct[k]!=null)?rec.pct[k]:50; };
-  var svg='<svg viewBox="0 0 '+w+' '+h+'" class="spark" xmlns="http://www.w3.org/2000/svg">';
+  var aria=DNAME[k]+' 추이: '+history.map(function(rec){ return gv(rec); }).join(' → ');
+  var svg='<svg viewBox="0 0 '+w+' '+h+'" class="spark" role="img" aria-label="'+aria+'" xmlns="http://www.w3.org/2000/svg">';
   svg+='<line x1="'+pl+'" y1="'+Y(50).toFixed(1)+'" x2="'+(w-pr)+'" y2="'+Y(50).toFixed(1)+'" stroke="#e7ebf3" stroke-dasharray="3 3"/>';
   var d=""; history.forEach(function(rec,i){ d+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(gv(rec)).toFixed(1)+" "; });
   svg+='<path d="'+d+'" fill="none" stroke="'+hex+'" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
@@ -1328,6 +1310,27 @@ function renderResult(who, rec, profile, opts){
 function toggleFacet(k){ var el=$("fac_"+k); var car=$("car_"+k); if(!el) return; if(el.style.display==="none"){ el.style.display="block"; if(car)car.textContent="▲"; } else { el.style.display="none"; if(car)car.textContent="▼"; } }
 
 /* ===================== 추이 화면 ===================== */
+/* v50: 검사-재검사 안정성 — 최근 두 검사의 6요인 프로파일 상관(r) + 평균 변동(실제 지표) */
+function pearson6(a,b){
+  var n=DORDER.length, sa=0,sb=0,saa=0,sbb=0,sab=0;
+  DORDER.forEach(function(k){ var x=(a[k]==null?50:a[k]), y=(b[k]==null?50:b[k]); sa+=x;sb+=y;saa+=x*x;sbb+=y*y;sab+=x*y; });
+  var cov=sab-sa*sb/n, va=saa-sa*sa/n, vb=sbb-sb*sb/n;
+  if(va<=0||vb<=0){ return null; }
+  return cov/Math.sqrt(va*vb);
+}
+function buildStabilityCard(history){
+  if(!history || history.length<2){ return ''; }
+  var a=history[history.length-2].pct, b=history[history.length-1].pct;
+  var r=pearson6(a,b);
+  var sumAbs=0; DORDER.forEach(function(k){ sumAbs+=Math.abs((b[k]==null?50:b[k])-(a[k]==null?50:a[k])); });
+  var mad=Math.round(sumAbs/DORDER.length);
+  var rtxt=(r==null)?'—':r.toFixed(2);
+  var lvl=(r==null)?'':(r>=0.8?'매우 비슷':(r>=0.6?'대체로 비슷':(r>=0.4?'다소 변동':'많이 변동')));
+  var col=(r==null)?'#9aa3b1':(r>=0.8?'#2e8b6f':(r>=0.6?'#c08a3e':'#c0564a'));
+  var H='<div class="ccard"><div class="cc-h">검사–재검사 안정성</div>';
+  H+='<div class="muted" style="line-height:1.75">최근 두 검사의 6요인 프로파일이 <b style="color:'+col+'">r = '+rtxt+'</b>'+(lvl?(' ('+lvl+')'):'')+'로 일치하고, 평균 변동은 <b>±'+mad+'점</b>이에요.<br><span style="color:#8a93a4">r은 −1~1 값으로, 1에 가까울수록 두 검사 결과의 모양이 같다는 뜻이에요. 검사가 안정적으로 잴수록, 또 평소의 나로 일관되게 답할수록 높아져요.</span></div></div>';
+  return H;
+}
 function buildTrendDeltas(history){
   if(!history || history.length<2){ return ''; }
   var last=history[history.length-1].pct, prev=history[history.length-2].pct;
@@ -1358,6 +1361,7 @@ function openTrend(){
   /* v43: 추이 그래프 + 지난번 대비 변화 */
   if(p.history.length>=2){
     html+='<div class="section-title" style="margin-top:16px">요인별 추이</div>'+buildLineChart(p.history);
+    html+='<div style="margin-top:12px">'+buildStabilityCard(p.history)+'</div>';
     html+='<div class="section-title" style="margin-top:14px">지난번 대비 변화 (최근 검사)</div>'+buildTrendDeltas(p.history);
   } else { html+='<p class="muted" style="margin-top:12px">기록이 1개예요. 한 번 더 검사하면 추이 그래프와 변화가 보여요.</p>'; }
   html+='<div style="margin-top:16px"><div class="section-title">검사 이력 (탭하면 그때 결과를 다시 봅니다)</div>';
@@ -1537,7 +1541,43 @@ function replyMyResult(){
 /* ===================== 내보내기/가져오기 ===================== */
 function buildCode(profile){ var rec=profile.history[profile.history.length-1]; return encodeRec({v:2,t:"hexaco",name:profile.name,date:rec.date,pct:rec.pct,fac:rec.fac||null,rel:rec.rel||null}); }
 function openData(){ show("data"); }
-function resetAllData(){ if(!confirm("모든 프로필과 검사 기록을 삭제할까요? 되돌릴 수 없습니다.")) return; try{ if(lsOK){ localStorage.removeItem(LS_KEY); } }catch(e){} memDB={profiles:[],curId:null}; try{ clearProgress(); }catch(e){} renderHome(); show("home"); toast("모든 데이터를 초기화했어요."); }
+function resetAllData(){ if(!confirm("이 기기의 모든 프로필과 검사 기록을 지울까요? (클라우드 계정 데이터는 유지돼요)")) return; try{ if(lsOK){ localStorage.removeItem(LS_KEY); } }catch(e){} memDB={profiles:[],curId:null}; try{ clearProgress(); }catch(e){} renderHome(); show("home"); toast("이 기기 데이터를 초기화했어요."); }
+/* v50: 내 데이터 내보내기(JSON) */
+function exportMyData(){
+  try{
+    var db=loadDB();
+    var out={ exportedAt:new Date().toISOString(), app:'HEXACO 성격 분석', handle:db.handle||null, displayName:db.displayName||null, profiles:db.profiles||[] };
+    var blob=new Blob([JSON.stringify(out,null,2)], {type:'application/json'});
+    var url=URL.createObjectURL(blob); var a=document.createElement('a');
+    a.href=url; a.download='hexaco-data-'+(new Date().toISOString().slice(0,10))+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 1000);
+    toast('내 데이터를 JSON으로 내보냈어요.');
+  }catch(e){ toast('내보내기에 실패했어요.'); }
+}
+/* v50: 계정·데이터 완전 삭제 (사용자가 직접 2단계 확인 후 실행) */
+function deleteMyAccount(){
+  if(!confirm('정말 삭제할까요? 클라우드와 이 기기의 모든 검사 결과·프로필·친구 연결이 영구 삭제되며 되돌릴 수 없어요.')) return;
+  if(!confirm('마지막 확인이에요. 계정과 데이터를 완전히 삭제할까요?')) return;
+  toast('삭제 중…');
+  var done=function(){ try{ if(lsOK){ localStorage.removeItem(LS_KEY); } }catch(e){} memDB={profiles:[],curId:null}; try{ clearProgress(); }catch(e){} cloudUser=null; try{ paintAuthBar(); }catch(e){} try{ show('auth'); setInappWarn(); }catch(e){} };
+  try{
+    if(fbDb && cloudUser){
+      var uid=cloudUser.uid; var db=loadDB(); var handle=(db.handle||'').toLowerCase();
+      var ops=[];
+      ops.push(fbDb.collection('users').doc(uid).delete().catch(function(){}));
+      ops.push(fbDb.collection('results').doc(uid).delete().catch(function(){}));
+      if(handle){ ops.push(fbDb.collection('handles').doc(handle).delete().catch(function(){})); }
+      var delReqs=function(field){ return fbDb.collection('friendRequests').where(field,'==',uid).get().then(function(s){ var ps=[]; s.forEach(function(d){ ps.push(d.ref.delete().catch(function(){})); }); return Promise.all(ps); }).catch(function(){}); };
+      ops.push(delReqs('from')); ops.push(delReqs('to'));
+      Promise.all(ops).then(function(){
+        var u=fbAuth&&fbAuth.currentUser;
+        if(u){ u.delete().then(function(){ toast('계정과 데이터를 모두 삭제했어요.'); done(); }, function(){ toast('데이터는 모두 지웠어요. 계정 자체 삭제는 보안상 다시 로그인한 직후에만 가능해요.'); done(); }); }
+        else { toast('데이터를 삭제했어요.'); done(); }
+      }, function(){ toast('일부 삭제에 실패했을 수 있어요.'); done(); });
+    } else { toast('이 기기 데이터를 삭제했어요.'); done(); }
+  }catch(e){ done(); }
+}
 function genExport(){ var p=currentProfile(); if(!p||!p.history||!p.history.length){ alert("현재 프로필에 저장된 결과가 없습니다. 먼저 검사를 진행하세요."); return; } $("exportArea").value=buildCode(p); }
 function copyTextValue(text, okMsg){ try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){ toast(okMsg); }, function(){ fallbackCopy(text,okMsg); }); } else { fallbackCopy(text,okMsg); } }catch(e){ fallbackCopy(text,okMsg); } }
 function fallbackCopy(text, okMsg){ try{ var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast(okMsg); }catch(e){ try{ prompt("아래 링크를 길게 눌러 복사하세요:", text); }catch(_){} } }
@@ -2483,6 +2523,7 @@ function relModeBoxHTML(){
   var H='<div class="ccard"><div class="cc-h">관계별 궁합 보기</div>'+tg;
   H+='<div class="center" style="margin-top:8px"><div class="profile-name" style="color:'+col+';font-size:30px">'+sc+'%</div><div class="muted" style="margin-top:2px">'+mn+' 관점 궁합</div></div>';
   relTips(c.a,c.b,mode).forEach(function(tp){ H+='<div class="tip'+(tp.ok?' ok':'')+'">'+(tp.ok?'✓ ':'• ')+tp.txt+'</div>'; });
+  H+='<div class="mbti-disc">※ 성격 궁합은 <b>재미·참고용</b>이에요. 성격 비슷함만으로 관계의 잘 맞음·성공을 예측하기는 어렵다는 게 연구의 대체적 결론이에요. 대화의 실마리로만 가볍게 봐주세요.</div>';
   H+='</div>'; return H;
 }
 function setRelMode(mode){ try{ window.__relMode=mode; var b=document.getElementById('relModeBox'); if(b){ b.innerHTML=relModeBoxHTML(); } }catch(e){} }
@@ -2653,120 +2694,4 @@ function renderCollection(){
     AVATARS.forEach(function(a){
       var typeName=mascotType[a.name]; var members=typeMembers[typeName]||[]; var unlocked=members.length>0;
       H+='<div class="dex-cell'+(unlocked?'':' locked')+'"'+(unlocked?(' style="cursor:pointer" onclick="dexShowMembers(\''+typeName+'\')"'):'')+'><span class="avatar" style="width:56px;height:56px;background:'+a.color+'1f">'+mascotArtSVG(a.id,56)+'</span><span class="avatar-nm">'+a.name+'</span><span class="dex-type">'+esc(typeName||'')+'</span>';
-      if(unlocked){
-        H+='<span class="dex-cnt">'+members.length+'명 ›</span><div class="dex-members">';
-        members.slice(0,4).forEach(function(mm){ H+='<span class="dex-mem">'+avatarSVG(mm.avatar,20)+(mm.isMe?'<span class="dex-me">나</span>':'')+'</span>'; });
-        H+='</div>';
-      } else { H+='<span class="dex-lock">🔒</span><span class="dex-cnt" style="color:#aeb6c4">아직 없음</span>'; }
-      H+='</div>';
-    });
-    H+='</div>';
-    H+='<div id="dexInfo" style="display:none"></div>';  /* v48: 클릭한 유형의 멤버 이름 */
-    var totalTests=0, preciseCnt=0, days={};
-    (d.profiles||[]).forEach(function(p){ if(!p.imported&&p.history){ p.history.forEach(function(rec){ totalTests++; if(rec.mode===3){ preciseCnt++; } if(rec.date){ days[(''+rec.date).slice(0,10)]=1; } }); } });
-    var nDays=0; for(var dd in days){ nDays++; }
-    var nFriends=0; var set=acceptedFriendSet(); for(var k in set){ nFriends++; }
-    var nTypes=0; for(var t in types){ nTypes++; }
-    var myP=(typeof currentMyProfile==='function')?currentMyProfile():null; var myRel=myP?aggReliability(myP).score:0;
-    var badges=[
-      {on:totalTests>=1,t:'🎯 첫 검사'},{on:totalTests>=3,t:'🔁 재검사 3회'},{on:totalTests>=5,t:'🏅 재검사 5회'},{on:totalTests>=10,t:'👑 재검사 10회'},
-      {on:preciseCnt>=1,t:'🔬 정밀검사 1회'},{on:preciseCnt>=3,t:'🔬 정밀검사 3회'},
-      {on:myRel>=50,t:'📊 신뢰도 50%'},{on:myRel>=70,t:'📈 신뢰도 70%'},{on:myRel>=90,t:'💎 신뢰도 90%'},
-      {on:nDays>=3,t:'📅 꾸준함(3일)'},
-      {on:nFriends>=1,t:'🤝 첫 친구'},{on:nFriends>=3,t:'👥 친구 3명'},
-      {on:nTypes>=3,t:'🌈 3유형 수집'},{on:nUnlocked>=7,t:'📖 도감 완성'}
-    ];
-    H+='<div class="section-title" style="margin-top:18px">배지</div><div class="pillrow">';
-    badges.forEach(function(b){ H+='<span class="pill'+(b.on?' g':'')+'" style="opacity:'+(b.on?1:0.38)+'">'+b.t+'</span>'; });
-    H+='</div>';
-    box.innerHTML=H;
-  }catch(e){}
-}
-/* v48: 도감 셀 클릭 → 그 유형의 멤버 이름 펼치기 */
-function dexShowMembers(type){
-  try{
-    var box=document.getElementById('dexInfo'); if(!box){ return; }
-    var ms=(window.__dexMembers||{})[type]||[];
-    if(!ms.length){ box.style.display='none'; box.innerHTML=''; return; }
-    var H='<div class="dex-info-card"><div class="dex-info-h">'+esc(type)+' · '+ms.length+'명</div><div class="dex-info-list">';
-    ms.forEach(function(mm){ H+='<span class="dex-info-mem">'+avatarSVG(mm.avatar,22)+'<span>'+esc(mm.name)+(mm.isMe?' <b>(나)</b>':'')+'</span></span>'; });
-    H+='</div></div>';
-    box.innerHTML=H; box.style.display='block';
-    try{ box.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){}
-  }catch(e){}
-}
-function mergeProfiles(localArr, cloudArr){
-  var byId={};
-  (cloudArr||[]).forEach(function(p){ if(p&&p.id){ byId[p.id]=p; } });
-  (localArr||[]).forEach(function(p){ if(!p||!p.id){ return; } var ex=byId[p.id];
-    if(!ex){ byId[p.id]=p; } else { var lh=(p.history||[]).length, ch=(ex.history||[]).length; if(lh>ch){ byId[p.id]=p; } } });
-  var out=[]; for(var k in byId){ out.push(byId[k]); } return out;
-}
-function loadCloud(u){
-  if(!fbDb||!u){ enterHome(); return; }
-  try{
-    fbDb.collection('users').doc(u.uid).get().then(function(doc){
-      var cloud=(doc && doc.exists)?doc.data():null;
-      var local=loadDB();
-      var cloudProfiles=(cloud && cloud.profiles)?cloud.profiles:[];
-      var merged=mergeProfiles(local.profiles, cloudProfiles);
-      var curId=local.curId || (cloud && cloud.curId) || (merged.length?merged[0].id:null);
-      var hasCur=false; merged.forEach(function(p){ if(p.id===curId){ hasCur=true; } }); if(!hasCur && merged.length){ curId=merged[0].id; }
-      saveDB({profiles:merged, curId:curId,
-        handle:(cloud&&cloud.handle)||local.handle||null,
-        displayName:(cloud&&cloud.displayName)||local.displayName||null,
-        avatar:(cloud&&cloud.avatar)||local.avatar||null,
-        visibility:(cloud&&cloud.visibility)||local.visibility||'public',
-        friends:(cloud&&cloud.friends)||local.friends||[],
-        friendNicknames:(cloud&&cloud.friendNicknames)||local.friendNicknames||{}});
-      pushCloud();
-      enterHome();
-      try{ publishMyResult(); }catch(e){}
-      toast('로그인됨 · 클라우드 데이터와 동기화했어요.');
-    }, function(){ enterHome(); });
-  }catch(e){ enterHome(); }
-}
-function pushCloud(){
-  if(!fbDb || !cloudUser){ return; }
-  if(pushTimer){ clearTimeout(pushTimer); }
-  pushTimer=setTimeout(function(){
-    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, handle:db.handle||null, displayName:db.displayName||null, avatar:db.avatar||null, visibility:db.visibility||'public', friends:db.friends||[], friendNicknames:db.friendNicknames||{}, updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
-  }, 700);
-}
-function openAuth(){ try{ document.getElementById('authMsg').textContent=''; }catch(e){} show('auth'); try{ setInappWarn(); }catch(e){} if(!fbReady){ try{ document.getElementById('authMsg').innerHTML='<span style="color:#c0564a">로그인 서버에 연결할 수 없어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.</span>'; }catch(e){} } }
-function authMsgSet(t,ok){ try{ var m=document.getElementById('authMsg'); m.style.color=ok?'#2c7a62':'#c0564a'; m.textContent=t; }catch(e){} }
-function authVals(){ return {e:((document.getElementById('authEmail')||{}).value||'').trim(), p:(document.getElementById('authPw')||{}).value||''}; }
-function fbErrMsg(e){ var c=(e&&e.code)||''; if(c.indexOf('email-already-in-use')>=0){ return '이미 가입된 이메일이에요. 로그인해 주세요.'; } if(c.indexOf('invalid-email')>=0){ return '이메일 형식이 올바르지 않아요.'; } if(c.indexOf('weak-password')>=0){ return '비밀번호는 6자 이상이어야 해요.'; } if(c.indexOf('wrong-password')>=0||c.indexOf('invalid-credential')>=0){ return '이메일 또는 비밀번호가 맞지 않아요.'; } if(c.indexOf('user-not-found')>=0){ return '가입되지 않은 이메일이에요. 회원가입해 주세요.'; } if(c.indexOf('too-many-requests')>=0){ return '시도가 많아 잠시 후 다시 해주세요.'; } if(c.indexOf('network')>=0){ return '네트워크 연결을 확인해 주세요.'; } return '처리 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.'; }
-function authSignup(){ if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; } var v=authVals(); if(!v.e||!v.p){ authMsgSet('이메일과 비밀번호를 입력해 주세요.'); return; } authMsgSet('가입 중…',true); fbAuth.createUserWithEmailAndPassword(v.e,v.p).then(function(){ authMsgSet('가입 완료! 동기화할게요.',true); }, function(e){ authMsgSet(fbErrMsg(e)); }); }
-function authLogin(){ if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; } var v=authVals(); if(!v.e||!v.p){ authMsgSet('이메일과 비밀번호를 입력해 주세요.'); return; } authMsgSet('로그인 중…',true); fbAuth.signInWithEmailAndPassword(v.e,v.p).then(function(){ authMsgSet('로그인 성공!',true); }, function(e){ authMsgSet(fbErrMsg(e)); }); }
-function authLogout(){ try{ if(fbAuth){ fbAuth.signOut().then(function(){ cloudUser=null; try{ localStorage.removeItem(LS_KEY); }catch(e){} memDB={profiles:[],curId:null}; toast('로그아웃했어요.'); paintAuthBar(); show('auth'); setInappWarn(); }); } }catch(e){} }
-function authGoogle(){
-  if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; }
-  if(isInAppBrowser()){ authMsgSet('카카오톡 등 인앱 브라우저에서는 구글 로그인이 막혀 있어요. 이메일/비밀번호로 로그인하거나, 오른쪽 위 ⋮ → ‘다른 브라우저로 열기’를 이용해 주세요.'); return; }
-  try{
-    var provider=new firebase.auth.GoogleAuthProvider();
-    authMsgSet('구글 계정 선택 창을 여는 중…',true);
-    fbAuth.signInWithPopup(provider).then(function(){ /* onAuthStateChanged가 처리 */ }, function(e){
-      var c=(e&&e.code)||'';
-      if(c.indexOf('popup-closed')>=0 || c.indexOf('cancelled-popup')>=0){ authMsgSet(''); }
-      else if(c.indexOf('popup-blocked')>=0){ authMsgSet('팝업이 차단됐어요. 팝업을 허용한 뒤 다시 시도하거나, 이메일/비밀번호로 로그인해 주세요.'); }
-      else { authMsgSet(fbErrMsg(e)); }
-    });
-  }
-  catch(e){ authMsgSet('구글 로그인을 시작할 수 없어요. 이메일/비밀번호를 이용해 주세요.'); }
-}
-function setInappWarn(){
-  /* v29: 안내 텍스트 제거 — v28 자동 외부전환이 처리. iOS 등 자동 실패 대비 최소 버튼만 */
-  try{
-    var w=document.getElementById('inappWarn'); if(!w){ return; }
-    if(typeof isInAppBrowser==='function' && isInAppBrowser()){
-      w.className='';
-      w.innerHTML='<div class="btn-row" style="margin:4px 0 0;"><button class="btn btn-ghost btn-sm btn-block" onclick="tryOpenExternal()">🌐 기본 브라우저에서 열기</button></div>';
-      w.style.display='block';
-    } else { w.style.display='none'; w.innerHTML=''; }
-  }catch(e){}
-}
-window.__fb={ ready:function(){return fbReady;}, user:function(){return cloudUser;}, login:authLogin, signup:authSignup, logout:authLogout, google:authGoogle, loadCloud:loadCloud, pushCloud:pushCloud, mergeProfiles:mergeProfiles };
-</script>
-</body>
-</html>
+      if(un
