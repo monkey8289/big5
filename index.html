@@ -283,6 +283,24 @@
   @keyframes hatchpop{0%{transform:scale(1)}60%{transform:scale(1.18)}100%{transform:scale(0.2);opacity:0}}
   .hatch-sparks{font-size:26px;margin-top:6px;animation:qfadein .3s ease .8s both;}
   .hatch-msg{margin-top:8px;font-size:15px;font-weight:800;color:#9c7d3a;}
+  /* v43 */
+  .this-test{margin-top:8px;font-size:12px;color:#6c7488;background:#f4f6fb;border:1px solid #e6eaf3;border-radius:999px;padding:4px 12px;display:inline-block;}
+  .mindset-note{background:#fff7e9;border:1px solid #f0e0b8;border-radius:13px;padding:11px 13px;font-size:12.5px;line-height:1.6;color:#7a5d23;margin:2px 0 12px;}
+  .quiz-frame{text-align:center;font-size:11.5px;font-weight:700;color:#8089a0;background:#f3f5fa;border-radius:999px;padding:5px 12px;margin:0 0 8px;}
+  .dunno-wrap{text-align:center;margin-top:14px;}
+  .dunno-btn{border:1.5px solid #e2d3a8;background:#fdf8ec;color:#9c7d3a;font-family:inherit;font-size:13px;font-weight:700;border-radius:999px;padding:8px 16px;cursor:pointer;}
+  .dunno-btn:active{transform:scale(.97);}
+  .dunno-panel{margin-top:11px;background:#fffdf6;border:1px solid #ecdcb6;border-radius:13px;padding:13px 14px;text-align:left;animation:qfadein .22s ease;}
+  .dunno-h{font-size:11px;font-weight:800;color:#b08a36;letter-spacing:.3px;}
+  .dunno-d{font-size:14.5px;font-weight:800;color:#3a4456;margin-top:3px;}
+  .dunno-ex{font-size:13px;color:#4a5268;line-height:1.65;margin-top:8px;background:#fff;border:1px solid #efe6cf;border-radius:9px;padding:9px 11px;}
+  .dunno-scale{font-size:12.5px;color:#5a6377;line-height:1.7;margin-top:9px;}
+  .trend-deltas{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:4px;}
+  .td-item{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #ecf0f6;border-radius:11px;padding:8px 11px;}
+  .td-item .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .td-nm{flex:1;font-size:12.5px;font-weight:700;color:#3a4456;}
+  .td-d{font-size:14px;font-weight:800;}
+  .td-d.up{color:var(--good);} .td-d.down{color:var(--bad);} .td-d.same{color:#aab2c0;}
   .rel-comps{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
   .rel-comp{display:flex;align-items:center;gap:8px;font-size:11.5px;}
   .rel-comp .rcl{flex:none;width:86px;color:#5a6377;font-weight:700;}
@@ -393,13 +411,14 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v42 · 2026-06-28 14:15</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v43 · 2026-06-28 14:45</div>
   </section>
 
   <!-- MODE -->
   <section id="mode" class="card" style="display:none;">
     <div class="center"><h2>검사 모드 선택</h2><p class="muted" style="margin-top:6px;">정밀할수록 facet(세부 특질) 점수가 정확하고 <b>신뢰도</b>도 더 많이 올라요.</p></div>
     <div id="modeRel" class="mode-rel-now"></div>
+    <div class="mindset-note">💡 정답은 없어요. 깊이 고민하지 말고 <b>평소의 나</b>를 떠올려 <b>첫 느낌</b>으로 솔직하게 — <b>최근 몇 주</b>의 내 모습을 기준으로요.</div>
     <div class="mode-card" onclick="startQuiz(1)"><div class="mt">간편 · 24문항</div><div class="ms">약 3분 · 6요인은 신뢰할 만하고 facet은 대략적입니다.</div><div class="mode-contrib"><span class="mc-label">신뢰도 기여</span><span class="mc-bars" style="color:#c08a3e">▲<span class="mc-dim">▲▲</span></span><span class="mc-tag">소폭</span></div></div>
     <div class="mode-card" onclick="startQuiz(2)"><div class="mt">균형 · 48문항 <span class="mc-reco">추천</span></div><div class="ms">약 5분 · 6요인 + facet을 무난히 파악합니다.</div><div class="mode-contrib"><span class="mc-label">신뢰도 기여</span><span class="mc-bars" style="color:#5a7bc0">▲▲<span class="mc-dim">▲</span></span><span class="mc-tag">보통</span></div></div>
     <div class="mode-card" onclick="startQuiz(3)"><div class="mt">정밀 · 72문항</div><div class="ms">약 8분 · facet 24개까지 가장 정확하게 측정합니다.</div><div class="mode-contrib"><span class="mc-label">신뢰도 기여</span><span class="mc-bars" style="color:#3f8f74">▲▲▲</span><span class="mc-tag">가장 크게</span></div></div>
@@ -408,6 +427,7 @@
 
   <!-- QUIZ -->
   <section id="quiz" style="display:none;">
+    <div class="quiz-frame">🕐 최근 몇 주 · <b>평소의 나</b> 기준 · 첫 느낌으로</div>
     <div class="quiz-top">
       <div class="egg-gauge" id="eggGauge"></div>
       <div class="progress-top"><span class="qmile" id="qmile"></span><span id="qnum">1 / 24</span></div>
@@ -416,6 +436,8 @@
     <div class="quiz-body">
       <div class="qtext qfade" id="qtext">질문</div>
       <div class="likert qfade" id="likert"></div>
+      <div class="dunno-wrap"><button type="button" class="dunno-btn" onclick="toggleDunno()">🤔 잘 모르겠어요</button></div>
+      <div class="dunno-panel" id="dunnoPanel" style="display:none;"></div>
     </div>
     <div class="quiz-bottom">
       <button class="btn btn-ghost" id="prevBtn" onclick="prevQ()" style="visibility:hidden;">‹ 이전</button>
@@ -427,10 +449,11 @@
   <section id="result" class="card" style="display:none;">
     <div id="pastBanner" style="display:none;"></div>
     <div class="center">
-      <span class="profile-badge">HEXACO 프로파일</span>
+      <span class="profile-badge" id="profileBadge">HEXACO 프로파일</span>
       <div class="profile-name" id="profileName">—</div>
       <div class="who" id="whoName"></div>
       <div class="headline" id="headline"></div>
+      <div id="thisTestType" class="this-test" style="display:none;"></div>
     </div>
     <div id="charCard"></div>
     <div class="section"><div class="section-title">6요인 프로파일</div><div class="radar-wrap" id="radarWrap"></div></div>
@@ -975,9 +998,51 @@ function renderModeRel(){
 
 /* ===================== 퀴즈 ===================== */
 var answers=[], idx=0, curMode=2;
+var __qLastT=0, __fastRun=0, __sameRun=0, __lastVal=0, __nudgedAt=0;
 function startQuiz(perFacet){
   ensureProfile(); curMode=perFacet; QUESTIONS=buildSession(perFacet);
-  answers=new Array(QUESTIONS.length).fill(null); idx=0; saveProgress(); renderQ(); show("quiz");
+  answers=new Array(QUESTIONS.length).fill(null); idx=0;
+  __qLastT=Date.now(); __fastRun=0; __sameRun=0; __lastVal=0; __nudgedAt=0;
+  saveProgress(); renderQ(); show("quiz");
+}
+/* v43: 문항별 "잘 모르겠어요" 도움 — facet 단위 예시·설명·척도 */
+var FACET_HELP={
+ '진실성':{d:'꾸밈없이 솔직하게 말하는 편인지',e:'예: 잘 보이려 마음에 없는 칭찬·아부는 잘 못한다면 ‘그렇다’ 쪽이에요.'},
+ '공정성':{d:'손해를 보더라도 규칙·정직을 지키는지',e:'예: 거스름돈을 더 받으면 돌려주고, 안 걸려도 편법을 안 쓴다면 ‘그렇다’ 쪽.'},
+ '욕심없음':{d:'부·지위·명품에 대한 욕심이 적은지',e:'예: 비싼 차·큰 집이 꼭 필요하진 않고 지금에 만족한다면 ‘그렇다’ 쪽.'},
+ '겸손함':{d:'자신을 낮추고 과시하지 않는지',e:'예: 칭찬받으면 쑥스럽고 내 자랑을 잘 안 한다면 ‘그렇다’ 쪽.'},
+ '두려움':{d:'위험·아픔을 조심하고 겁이 나는지',e:'예: 높은 곳·무서운 놀이기구가 무섭고 위험한 건 피한다면 ‘그렇다’ 쪽.'},
+ '불안':{d:'걱정·긴장을 자주 느끼는지',e:'예: 결과를 기다릴 때 마음 졸이고 잠들기 전 걱정이 떠오른다면 ‘그렇다’ 쪽.'},
+ '의존성':{d:'힘들 때 누군가에게 기대고 싶은지',e:'예: 속상한 일은 털어놔야 풀리고 조언·위로를 구하고 싶다면 ‘그렇다’ 쪽.'},
+ '감상성':{d:'정이 깊고 감정에 잘 공감하는지',e:'예: 슬픈 영화에 울컥하고 남의 일도 내 일처럼 느낀다면 ‘그렇다’ 쪽.'},
+ '사회적자존감':{d:'사람들 사이에서 자신감이 있는지',e:'예: 모임에서 환영받는 느낌이고 사람들 앞에서 당당하다면 ‘그렇다’ 쪽.'},
+ '사회적대담성':{d:'나서고 발표하는 데 거리낌이 적은지',e:'예: 발표가 부담 적고 처음 본 사람에게 먼저 말 건다면 ‘그렇다’ 쪽.'},
+ '사교성':{d:'어울리고 모이는 걸 즐기는지',e:'예: 약속 많은 주말이 즐겁고 사람들과 수다가 좋다면 ‘그렇다’ 쪽.'},
+ '활기':{d:'밝고 에너지가 넘치는지',e:'예: 평소 기운차고 주변이 나로 인해 밝아진다면 ‘그렇다’ 쪽.'},
+ '용서':{d:'서운함을 빨리 풀고 잘 용서하는지',e:'예: 사과받으면 금세 풀리고 다툰 다음 날엔 화가 가라앉는다면 ‘그렇다’ 쪽.'},
+ '온화함':{d:'부드럽고 너그럽게 대하는지',e:'예: 화나도 말을 부드럽게 하고 실수를 심하게 몰아붙이지 않는다면 ‘그렇다’ 쪽.'},
+ '유연성':{d:'잘 양보하고 맞춰주는지',e:'예: 메뉴·방식을 상대에 맞춰주고 절충점을 잘 찾는다면 ‘그렇다’ 쪽.'},
+ '인내':{d:'화를 잘 참고 침착한지',e:'예: 줄을 오래 서도, 약 올려도 웬만하면 참는다면 ‘그렇다’ 쪽.'},
+ '조직성':{d:'정리·계획을 잘하는지',e:'예: 물건을 제자리에 두고 할 일을 목록으로 챙긴다면 ‘그렇다’ 쪽.'},
+ '근면성':{d:'부지런하고 끈기 있게 해내는지',e:'예: 할 일을 미루지 않고 지루한 일도 끝까지 한다면 ‘그렇다’ 쪽.'},
+ '완벽주의':{d:'꼼꼼하게 빈틈을 챙기는지',e:'예: 보내기 전 오타를 다시 보고 마무리가 깔끔해야 마음 놓인다면 ‘그렇다’ 쪽.'},
+ '신중함':{d:'따져보고 신중히 결정하는지',e:'예: 큰돈 쓸 일은 며칠 고민하고 여러 경우를 따져본다면 ‘그렇다’ 쪽.'},
+ '심미안':{d:'아름다움에 깊이 감응하는지',e:'예: 노을·음악·잘 꾸민 공간에 마음이 움직인다면 ‘그렇다’ 쪽.'},
+ '탐구심':{d:'새 지식·원리에 호기심이 큰지',e:'예: 처음 듣는 이야기에 귀가 솔깃하고 끝까지 찾아본다면 ‘그렇다’ 쪽.'},
+ '창의성':{d:'새 아이디어를 잘 떠올리는지',e:'예: 평범한 것도 다르게 바꿔보고 엉뚱한 상상을 자주 한다면 ‘그렇다’ 쪽.'},
+ '비관습성':{d:'색다른 생각에 열려 있는지',e:'예: 남들 안 가본 길도 가볼 만하고 독특한 취향을 재밌어한다면 ‘그렇다’ 쪽.'}
+};
+function toggleDunno(){
+  try{
+    var panel=document.getElementById('dunnoPanel'); if(!panel){ return; }
+    if(panel.style.display!=='none'){ panel.style.display='none'; return; }
+    var q=QUESTIONS[idx]; var fh=FACET_HELP[q.fc]||{d:'이 문항이 묻는 성향',e:''};
+    var H='<div class="dunno-h">이 문항이 묻는 것</div><div class="dunno-d">'+esc(fh.d)+'</div>';
+    if(fh.e){ H+='<div class="dunno-ex">'+esc(fh.e)+'</div>'; }
+    H+='<div class="dunno-scale"><b>답 고르는 법</b><br>‘전혀 아니다’ = 나와 정말 안 맞음 · ‘보통이다’ = 반반/상황 따라 · ‘매우 그렇다’ = 나와 딱 맞음.<br>애매하면 <b>최근 몇 주, 평소의 나</b>에 더 가까운 쪽으로 골라요.</div>';
+    H+='<div class="muted" style="font-size:11.5px;margin-top:8px">읽고 나서 위에서 답을 골라주세요. (이 버튼은 ‘미응답’이 아니에요)</div>';
+    panel.innerHTML=H; panel.style.display='block';
+  }catch(e){}
 }
 function resumeQuiz(){
   var pr=loadProgress(); if(!pr||!pr.q||!pr.q.length){ toast("이어할 검사가 없어요."); renderResumeBox(); return; }
@@ -1022,12 +1087,20 @@ function renderQ(){
   $("qtext").textContent=q.t;
   var h=""; for(var v=1;v<=5;v++){ var sel=(answers[idx]===v)?" sel":""; h+='<button class="lk'+sel+'" onclick="pick('+v+')"><span class="rb"></span><span>'+LIKERT[v-1]+'</span></button>'; }
   $("likert").innerHTML=h; $("prevBtn").style.visibility=idx>0?"visible":"hidden";
+  try{ var dp=document.getElementById('dunnoPanel'); if(dp){ dp.style.display='none'; } }catch(e){}  /* v43: 새 문항이면 도움 패널 닫기 */
   try{ ["qtext","likert"].forEach(function(id){ var el=$(id); if(el){ el.classList.remove("qfade"); void el.offsetWidth; el.classList.add("qfade"); } }); }catch(e){}
 }
 var LIKERT=["전혀 아니다","아니다","보통이다","그렇다","매우 그렇다"];
 function pick(v){
   answers[idx]=v; saveProgress();
   var b=$("likert").children; for(var i=0;i<b.length;i++){ b[i].className="lk"+((i+1===v)?" sel":""); }
+  /* v43: 성의 넛지 — 너무 빠르거나 같은 값만 연속이면 부드럽게 안내 */
+  try{
+    var now=Date.now(); var dt=now-__qLastT; __qLastT=now;
+    if(dt>0 && dt<750){ __fastRun++; } else { __fastRun=0; }
+    if(v===__lastVal){ __sameRun++; } else { __sameRun=0; } __lastVal=v;
+    if((__fastRun>=5 || __sameRun>=6) && (now-__nudgedAt>9000)){ __nudgedAt=now; __fastRun=0; __sameRun=0; toast('천천히, 솔직하게 답해주세요 🙂 더 정확한 결과를 위해서예요'); }
+  }catch(e){}
   var isLast=(idx>=QUESTIONS.length-1);
   if(!isLast && (idx+1)===Math.floor(QUESTIONS.length/2)){ try{ toast('절반 왔어요! 절반만 더 가면 부화해요 🥚'); }catch(e){} }
   setTimeout(function(){
@@ -1147,9 +1220,14 @@ function finish(){
 }
 function renderResult(who, rec, profile, opts){
   var isPast=!!(opts && opts.past);
-  var dom=rec.pct, fac=rec.fac||{}, prof=topProfile(dom);
+  var thisDom=rec.pct, thisFac=rec.fac||{};
+  var dom=thisDom, fac=thisFac;   /* v43: 결과 화면 대표 유형 = 종합(누적 가중). 과거 보기는 그 기록 그대로 */
+  if(!isPast && profile && typeof aggProfile==='function'){ var cum=aggProfile(profile); if(cum){ dom=cum.dom; fac=cum.fac||thisFac; } }
+  var prof=topProfile(dom); var thisProf=topProfile(thisDom);
   $("profileName").textContent=prof.name; $("whoName").textContent=who?("👤 "+who):"";
+  try{ var pbg=$("profileBadge"); if(pbg){ pbg.textContent=(!isPast && profile && profile.history && profile.history.length>1)?'종합 프로파일 · 여러 검사 누적':'HEXACO 프로파일'; } }catch(e){}
   try{ $("headline").innerHTML=charHeadline(prof, dom); }catch(e){ $("headline").innerHTML=""; }
+  try{ var ttt=$("thisTestType"); if(ttt){ var nt=(profile&&profile.history)?profile.history.length:1; if(!isPast && nt>1){ ttt.innerHTML='🧪 이번 검사 유형: <b>'+esc(thisProf.name)+'</b> · 대표 유형은 <b>여러 검사를 누적</b>해 정해요'; ttt.style.display='block'; } else { ttt.style.display='none'; } } }catch(e){}
   try{ $("charCard").innerHTML=charCardHTML(prof, dom); }catch(e){ $("charCard").innerHTML=""; }
   var pb=$("pastBanner");
   if(pb){ if(isPast){ pb.style.display="block"; pb.innerHTML='<div class="note blue" style="margin-bottom:6px;">🕘 <b>과거 결과</b> · '+fullDate(rec.date)+' 검사'+(rec.mode?(' ('+modeLabel(rec.mode)+')'):'')+'<div class="btn-row" style="margin-top:8px;"><button class="btn btn-ghost btn-sm" onclick="openTrend()">‹ 이력으로 돌아가기</button></div></div>'; } else { pb.style.display="none"; pb.innerHTML=""; } }
@@ -1164,8 +1242,8 @@ function renderResult(who, rec, profile, opts){
   var tds=$("trendDeltaSec");
   if(profile && profile.history && profile.history.length>=2){
     var prev=profile.history[profile.history.length-2].pct;
-    var html='<div class="lbl">이전 검사('+fullDate(profile.history[profile.history.length-2].date)+') 대비</div><div class="pillrow">';
-    DORDER.forEach(function(k){ var d=dom[k]-(prev[k]==null?dom[k]:prev[k]); var cls=d>0?"up":(d<0?"down":"same"); var ar=d>0?"▲":(d<0?"▼":"–"); html+='<span class="pill"><b>'+DNAME[k]+'</b> <span class="'+cls+'">'+ar+(d===0?"":Math.abs(d))+'</span></span>'; });
+    var html='<div class="lbl">이번 검사 · 이전 검사('+fullDate(profile.history[profile.history.length-2].date)+') 대비</div><div class="pillrow">';
+    DORDER.forEach(function(k){ var d=thisDom[k]-(prev[k]==null?thisDom[k]:prev[k]); var cls=d>0?"up":(d<0?"down":"same"); var ar=d>0?"▲":(d<0?"▼":"–"); html+='<span class="pill"><b>'+DNAME[k]+'</b> <span class="'+cls+'">'+ar+(d===0?"":Math.abs(d))+'</span></span>'; });
     html+='</div>'; $("trendDelta").innerHTML=html; tds.style.display="block";
   } else { tds.style.display="none"; }
 
@@ -1176,7 +1254,8 @@ function renderResult(who, rec, profile, opts){
     var relColor=rec.rel.score>=75?"#3f8f74":(rec.rel.score>=50?"#c08a3e":"#c0564a");
     $("relBox").innerHTML='<div class="val" style="color:'+relColor+'">'+rec.rel.label+' ('+rec.rel.score+'/100)</div><div class="relbar"><i style="width:'+rec.rel.score+'%;background:'+relColor+'"></i></div>'
       +'<div class="muted" style="margin-top:9px;line-height:1.7">· 최대 연속 동일응답: '+rec.rel.longRun+'개 · 극단응답 비율: '+Math.round(rec.rel.extreme*100)+'% · 역문항 일관성 격차: '+rec.rel.revGap+'</div>'
-      +'<div class="muted" style="margin-top:4px">'+(rec.rel.score>=75?"성실하게 응답한 것으로 보입니다.":(rec.rel.score>=50?"대체로 신뢰할 만하나 일부 패턴이 보입니다.":"직선·극단·비일관 응답 패턴이 감지되어 해석에 주의가 필요합니다."))+'</div>';
+      +'<div class="muted" style="margin-top:4px">'+(rec.rel.score>=75?"성실하게 응답한 것으로 보입니다.":(rec.rel.score>=50?"대체로 신뢰할 만하나 일부 패턴이 보입니다.":"직선·극단·비일관 응답 패턴이 감지되어 해석에 주의가 필요합니다."))+'</div>'
+      +((rec.rel.revGap!=null && rec.rel.revGap>=1.0)?'<div class="note" style="margin-top:8px;font-size:12px">💬 몇 문항은 답이 살짝 엇갈렸어요. 자연스러운 일이에요 — 비슷한 질문에 더 솔직하게 답하면 결과가 더 정확해져요.</div>':'');
   } else { $("relBox").innerHTML='<div class="muted">이 기록에는 신뢰도 정보가 없습니다(이전 버전 결과).</div>'; }
 
   var c="";
@@ -1206,16 +1285,42 @@ function renderResult(who, rec, profile, opts){
 function toggleFacet(k){ var el=$("fac_"+k); var car=$("car_"+k); if(!el) return; if(el.style.display==="none"){ el.style.display="block"; if(car)car.textContent="▲"; } else { el.style.display="none"; if(car)car.textContent="▼"; } }
 
 /* ===================== 추이 화면 ===================== */
+function buildTrendDeltas(history){
+  if(!history || history.length<2){ return ''; }
+  var last=history[history.length-1].pct, prev=history[history.length-2].pct;
+  var H='<div class="trend-deltas">';
+  DORDER.forEach(function(k){ var d=(last[k]==null?0:last[k])-(prev[k]==null?0:prev[k]); var cls=d>0?'up':(d<0?'down':'same'); var ar=d>0?'▲':(d<0?'▼':'–'); H+='<div class="td-item"><span class="dot" style="background:'+DHEX[k]+'"></span><span class="td-nm">'+DNAME[k]+'</span><span class="td-d '+cls+'">'+ar+(d===0?'':Math.abs(d))+'</span></div>'; });
+  H+='</div>'; return H;
+}
 function openTrend(){
   var p=currentProfile(); if(!p){ alert("프로필을 선택하세요."); return; }
   $("trendWho").textContent="👤 "+p.name; var body=$("trendBody");
-  if(!p.history||p.history.length===0){ body.innerHTML='<p class="muted">아직 검사 기록이 없습니다. 먼저 검사를 진행해 주세요.</p>'; }
-  else { var html="";
-    if(p.history.length>=2){ html+=buildLineChart(p.history); } else { html+='<p class="muted">기록이 1개입니다. 한 번 더 검사하면 추이 그래프가 그려집니다.</p>'; }
-    html+='<div style="margin-top:14px"><div class="section-title">검사 이력 (탭하면 그때 결과를 다시 봅니다)</div>';
-    for(var hx=p.history.length-1; hx>=0; hx--){ (function(idx){ var rec=p.history[idx]; var tp=topProfile(rec.pct);
-      html+='<div class="hist-item hist-click" onclick="openPastResult('+idx+')"><span>'+fullDate(rec.date)+' · <b>'+tp.name+'</b> <span style="color:#aab2c0;font-weight:700">자세히 ›</span></span><span class="muted">H'+rec.pct.H+' E'+rec.pct.E+' X'+rec.pct.X+' A'+rec.pct.A+' C'+rec.pct.C+' O'+rec.pct.O+'</span></div>'; })(hx); }
-    html+='</div>'; body.innerHTML=html; }
+  if(!p.history||p.history.length===0){ body.innerHTML='<p class="muted">아직 검사 기록이 없습니다. 먼저 검사를 진행해 주세요.</p>'; show("trend"); return; }
+  var html="";
+  /* v43: 종합 결과 분석(누적 가중) 먼저 */
+  try{
+    var ag=(typeof aggProfile==='function')?aggProfile(p):null;
+    if(ag){
+      var prof=topProfile(ag.dom);
+      html+='<div class="ccard"><div class="cc-h" style="text-align:center">📊 종합 결과 · 여러 검사 누적</div>';
+      html+='<div class="center" style="margin:2px 0 4px"><div class="profile-name" style="font-size:21px">'+esc(prof.name)+'</div></div>';
+      try{ html+=charCardHTML(prof, ag.dom); }catch(e){}
+      html+='<div class="radar-wrap" style="margin-top:4px">'+buildRadarSVG(ag.dom)+'</div>';
+      try{ var rel=aggReliability(p); html+='<div class="center" style="margin-top:6px">'+(typeof relChip==='function'?relChip(rel.score):('신뢰도 '+rel.score+'%'))+' <span class="muted" style="font-size:12px">· '+ag.count+'회 검사 누적</span></div>'; }catch(e){}
+      html+='<div style="margin-top:12px"><div class="cc-h">종합 요인 점수</div>';
+      DORDER.forEach(function(k){ html+='<div class="cc-bar"><span class="cc-nm">'+DNAME[k]+'</span><div class="cbar"><i style="width:'+ag.dom[k]+'%;background:'+DHEX[k]+'"></i></div><span class="cc-v">'+ag.dom[k]+'</span></div>'; });
+      html+='</div></div>';
+    }
+  }catch(e){}
+  /* v43: 추이 그래프 + 지난번 대비 변화 */
+  if(p.history.length>=2){
+    html+='<div class="section-title" style="margin-top:16px">요인별 추이</div>'+buildLineChart(p.history);
+    html+='<div class="section-title" style="margin-top:14px">지난번 대비 변화 (최근 검사)</div>'+buildTrendDeltas(p.history);
+  } else { html+='<p class="muted" style="margin-top:12px">기록이 1개예요. 한 번 더 검사하면 추이 그래프와 변화가 보여요.</p>'; }
+  html+='<div style="margin-top:16px"><div class="section-title">검사 이력 (탭하면 그때 결과를 다시 봅니다)</div>';
+  for(var hx=p.history.length-1; hx>=0; hx--){ (function(ix){ var rec=p.history[ix]; var tp=topProfile(rec.pct);
+    html+='<div class="hist-item hist-click" onclick="openPastResult('+ix+')"><span>'+fullDate(rec.date)+(rec.mode?(' ('+modeLabel(rec.mode)+')'):'')+' · <b>'+tp.name+'</b> <span style="color:#aab2c0;font-weight:700">자세히 ›</span></span><span class="muted">H'+rec.pct.H+' E'+rec.pct.E+' X'+rec.pct.X+' A'+rec.pct.A+' C'+rec.pct.C+' O'+rec.pct.O+'</span></div>'; })(hx); }
+  html+='</div>'; body.innerHTML=html;
   show("trend");
 }
 function openPastResult(idx){
