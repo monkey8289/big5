@@ -1510,7 +1510,16 @@ function authLogout(){ try{ if(fbAuth){ fbAuth.signOut().then(function(){ cloudU
 function authGoogle(){
   if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; }
   if(isInAppBrowser()){ authMsgSet('카카오톡 등 인앱 브라우저에서는 구글 로그인이 막혀 있어요. 이메일/비밀번호로 로그인하거나, 오른쪽 위 ⋮ → ‘다른 브라우저로 열기’를 이용해 주세요.'); return; }
-  try{ var provider=new firebase.auth.GoogleAuthProvider(); authMsgSet('구글 로그인 페이지로 이동 중…',true); fbAuth.signInWithRedirect(provider); }
+  try{
+    var provider=new firebase.auth.GoogleAuthProvider();
+    authMsgSet('구글 계정 선택 창을 여는 중…',true);
+    fbAuth.signInWithPopup(provider).then(function(){ /* onAuthStateChanged가 처리 */ }, function(e){
+      var c=(e&&e.code)||'';
+      if(c.indexOf('popup-closed')>=0 || c.indexOf('cancelled-popup')>=0){ authMsgSet(''); }
+      else if(c.indexOf('popup-blocked')>=0){ authMsgSet('팝업이 차단됐어요. 팝업을 허용한 뒤 다시 시도하거나, 이메일/비밀번호로 로그인해 주세요.'); }
+      else { authMsgSet(fbErrMsg(e)); }
+    });
+  }
   catch(e){ authMsgSet('구글 로그인을 시작할 수 없어요. 이메일/비밀번호를 이용해 주세요.'); }
 }
 function setInappWarn(){ try{ var w=document.getElementById('inappWarn'); if(w){ w.style.display=(typeof isInAppBrowser==='function' && isInAppBrowser())?'block':'none'; } }catch(e){} }
