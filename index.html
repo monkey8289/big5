@@ -242,6 +242,10 @@
   .dex-type{font-size:10px;color:#7a8294;font-weight:600;text-align:center;line-height:1.2;}
   .dex-cnt{font-size:11px;font-weight:800;color:#4a6fa5;}
   .dex-members{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:1px;}
+  .dex-info-card{margin-top:10px;background:#f7f9fc;border:1px solid #e6eaf3;border-radius:13px;padding:12px 14px;}
+  .dex-info-h{font-size:13px;font-weight:800;color:#3f5575;margin-bottom:8px;}
+  .dex-info-list{display:flex;flex-wrap:wrap;gap:8px;}
+  .dex-info-mem{display:flex;align-items:center;gap:5px;font-size:13px;color:#46506a;background:#fff;border:1px solid #e6eaf3;border-radius:20px;padding:3px 10px 3px 4px;}
   .dex-mem{position:relative;display:inline-flex;}
   .dex-me{position:absolute;bottom:-3px;right:-3px;background:#4a6fa5;color:#fff;font-size:7px;font-weight:800;border-radius:999px;padding:0 3px;border:1px solid #fff;}
   /* v35: 홈 신뢰도 카드 */
@@ -366,7 +370,7 @@
   <section id="home" class="card">
     <div class="home-hero">
       <h1>HEXACO 성격 분석</h1>
-      <p class="hero-sub">6요인 24 facet · 검사할수록 정확해지고 · 친구와 실시간 궁합</p>
+      <p class="hero-sub">검사할수록 정확해지는 성격 분석 · 친구와 궁합까지</p>
       <div class="facet-chips">
         <span class="fchip" style="--c:var(--H)">정직-겸손</span>
         <span class="fchip" style="--c:var(--E)">정서성</span>
@@ -422,7 +426,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v47 · 2026-06-28 16:35</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v48 · 2026-06-28 17:05</div>
   </section>
 
   <!-- MODE -->
@@ -438,7 +442,6 @@
 
   <!-- QUIZ -->
   <section id="quiz" style="display:none;">
-    <div class="quiz-frame">🕐 최근 몇 주 · <b>평소의 나</b> 기준 · 첫 느낌으로</div>
     <div class="quiz-top">
       <div class="egg-gauge" id="eggGauge"></div>
       <div class="progress-top"><span class="qmile" id="qmile"></span><span id="qnum">1 / 24</span></div>
@@ -447,8 +450,6 @@
     <div class="quiz-body">
       <div class="qtext qfade" id="qtext">질문</div>
       <div class="likert qfade" id="likert"></div>
-      <div class="dunno-wrap"><button type="button" class="dunno-btn" onclick="toggleDunno()">🤔 잘 모르겠어요</button></div>
-      <div class="dunno-panel" id="dunnoPanel" style="display:none;"></div>
     </div>
     <div class="quiz-bottom">
       <button class="btn btn-ghost" id="prevBtn" onclick="prevQ()" style="visibility:hidden;">‹ 이전</button>
@@ -1246,7 +1247,7 @@ function renderResult(who, rec, profile, opts){
   $("profileName").textContent=prof.name; $("whoName").textContent=who?("👤 "+who):"";
   try{ var pbg=$("profileBadge"); if(pbg){ pbg.textContent=(!isPast && profile && profile.history && profile.history.length>1)?'종합 프로파일 · 여러 검사 누적':'HEXACO 프로파일'; } }catch(e){}
   try{ $("headline").innerHTML=charHeadline(prof, dom); }catch(e){ $("headline").innerHTML=""; }
-  try{ var ttt=$("thisTestType"); if(ttt){ var nt=(profile&&profile.history)?profile.history.length:1; if(!isPast && nt>1){ ttt.innerHTML='🧪 이번 검사 유형: <b>'+esc(thisProf.name)+'</b> · 대표 유형은 <b>여러 검사를 누적</b>해 정해요'; ttt.style.display='block'; } else { ttt.style.display='none'; } } }catch(e){}
+  try{ var ttt=$("thisTestType"); if(ttt){ var nt=(profile&&profile.history)?profile.history.length:1; if(!isPast && nt>1){ ttt.innerHTML='🧪 이번 검사 유형: <b>'+esc(thisProf.name)+'</b> · 대표 유형은 <b>여러 검사를 누적</b>해 정하고 <b>최근 검사일수록 더 크게</b> 반영돼요'; ttt.style.display='block'; } else { ttt.style.display='none'; } } }catch(e){}
   try{ $("charCard").innerHTML=charCardHTML(prof, dom); }catch(e){ $("charCard").innerHTML=""; }
   var pb=$("pastBanner");
   if(pb){ if(isPast){ pb.style.display="block"; pb.innerHTML='<div class="note blue" style="margin-bottom:6px;">🕘 <b>과거 결과</b> · '+fullDate(rec.date)+' 검사'+(rec.mode?(' ('+modeLabel(rec.mode)+')'):'')+'<div class="btn-row" style="margin-top:8px;"><button class="btn btn-ghost btn-sm" onclick="openTrend()">‹ 이력으로 돌아가기</button></div></div>'; } else { pb.style.display="none"; pb.innerHTML=""; } }
@@ -1916,12 +1917,23 @@ function charHeadline(prof, dom){
 /* v29 Part4: 누적 검사 집계 + 신뢰도 (검사 횟수↑·검사 간 분산↓ → 신뢰도↑) */
 /* v35: 검사 수준별 가중치 (간편1 : 균형2 : 정밀3 = 문항수 24:48:72 비례) */
 function modeWeight(m){ return (m===1)?1:((m===3)?3:2); }
+/* v48: 시간 감쇠 — 최근 검사일수록 더 크게 반영(반감기 약 6개월). 옛 검사가 진짜 변화를 흐리지 않게.
+   날짜 없는 레거시 기록은 감쇠 없이(1.0) 보호. 단독 검사면 영향 없음. */
+function recencyWeight(r, nowMs){
+  try{
+    var t=(r&&r.date!=null)?r.date:null; if(t==null){ return 1; }
+    var ms=(typeof t==='number')?t:Date.parse(t); if(!ms||isNaN(ms)){ return 1; }
+    var ageDays=(nowMs-ms)/86400000; if(ageDays<0){ ageDays=0; }
+    return Math.pow(0.5, ageDays/183);   /* 반감기 183일 ≈ 6개월 */
+  }catch(e){ return 1; }
+}
 function aggProfile(profile){
   var h=(profile&&profile.history)?profile.history:[]; if(!h.length){ return null; }
+  var now=Date.now();
   var sw=0, sum={H:0,E:0,X:0,A:0,C:0,O:0};
-  h.forEach(function(r){ var w=modeWeight(r.mode); sw+=w; DORDER.forEach(function(k){ sum[k]+=w*((r.pct&&r.pct[k]!=null)?r.pct[k]:50); }); });
+  h.forEach(function(r){ var w=modeWeight(r.mode)*recencyWeight(r,now); sw+=w; DORDER.forEach(function(k){ sum[k]+=w*((r.pct&&r.pct[k]!=null)?r.pct[k]:50); }); });
   var dom={}; DORDER.forEach(function(k){ dom[k]=Math.round(sum[k]/sw); });
-  var fsum={},fw={}; h.forEach(function(r){ var w=modeWeight(r.mode); if(r.fac){ for(var f in r.fac){ fsum[f]=(fsum[f]||0)+w*r.fac[f]; fw[f]=(fw[f]||0)+w; } } });
+  var fsum={},fw={}; h.forEach(function(r){ var w=modeWeight(r.mode)*recencyWeight(r,now); if(r.fac){ for(var f in r.fac){ fsum[f]=(fsum[f]||0)+w*r.fac[f]; fw[f]=(fw[f]||0)+w; } } });
   var fac={}; for(var f in fsum){ fac[f]=Math.round(fsum[f]/fw[f]); }
   return {dom:dom, fac:fac, count:h.length, units:sw};
 }
@@ -1984,7 +1996,7 @@ function relComponentBars(ag){
   items.forEach(function(it){ var v=(it[1]==null?0:it[1]); H+='<div class="rel-comp"><span class="rcl">'+it[0]+'</span><div class="rcbar"><i style="width:'+v+'%;background:'+it[2]+'"></i></div><span class="rcv">'+v+'%</span></div>'; });
   H+='</div>';
   H+='<button type="button" class="rel-help-btn" onclick="toggleRelHelp(this)">ⓘ 신뢰도는 어떻게 계산되나요?</button>';
-  H+='<div class="rel-help" style="display:none">신뢰도는 <b>검사 양·깊이</b> · <b>검사 간 일관성</b> · <b>응답 성의</b> 세 가지를 <b>곱해서</b> 계산해요. 그래서 <b>셋이 다 높아야</b> 올라가고, 하나라도 낮으면 전체가 내려가요. 많이 한다고 무조건 오르는 게 아니라, <b>일관되고 성의 있게</b> 검사할수록 올라가요(대충 하거나 앞뒤가 안 맞으면 오히려 떨어질 수도 있어요).'+(ag.capped?'<br><span style="color:#8a93a4">· 응답 성의 '+ag.quality+'%는 0.9 이상이라 점수엔 <b>만점(100%)</b>으로 반영돼요.</span>':'')+'</div>';
+  H+='<div class="rel-help" style="display:none"><b>검사 양·깊이</b> · <b>검사 간 일관성</b> · <b>응답 성의</b> 세 가지를 <b>곱해</b> 계산해요. 셋이 다 높아야 올라가고, 하나라도 낮으면 내려가요. 많이 한다고 무조건 오르는 게 아니라 <b>일관되고 성의 있게</b> 할수록 올라가요(대충·모순이면 떨어질 수도). 최근 검사일수록 더 크게 반영돼요.<br><span style="color:#8a93a4">※ 학술적으로 검증된 수치가 아니라, 결과를 얼마나 믿어도 될지 가늠하는 <b>참고 지표</b>예요.</span></div>';
   return H;
 }
 function toggleRelHelp(btn){ try{ var p=btn.nextSibling; while(p&&p.nodeType!==1){ p=p.nextSibling; } if(p){ var open=(p.style.display!=='none'); p.style.display=open?'none':'block'; btn.classList.toggle('on',!open); } }catch(e){} }
@@ -2610,32 +2622,29 @@ function renderCollection(){
     var typeMembers={};
     if(myType){ (typeMembers[myType]=typeMembers[myType]||[]).push({name:myName,avatar:d.avatar,isMe:true}); }
     for(var fu in accSet){ var r=frr[fu]; if(r&&r.agg){ var tnm=r.name||topProfile(r.agg).name; (typeMembers[tnm]=typeMembers[tnm]||[]).push({name:friendMainName(fu, r),avatar:r.avatar,isMe:false}); } }
+    window.__dexMembers=typeMembers;  /* v48: 셀 클릭 시 멤버 이름 표시용 */
     AVATARS.forEach(function(a){ if((typeMembers[mascotType[a.name]]||[]).length){ nUnlocked++; } });
     var H='<div class="muted" style="margin-bottom:10px;line-height:1.6">나와 친구들이 어떤 유형인지 보는 <b>내 주변 유형 지도</b>예요. 친구가 검사하면 실시간으로 채워져요.</div>';
     H+='<div class="center" style="margin-bottom:11px"><span class="dex-prog">7개 유형 중 <b>'+nUnlocked+'개</b> 만남</span></div>';
     H+='<div class="dex-grid">';
     AVATARS.forEach(function(a){
       var typeName=mascotType[a.name]; var members=typeMembers[typeName]||[]; var unlocked=members.length>0;
-      H+='<div class="dex-cell'+(unlocked?'':' locked')+'"><span class="avatar" style="width:56px;height:56px;background:'+a.color+'1f">'+mascotArtSVG(a.id,56)+'</span><span class="avatar-nm">'+a.name+'</span><span class="dex-type">'+esc(typeName||'')+'</span>';
+      H+='<div class="dex-cell'+(unlocked?'':' locked')+'"'+(unlocked?(' style="cursor:pointer" onclick="dexShowMembers(\''+typeName+'\')"'):'')+'><span class="avatar" style="width:56px;height:56px;background:'+a.color+'1f">'+mascotArtSVG(a.id,56)+'</span><span class="avatar-nm">'+a.name+'</span><span class="dex-type">'+esc(typeName||'')+'</span>';
       if(unlocked){
-        H+='<span class="dex-cnt">'+members.length+'명</span><div class="dex-members">';
+        H+='<span class="dex-cnt">'+members.length+'명 ›</span><div class="dex-members">';
         members.slice(0,4).forEach(function(mm){ H+='<span class="dex-mem">'+avatarSVG(mm.avatar,20)+(mm.isMe?'<span class="dex-me">나</span>':'')+'</span>'; });
         H+='</div>';
       } else { H+='<span class="dex-lock">🔒</span><span class="dex-cnt" style="color:#aeb6c4">아직 없음</span>'; }
       H+='</div>';
     });
     H+='</div>';
+    H+='<div id="dexInfo" style="display:none"></div>';  /* v48: 클릭한 유형의 멤버 이름 */
     var totalTests=0, preciseCnt=0, days={};
     (d.profiles||[]).forEach(function(p){ if(!p.imported&&p.history){ p.history.forEach(function(rec){ totalTests++; if(rec.mode===3){ preciseCnt++; } if(rec.date){ days[(''+rec.date).slice(0,10)]=1; } }); } });
     var nDays=0; for(var dd in days){ nDays++; }
     var nFriends=0; var set=acceptedFriendSet(); for(var k in set){ nFriends++; }
     var nTypes=0; for(var t in types){ nTypes++; }
     var myP=(typeof currentMyProfile==='function')?currentMyProfile():null; var myRel=myP?aggReliability(myP).score:0;
-    var nextRel=myRel<50?50:(myRel<70?70:(myRel<90?90:100));
-    H+='<div class="section-title" style="margin-top:18px">내 신뢰도</div>';
-    H+='<div class="rel-card"><div class="rel-head"><span>현재 신뢰도</span><b style="color:#4a6fa5">'+myRel+'%</b></div><div class="relbar" style="margin-top:6px"><i style="width:'+myRel+'%;background:#5a7bc0"></i></div>';
-    H+=(myRel<90)?('<div class="muted" style="margin-top:7px;font-size:12px"><b>'+nextRel+'%</b>까지 '+(nextRel-myRel)+'%p 남았어요. <b>재검사</b>·<b>정밀 검사</b>로 올려보세요.</div>'):'<div class="muted" style="margin-top:7px;font-size:12px">최고 수준이에요! 꾸준히 유지해 보세요.</div>';
-    H+='</div>';
     var badges=[
       {on:totalTests>=1,t:'🎯 첫 검사'},{on:totalTests>=3,t:'🔁 재검사 3회'},{on:totalTests>=5,t:'🏅 재검사 5회'},{on:totalTests>=10,t:'👑 재검사 10회'},
       {on:preciseCnt>=1,t:'🔬 정밀검사 1회'},{on:preciseCnt>=3,t:'🔬 정밀검사 3회'},
@@ -2648,6 +2657,19 @@ function renderCollection(){
     badges.forEach(function(b){ H+='<span class="pill'+(b.on?' g':'')+'" style="opacity:'+(b.on?1:0.38)+'">'+b.t+'</span>'; });
     H+='</div>';
     box.innerHTML=H;
+  }catch(e){}
+}
+/* v48: 도감 셀 클릭 → 그 유형의 멤버 이름 펼치기 */
+function dexShowMembers(type){
+  try{
+    var box=document.getElementById('dexInfo'); if(!box){ return; }
+    var ms=(window.__dexMembers||{})[type]||[];
+    if(!ms.length){ box.style.display='none'; box.innerHTML=''; return; }
+    var H='<div class="dex-info-card"><div class="dex-info-h">'+esc(type)+' · '+ms.length+'명</div><div class="dex-info-list">';
+    ms.forEach(function(mm){ H+='<span class="dex-info-mem">'+avatarSVG(mm.avatar,22)+'<span>'+esc(mm.name)+(mm.isMe?' <b>(나)</b>':'')+'</span></span>'; });
+    H+='</div></div>';
+    box.innerHTML=H; box.style.display='block';
+    try{ box.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){}
   }catch(e){}
 }
 function mergeProfiles(localArr, cloudArr){
