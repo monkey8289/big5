@@ -224,11 +224,12 @@
       <button class="btn btn-pri" onclick="beginTest()">검사 시작</button>
       <button class="btn btn-ghost" onclick="openTrend()">내 추이</button>
       <button class="btn btn-ghost" onclick="openCompat()">궁합·팀 분석</button>
+      <button class="btn btn-ghost" onclick="openPasteLink()">🔗 받은 링크로 궁합</button>
       <button class="btn btn-ghost" onclick="shareApp()">🔗 검사 추천하기</button>
       <button class="btn btn-ghost" onclick="openData()">데이터 관리</button>
     </div>
     <div class="note blue">친구와 <b>궁합</b>을 보려면 결과 화면의 <b>‘💬 내 결과 공유하기’</b>로 링크를 보내세요(받은 친구가 열면 자동으로 결과가 추가돼요). 그냥 <b>검사만 추천</b>하려면 아래 <b>‘🔗 검사 추천하기’</b>로 앱 링크만 보낼 수 있어요(내 결과는 포함되지 않아요).</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v24 · 2026-06-28 05:30</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v25 · 2026-06-28 06:00</div>
   </section>
 
   <!-- MODE -->
@@ -303,7 +304,7 @@
   <!-- COMPAT -->
   <section id="compat" class="card" style="display:none;">
     <h2>궁합 · 팀 조합 분석</h2>
-    <p class="muted" style="margin-top:6px;">분석할 사람을 2명 이상 선택하세요. 친구 결과는 ‘데이터·공유’의 링크/코드로 가져올 수 있습니다.</p>
+    <p class="muted" style="margin-top:6px;">분석할 사람을 2명 이상 선택하세요. 친구 결과는 <b>‘🔗 받은 링크로 궁합’</b>에서 친구가 보낸 링크를 붙여넣어 가져올 수 있어요.</p>
     <div class="prof-row" id="compatRow" style="margin-top:12px;"></div>
     <div class="btn-row">
       <button class="btn btn-pri" onclick="runCompat()">분석하기</button>
@@ -326,6 +327,25 @@
       <div class="btn-row" style="justify-content:flex-start;margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="resetAllData()">🗑 모든 데이터 초기화</button></div>
     </div>
     <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈으로</button></div>
+  </section>
+
+  <!-- CROSS-CONTEXT 안내 -->
+  <section id="crossctx" class="card" style="display:none;">
+    <h2>친구 결과를 받았어요 💌</h2>
+    <div id="crossctxBody" style="margin-top:8px;"></div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈으로</button></div>
+  </section>
+
+  <!-- 받은 링크 붙여넣기 -->
+  <section id="pastelink" class="card" style="display:none;">
+    <h2>받은 링크로 궁합 보기</h2>
+    <p class="muted" style="margin-top:6px;line-height:1.7;">친구가 카톡으로 보낸 <b>결과 공유 링크</b>를 아래에 붙여넣으면, 친구 결과를 가져와 <b>내 결과와의 궁합</b>을 바로 보여드려요.</p>
+    <textarea class="code" id="pasteArea" placeholder="여기에 친구가 보낸 링크를 붙여넣으세요 (https://… #import=… 형태)" style="min-height:80px;margin-top:10px;"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-pri" onclick="importFromPasted()">친구 가져와 궁합 보기</button>
+      <button class="btn btn-ghost" onclick="goHome()">🏠 홈</button>
+    </div>
+    <div id="pasteMsg" class="muted" style="margin-top:8px;line-height:1.6;"></div>
   </section>
 
 </div>
@@ -572,7 +592,7 @@ function currentProfile(){ var db=loadDB(); return getProfile(db.curId); }
 
 /* ===================== 화면 전환 ===================== */
 function $(id){return document.getElementById(id);}
-var SCREENS=["home","mode","quiz","result","trend","compat","data"];
+var SCREENS=["home","mode","quiz","result","trend","compat","data","crossctx","pastelink"];
 function show(s){ for(var i=0;i<SCREENS.length;i++){ var el=$(SCREENS[i]); if(el) el.style.display=(SCREENS[i]===s)?"block":"none"; } window.scrollTo(0,0); }
 function goHome(){ renderHome(); show("home"); try{ loadCounters(); }catch(e){} }
 function toast(msg){ try{ var t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){ t.className='toast on'; },20); setTimeout(function(){ t.className='toast'; setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },320); },3400); }catch(e){} }
@@ -1001,12 +1021,57 @@ function doImport(){ var obj=decodeRec($("importArea").value); var msg=$("import
 function addImportedRecord(obj){ var db=loadDB(); var name=obj.name; var exist=null; for(var i=0;i<db.profiles.length;i++){ if(db.profiles[i].name===name && db.profiles[i].imported){ exist=db.profiles[i]; break; } } var rec={date:obj.date||new Date().toISOString(),pct:obj.pct,fac:obj.fac||null,rel:obj.rel||null}; if(exist){ exist.history.push(rec); } else { db.profiles.push({id:uid(),name:name,imported:true,history:[rec]}); } saveDB(db); return name; }
 
 /* ===================== 자동 가져오기 ===================== */
-function handleAutoImport(){ try{ var h=location.hash||""; var m=h.match(/import=([^&]+)/); if(!m){ return; } var raw=m[1]; try{ raw=decodeURIComponent(raw); }catch(e){} var obj=b64urlDecode(raw);
+function handleAutoImport(){ try{ var h=location.hash||""; var m=h.match(/import=([^&]+)/); if(!m){ return; } window.__importLink=location.href; var raw=m[1]; try{ raw=decodeURIComponent(raw); }catch(e){} var obj=b64urlDecode(raw);
   try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){ try{ location.hash=""; }catch(_){} }
   if(!obj||!obj.pct||!obj.name){ toast("공유 링크를 읽을 수 없어요. 링크가 손상됐을 수 있습니다."); return; } var who=addImportedRecord(obj); window.__importedName=who; }catch(e){} }
 function afterImportFlow(){ var who=window.__importedName; if(!who){ return; } window.__importedName=null; var db=loadDB(); var mine=db.profiles.filter(function(p){ return !p.imported && p.history && p.history.length; });
   if(mine.length){ openCompat(); var imp=null; for(var i=0;i<db.profiles.length;i++){ if(db.profiles[i].imported && db.profiles[i].name===who){ imp=db.profiles[i]; } } if(imp){ toggleCompat(imp.id); } toggleCompat(mine[0].id); runCompat(); toast("‘"+who+"’님의 결과를 받았어요! 바로 궁합 분석을 보여드릴게요."); }
-  else { show("home"); toast("‘"+who+"’님의 결과를 받았어요! 궁합을 보려면 먼저 ‘검사 시작’으로 내 결과를 만들어 주세요."); } }
+  else { showCrossCtxGuidance(who); } }
+
+/* ===================== v25: 크로스 컨텍스트(인앱↔설치앱) 대응 ===================== */
+function isInAppBrowser(){ try{ var ua=navigator.userAgent||''; return /KAKAOTALK|FBAN|FBAV|FB_IAB|Instagram|Line\/|NAVER\(inapp|DaumApps|Snapchat|Twitter|; wv\)/i.test(ua); }catch(e){ return false; } }
+function copyImportLink(){ var link=window.__importLink||location.href; copyTextValue(link, "링크가 복사됐어요. 홈 화면 앱(또는 크롬)에서 붙여넣어 열어 주세요."); }
+function showCrossCtxGuidance(who){
+  var inApp=isInAppBrowser();
+  var H='<div class="note blue" style="margin-bottom:10px;">💌 <b>'+esc(who)+'</b>님의 결과를 받았어요.</div>';
+  if(inApp){
+    H+='<p class="muted" style="line-height:1.7;">지금은 <b>카톡 내장 브라우저</b>로 열려 있어요. 카톡 브라우저는 회원님이 <b>홈 화면에 설치한 앱(또는 크롬)</b>과 데이터가 분리돼 있어서, 여기엔 회원님 결과가 없어 궁합을 계산할 수 없어요.</p>';
+    H+='<div class="note" style="margin-top:10px;">아래 <b>‘링크 복사’</b>를 누른 뒤 <b>홈 화면 앱</b>(또는 크롬)에서 붙여넣어 열면, 회원님 결과와 궁합이 바로 나와요. (오른쪽 위 메뉴 ⋮ → ‘다른 브라우저로 열기’도 가능해요.)</div>';
+    H+='<div class="btn-row"><button class="btn btn-pri" onclick="copyImportLink()">🔗 링크 복사</button></div>';
+    H+='<p class="muted" style="margin-top:12px;font-size:12.5px;">이미 회원님 앱/크롬에서 보고 계신가요? 그렇다면 친구 링크를 붙여넣어 바로 궁합을 볼 수 있어요.</p>';
+    H+='<div class="btn-row"><button class="btn btn-ghost" onclick="openPasteLink()">🔗 받은 링크로 궁합 보기</button></div>';
+  } else {
+    H+='<p class="muted" style="line-height:1.7;">궁합을 보려면 먼저 회원님의 <b>검사 결과</b>가 있어야 해요. ‘검사 시작’으로 회원님 결과를 만들면, 방금 받은 <b>'+esc(who)+'</b>님과의 궁합을 바로 볼 수 있어요.</p>';
+    H+='<div class="btn-row"><button class="btn btn-pri" onclick="beginTest()">검사 시작</button></div>';
+    H+='<p class="muted" style="margin-top:12px;font-size:12.5px;">친구 링크를 다시 받으셨다면 아래로 붙여넣어도 돼요.</p>';
+    H+='<div class="btn-row"><button class="btn btn-ghost" onclick="openPasteLink()">🔗 받은 링크로 궁합 보기</button></div>';
+  }
+  var el=$("crossctxBody"); if(el){ el.innerHTML=H; } show("crossctx");
+}
+function openPasteLink(){ try{ $("pasteArea").value=""; }catch(e){} try{ $("pasteMsg").textContent=""; }catch(e){} show("pastelink"); }
+function parseImportFromText(t){
+  t=(t||"").trim(); if(!t){ return null; }
+  var raw=null; var m=t.match(/import=([^&\s#]+)/);
+  if(m){ raw=m[1]; } else { var m2=t.match(/#([A-Za-z0-9\-_]+)/); raw=m2?m2[1]:t; }
+  try{ raw=decodeURIComponent(raw); }catch(e){}
+  var obj=b64urlDecode(raw);
+  if(obj && obj.pct && obj.name){ return obj; }
+  return null;
+}
+function importFromPasted(){
+  var msg=$("pasteMsg");
+  var obj=parseImportFromText($("pasteArea")?$("pasteArea").value:"");
+  if(!obj){ if(msg){ msg.style.color="#c0564a"; msg.textContent="링크를 인식할 수 없어요. 친구가 보낸 전체 링크(https://… 형태)를 그대로 붙여넣어 주세요."; } return; }
+  var who=addImportedRecord(obj);
+  var db=loadDB(); var mine=db.profiles.filter(function(p){ return !p.imported && p.history && p.history.length; });
+  if(mine.length){
+    openCompat(); var imp=null; for(var i=0;i<db.profiles.length;i++){ if(db.profiles[i].imported && db.profiles[i].name===who){ imp=db.profiles[i]; } }
+    if(imp){ toggleCompat(imp.id); } toggleCompat(mine[0].id); runCompat();
+    toast("‘"+who+"’님을 가져왔어요! 궁합을 보여드릴게요.");
+  } else {
+    if(msg){ msg.style.color="#2c7a62"; msg.innerHTML="‘"+esc(who)+"’님 결과를 가져왔어요. 궁합을 보려면 먼저 ‘검사 시작’으로 내 결과를 만들어 주세요."; }
+  }
+}
 
 /* ===================== PNG ===================== */
 function drawRadarCanvas(ctx,cx,cy,R,vals){
