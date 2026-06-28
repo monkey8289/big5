@@ -422,7 +422,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v46 · 2026-06-28 16:05</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v47 · 2026-06-28 16:35</div>
   </section>
 
   <!-- MODE -->
@@ -1044,6 +1044,13 @@ var FACET_HELP={
  '창의성':{d:'새 아이디어를 잘 떠올리는 편인지를 봐요',e:'<b>이 문장이 말하는 상황</b>에서, 새롭게 떠올리고 바꿔보는 편이면 ‘그렇다’, 검증된 방식이 더 편한 편이면 ‘아니다’ 쪽으로.'},
  '비관습성':{d:'색다른 생각에 열려 있는 편인지를 봐요',e:'<b>이 문장이 말하는 것</b>에 대해, 색다른 생각도 열린 마음으로 받아들이는 편이면 ‘그렇다’, 익숙·전통이 더 편한 편이면 ‘아니다’ 쪽으로.'}
 };
+/* v47: '답 고르는 법'을 성향(trait) 기준이 아니라 "화면의 문장 그대로 동의 여부" 기준으로 통일.
+   역문항(‘~지 않는다/아니다’)에서 안내가 거꾸로 되던 문제 해결(채점은 내부에서 rev 처리). '이 문항이 묻는 것'(d)은 유지. */
+(function(){
+  var base='<b>화면의 이 문장</b> 그대로에 내가 얼마나 해당하는지로 답해요. 문장이 ‘~지 않는다 / 아니다’처럼 <b>부정형</b>일 수 있으니, 성향을 머릿속에서 뒤집지 말고 <b>문장 내용이 평소 나와 맞으면 ‘그렇다’, 안 맞으면 ‘아니다’</b>를 고르면 정확해요. (정·역 채점은 자동으로 처리돼요.)';
+  var varies={ '두려움':1, '사회적대담성':1, '심미안':1 };
+  for(var k in FACET_HELP){ if(FACET_HELP.hasOwnProperty(k)){ FACET_HELP[k].e=(varies[k]?'사람마다 느끼는 게 달라요. ':'')+base; } }
+})();
 function toggleDunno(){
   try{
     var panel=document.getElementById('dunnoPanel'); if(!panel){ return; }
@@ -1540,28 +1547,50 @@ function isInAppBrowser(){
 }
 function isKakaoInApp(){ try{ return /KAKAOTALK/i.test(navigator.userAgent||''); }catch(e){ return false; } }
 /* v28: 인앱 → 외부 기본 브라우저 열기 (현재 전체 URL+#해시 보존) */
-function buildExternalScheme(){
+/* v47: 외부 브라우저 전환 스킴 목록(순서대로 시도). 특정 브라우저 패키지는 지정하지 않아 '기본 브라우저'로 열림 */
+function externalSchemes(){
   try{
-    var ua=navigator.userAgent||''; var url=location.href;
-    if(/KAKAOTALK/i.test(ua)){ return 'kakaotalk://web/openExternal?url='+encodeURIComponent(url); }
+    var ua=navigator.userAgent||''; var url=location.href; var list=[];
+    /* 1) 카카오톡: 외부 브라우저 열기 전용 스킴 */
+    if(/KAKAOTALK/i.test(ua)){ list.push('kakaotalk://web/openExternal?url='+encodeURIComponent(url)); }
+    /* 2) 안드로이드(카톡 포함): intent로 기본 브라우저 강제 — 1)이 안 먹을 때 폴백. 해시는 browser_fallback_url로 보존 */
     if(/Android/i.test(ua)){
       var noScheme=url.replace(/^https?:\/\//,'');
-      var hi=noScheme.indexOf('#'); if(hi>=0){ noScheme=noScheme.substring(0,hi); } /* intent의 #Intent와 충돌 방지 → 해시는 fallback_url로 보존 */
-      return 'intent://'+noScheme+'#Intent;scheme=https;action=android.intent.action.VIEW;S.browser_fallback_url='+encodeURIComponent(url)+';end';
+      var hi=noScheme.indexOf('#'); if(hi>=0){ noScheme=noScheme.substring(0,hi); }
+      list.push('intent://'+noScheme+'#Intent;scheme=https;action=android.intent.action.VIEW;S.browser_fallback_url='+encodeURIComponent(url)+';end');
     }
-    return null; /* iOS 비카카오 등은 프로그램적 강제 불가 → 폴백 UI */
-  }catch(e){ return null; }
+    return list; /* iOS 비카카오 등은 빈 배열 → 프로그램적 강제 불가, 링크 복사로 안내 */
+  }catch(e){ return []; }
 }
+function buildExternalScheme(){ var l=externalSchemes(); return l.length?l[0]:null; } /* 호환 유지 */
 function copyCurrentLink(){ try{ copyTextValue(location.href, '링크가 복사됐어요. 크롬/사파리 주소창에 붙여넣어 열어주세요.'); }catch(e){} }
-function tryOpenExternal(){ try{ var s=buildExternalScheme(); if(s){ location.href=s; } else { copyCurrentLink(); } }catch(e){} }
+/* v47: 스킴을 순차 시도 — 화면이 안 넘어가면(여전히 보이면) 다음 스킴, 다 실패하면 onFail(보통 링크 복사) */
+function openExternalSeq(onFail){
+  try{
+    var list=externalSchemes();
+    if(!list.length){ if(onFail){ onFail(); } return; }
+    var i=0, done=false;
+    function markGone(){ done=true; }
+    try{ document.addEventListener('visibilitychange', function(){ if(document.hidden){ done=true; } }); }catch(e){}
+    try{ window.addEventListener('pagehide', markGone); }catch(e){}
+    function step(){
+      if(done){ return; }                          /* 외부 브라우저로 넘어갔으면 중단 */
+      if(i>=list.length){ if(onFail){ onFail(); } return; }
+      var s=list[i++];
+      try{ location.href=s; }catch(e){}
+      setTimeout(step, 1300);                       /* 안 넘어가면 다음 스킴 시도 */
+    }
+    step();
+  }catch(e){ if(onFail){ onFail(); } }
+}
+function tryOpenExternal(){ openExternalSeq(copyCurrentLink); }   /* 버튼: 자동과 '동일' 방식 + 링크복사 폴백 */
 function maybeAutoExternal(){
   try{
     if(!isInAppBrowser()){ return; }                 /* 정식 브라우저에선 발동 안 함 */
     var tried=false; try{ tried=(sessionStorage.getItem('__extTried')==='1'); }catch(e){ tried=!!window.__extTried; }
-    if(tried){ return; }                              /* 무한루프/반복 방지: 한 번만 */
+    if(tried){ return; }                              /* 같은 세션 1회만 자동(버튼은 항상 가능) */
     try{ sessionStorage.setItem('__extTried','1'); }catch(e){ window.__extTried=true; }
-    var s=buildExternalScheme();
-    if(s){ setTimeout(function(){ try{ location.href=s; }catch(e){} }, 350); }
+    setTimeout(function(){ try{ openExternalSeq(null); }catch(e){} }, 250);  /* 진입 즉시 자동 시도(폴백 복사는 버튼에 맡김) */
   }catch(e){}
 }
 function copyImportLink(){ var link=window.__importLink||location.href; copyTextValue(link, "링크가 복사됐어요. 홈 화면 앱(또는 크롬)에서 붙여넣어 열어 주세요."); }
@@ -2294,7 +2323,7 @@ function sendFriendRequest(h){
     fbDb.collection('friendRequests').doc(reqId(fuid,me)).get().then(function(rev){
       if(rev.exists && rev.data().status==='pending'){
         fbDb.collection('friendRequests').doc(reqId(fuid,me)).update({status:'accepted'}).then(function(){
-          m('@'+fhandle+'님과 친구가 됐어요! (상대 요청 수락)', '#2c7a62'); clearFriendInput();
+          m('@'+fhandle+'님과 친구가 됐어요! (상대 요청 수락)', '#2c7a62'); clearFriendInput(); try{ loadFriendsRanking(); }catch(e){}
         }, function(){ m('수락 처리에 실패했어요.'); });
         return;
       }
@@ -2338,7 +2367,7 @@ function renderFriendRequests(){
   }catch(e){}
 }
 function acceptRequest(id){
-  try{ if(!fbDb){ return; } fbDb.collection('friendRequests').doc(id).update({status:'accepted'}).then(function(){ toast('친구가 됐어요!'); }, function(){ toast('수락에 실패했어요.'); }); }catch(e){}
+  try{ if(!fbDb){ return; } fbDb.collection('friendRequests').doc(id).update({status:'accepted'}).then(function(){ toast('친구가 됐어요!'); try{ loadFriendsRanking(); }catch(e){} }, function(){ toast('수락에 실패했어요.'); }); }catch(e){}
 }
 function rejectRequest(id){
   try{ if(!fbDb){ return; } fbDb.collection('friendRequests').doc(id).update({status:'rejected'}).then(function(){ toast('요청을 거절했어요.'); }, function(){ toast('처리에 실패했어요.'); }); }catch(e){}
@@ -2349,13 +2378,14 @@ function loadFriendsRanking(){
     if(__accFromUnsub){ try{ __accFromUnsub(); }catch(e){} __accFromUnsub=null; }
     if(__accToUnsub){ try{ __accToUnsub(); }catch(e){} __accToUnsub=null; }
     if(!fbReady||!cloudUser||!fbDb){ box.innerHTML='<span class="muted">로그인 후 이용할 수 있어요.</span>'; return; }
-    window.__accFrom={}; window.__accTo={}; window.__friendResults=window.__friendResults||{};
+    window.__accFrom={}; window.__accTo={}; window.__friendResults=window.__friendResults||{}; window.__friendMeta={};
     box.innerHTML='<span class="muted">친구 목록을 불러오는 중…</span>';
+    /* v47: 수락된 요청 문서에서 친구 표시정보(핸들/이름/아바타)도 함께 수집 → 친구가 아직 검사 안 했어도 목록에 표시 */
     __accFromUnsub=fbDb.collection('friendRequests').where('from','==',cloudUser.uid).where('status','==','accepted').onSnapshot(function(s){
-      window.__accFrom={}; s.forEach(function(d){ window.__accFrom[d.id]=d.data().to; }); recomputeFriends();
+      window.__accFrom={}; s.forEach(function(d){ var o=d.data(); window.__accFrom[d.id]=o.to; var m=window.__friendMeta[o.to]=window.__friendMeta[o.to]||{}; if(o.toHandle){ m.handle=o.toHandle; } }); recomputeFriends();
     }, function(){});
     __accToUnsub=fbDb.collection('friendRequests').where('to','==',cloudUser.uid).where('status','==','accepted').onSnapshot(function(s){
-      window.__accTo={}; s.forEach(function(d){ window.__accTo[d.id]=d.data().from; }); recomputeFriends();
+      window.__accTo={}; s.forEach(function(d){ var o=d.data(); window.__accTo[d.id]=o.from; var m=window.__friendMeta[o.from]=window.__friendMeta[o.from]||{}; if(o.fromHandle){ m.handle=o.fromHandle; } if(o.fromName){ m.name=o.fromName; } if(o.fromAvatar){ m.avatar=o.fromAvatar; } }); recomputeFriends();
     }, function(){});
   }catch(e){}
 }
@@ -2424,23 +2454,39 @@ function setRelMode(mode){ try{ window.__relMode=mode; var b=document.getElement
 function renderFriendRanking(){
   try{
     var box=document.getElementById('friendRank'); if(!box){ return; }
-    var set=acceptedFriendSet(); var nFriends=0; for(var k in set){ nFriends++; }
-    if(!nFriends){ box.innerHTML='<span class="muted">아직 친구가 없어요. 친구 아이디로 요청을 보내고, 상대가 수락하면 여기에 떠요.</span>'; return; }
-    var myA=myAggDom();
-    if(!myA){ box.innerHTML='<span class="muted">먼저 내 검사를 1회 이상 완료하면 친구와의 궁합 순위가 나와요.</span>'; return; }
-    var arr=[], withResult=0; var fr=window.__friendResults||{};
-    for(var fuid in set){ var r=fr[fuid]; if(r&&r.agg){ withResult++; var sd=pairScoreDetail(myA.dom, r.agg); arr.push({uid:fuid, r:r, score:sd.score}); } }
-    arr.sort(function(a,b){ return b.score-a.score; });
-    if(!arr.length){ box.innerHTML='<span class="muted">친구들이 아직 검사를 안 했어요. 친구가 검사하면 실시간으로 순위에 떠요.</span>'; return; }
+    var set=acceptedFriendSet(); var ids=[]; for(var k in set){ ids.push(k); }
+    if(!ids.length){ box.innerHTML='<span class="muted">아직 친구가 없어요. 친구 아이디로 요청을 보내고, 상대가 수락하면 여기에 떠요.</span>'; return; }
+    /* v47: 수락된 친구는 검사 전이라도 항상 목록에 표시(궁합 점수는 양쪽 검사 완료 시). 누락 버그 방지 */
+    var myA=myAggDom(); var fr=window.__friendResults||{}; var meta=window.__friendMeta||{};
+    var scored=[], unscored=[];
+    ids.forEach(function(fuid){
+      var r=fr[fuid]||null; var m=meta[fuid]||{};
+      var info={ uid:fuid,
+        handle:(r&&r.handle)||m.handle||'',
+        name:(r&&r.name)||'',
+        avatar:(r&&r.avatar)||m.avatar||'egg',
+        dispName:friendMainName(fuid, r||{displayName:m.name,handle:m.handle}),
+        reliability:(r&&r.reliability!=null)?r.reliability:null };
+      if(myA && r && r.agg){ info.score=pairScoreDetail(myA.dom, r.agg).score; scored.push(info); }
+      else { info.status=(!r||!r.agg)?'검사 전':'내 검사 먼저'; unscored.push(info); }
+    });
+    scored.sort(function(a,b){ return b.score-a.score; });
     var H='';
-    arr.forEach(function(it,i){
+    scored.forEach(function(it,i){
       var col=it.score>=70?'#3f8f74':(it.score>=50?'#c08a3e':'#c0564a');
       var medal=(i===0?'🥇':(i===1?'🥈':(i===2?'🥉':(i+1)+'')));
       H+='<div class="rankrow" onclick="openFriendDetail(\''+it.uid+'\')">'
-        +'<span class="rk">'+medal+'</span>'+avatarSVG(it.r.avatar,38)
-        +'<span class="rkname"><b>'+esc(friendMainName(it.uid, it.r))+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.r.handle||'')+' · '+esc(it.r.name||'')+'</span>'+(it.r.reliability!=null?('<span style="display:inline-block;margin-top:3px">'+relChip(it.r.reliability)+'</span>'):'')+'</span>'
+        +'<span class="rk">'+medal+'</span>'+avatarSVG(it.avatar,38)
+        +'<span class="rkname"><b>'+esc(it.dispName)+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.handle)+(it.name?(' · '+esc(it.name)):'')+'</span>'+(it.reliability!=null?('<span style="display:inline-block;margin-top:3px">'+relChip(it.reliability)+'</span>'):'')+'</span>'
         +'<span class="rkscore" style="color:'+col+'">'+it.score+'%<span class="rkgo">›</span></span></div>';
     });
+    unscored.forEach(function(it){
+      H+='<div class="rankrow" onclick="openFriendDetail(\''+it.uid+'\')">'
+        +'<span class="rk" style="color:#c2c9d6">·</span>'+avatarSVG(it.avatar,38)
+        +'<span class="rkname"><b>'+esc(it.dispName)+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.handle)+'</span></span>'
+        +'<span class="rkscore" style="color:#9aa3b1;font-size:12px;font-weight:600">'+esc(it.status)+'<span class="rkgo">›</span></span></div>';
+    });
+    if(!myA && scored.length===0){ H='<div class="note blue" style="margin-bottom:8px">친구는 연결됐어요. <b>내 검사를 1회 이상</b> 완료하면 궁합 점수가 나와요.</div>'+H; }
     box.innerHTML=H;
     try{ var cs=document.getElementById('collection'); if(cs && getComputedStyle(cs).display!=='none' && typeof renderCollection==='function'){ renderCollection(); } }catch(e){}  /* v38: 도감 실시간 갱신 */
   }catch(e){}
@@ -2496,7 +2542,7 @@ function friendResultHTML(fr){
 }
 function openFriendDetail(fuid){
   try{
-    var fr=(window.__friendResults||{})[fuid]; if(!fr||!fr.agg){ toast('친구 결과를 불러오지 못했어요.'); return; }
+    var fr=(window.__friendResults||{})[fuid]; if(!fr||!fr.agg){ toast('이 친구는 아직 검사를 안 했어요. 검사하면 궁합을 볼 수 있어요.'); return; }
     window.__fvUid=fuid; window.__fvMode='result'; renderFvNick(fuid); fvSync(); show('friendview');
   }catch(e){}
 }
