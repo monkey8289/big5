@@ -229,6 +229,13 @@
   .relmode-toggle{display:flex;gap:6px;margin:6px 0 2px;}
   .relmode-btn{flex:1;padding:9px 4px;border:1.5px solid #e3e7f0;background:#fff;border-radius:10px;font-family:inherit;font-size:12.5px;font-weight:700;color:#5a6377;cursor:pointer;}
   .relmode-btn.on{border-color:#5a7bc0;background:#eef3fc;color:#34466b;}
+  /* v34: 캐릭터 도감 */
+  .dex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .dex-cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:13px 4px;border:1.5px solid #e8ebf3;border-radius:14px;background:#fff;}
+  .dex-cell.locked{background:#f6f7fa;}
+  .dex-cell.locked .avatar{filter:grayscale(1);opacity:0.42;}
+  .dex-cell.locked .avatar-nm{color:#aeb6c4;}
+  .dex-lock{position:absolute;top:7px;right:9px;font-size:13px;}
   /* v24: MBTI 근사 · 인물상 */
   .mbti-card{background:linear-gradient(135deg,#eef3fb,#eef8f4);border:1px solid #d8e3ee;border-radius:15px;padding:15px;}
   .mbti-row{display:flex;align-items:center;gap:12px;}
@@ -321,7 +328,12 @@
       <div id="friendRank" class="rankbox"><span class="muted">로그인 후 이용할 수 있어요.</span></div>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v33 · 2026-06-28 10:15</div>
+    <div class="home-grid" style="grid-template-columns:repeat(2,1fr);margin-top:6px;">
+      <button class="btn btn-ghost home-btn" onclick="openGroup()"><span class="hb-ico">👥</span><span>그룹 궁합</span></button>
+      <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
+    </div>
+
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v34 · 2026-06-28 10:30</div>
   </section>
 
   <!-- MODE -->
@@ -398,6 +410,23 @@
     <h2>친구 궁합 분석</h2>
     <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈</button></div>
     <div id="compatResult" style="margin-top:14px;"></div>
+  </section>
+
+  <!-- GROUP (v34: 그룹 궁합) -->
+  <section id="group" class="card" style="display:none;">
+    <h2>👥 그룹 궁합 · 팀 분석</h2>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈</button></div>
+    <p class="muted" style="margin-top:6px;">함께 분석할 친구를 고르세요. (나는 자동 포함)</p>
+    <div id="groupPick" class="rankbox" style="margin-top:10px;"></div>
+    <div class="btn-row" style="margin-top:10px;"><button class="btn btn-pri btn-block" onclick="runGroupCompat()">팀 분석하기</button></div>
+    <div id="groupResult" style="margin-top:14px;"></div>
+  </section>
+
+  <!-- COLLECTION (v34: 캐릭터 도감) -->
+  <section id="collection" class="card" style="display:none;">
+    <h2>📖 캐릭터 도감</h2>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈</button></div>
+    <div id="collectionBox" style="margin-top:12px;"></div>
   </section>
 
   <!-- DATA -->
@@ -694,7 +723,7 @@ function currentProfile(){ var db=loadDB(); return getProfile(db.curId); }
 
 /* ===================== 화면 전환 ===================== */
 function $(id){return document.getElementById(id);}
-var SCREENS=["splash","setup","home","mode","quiz","result","trend","compat","data","crossctx","pastelink","auth"];
+var SCREENS=["splash","setup","home","mode","quiz","result","trend","compat","group","collection","data","crossctx","pastelink","auth"];
 function show(s){ for(var i=0;i<SCREENS.length;i++){ var el=$(SCREENS[i]); if(el) el.style.display=(SCREENS[i]===s)?"block":"none"; } window.scrollTo(0,0); }
 function goHome(){ if(typeof fbReady!=='undefined' && fbReady && !cloudUser){ try{ show("auth"); if(typeof setInappWarn==='function') setInappWarn(); }catch(e){} return; } if(typeof fbReady!=='undefined' && fbReady && cloudUser && typeof profileComplete==='function' && !profileComplete()){ try{ renderSetup(); show("setup"); }catch(e){} return; } renderHome(); show("home"); try{ loadCounters(); }catch(e){} }
 function toast(msg){ try{ var t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){ t.className='toast on'; },20); setTimeout(function(){ t.className='toast'; setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },320); },3400); }catch(e){} }
@@ -1998,6 +2027,56 @@ function openFriendCompat(fuid){
     window.__cmp={a:myA.dom, b:fr.agg, n1:meName, n2:frName}; if(!window.__relMode){ window.__relMode='love'; }
     head+='<div id="relModeBox">'+relModeBoxHTML()+'</div>';
     document.getElementById('compatResult').innerHTML=head+renderPairResult(sel); show('compat');
+  }catch(e){}
+}
+/* v34: 그룹 궁합 */
+function openGroup(){ try{ renderGroupPick(); var g=document.getElementById('groupResult'); if(g){ g.innerHTML=''; } show('group'); }catch(e){} }
+function renderGroupPick(){
+  try{
+    var box=document.getElementById('groupPick'); if(!box){ return; }
+    var set=acceptedFriendSet(); var fr=window.__friendResults||{}; var any=false, H='';
+    for(var fuid in set){ var r=fr[fuid]; if(r&&r.agg){ any=true;
+      H+='<label class="reqcard" style="cursor:pointer"><input type="checkbox" class="grp-chk" value="'+fuid+'" style="width:18px;height:18px;flex:none">'+avatarSVG(r.avatar,34)+'<span class="rq-info"><b>'+esc(r.displayName||r.handle||'친구')+'</b> <span class="muted" style="font-size:11px">@'+esc(r.handle||'')+'</span></span></label>';
+    } }
+    if(!any){ H='<span class="muted">검사를 완료한 친구가 있어야 그룹 분석을 할 수 있어요.</span>'; }
+    box.innerHTML=H;
+  }catch(e){}
+}
+function runGroupCompat(){
+  try{
+    var myA=myAggDom(); if(!myA){ toast('먼저 내 검사를 완료해 주세요.'); return; }
+    var d=loadDB(); var sel=[{name:(d.displayName||d.handle||'나'), history:[{pct:myA.dom}]}];
+    var chks=document.querySelectorAll('.grp-chk'); var fr=window.__friendResults||{};
+    for(var i=0;i<chks.length;i++){ if(chks[i].checked){ var r=fr[chks[i].value]; if(r&&r.agg){ sel.push({name:(r.displayName||r.handle||'친구'), history:[{pct:r.agg}]}); } } }
+    if(sel.length<2){ toast('친구를 1명 이상 선택해 주세요.'); return; }
+    document.getElementById('groupResult').innerHTML=(sel.length<3)?renderPairResult(sel):renderTeamResult(sel);
+  }catch(e){}
+}
+/* v34: 캐릭터 도감 */
+function obtainedTypes(){
+  var d=loadDB(); var set={}; (d.profiles||[]).forEach(function(p){ if(!p.imported && p.history){ p.history.forEach(function(rec){ var nm=rec.name||topProfile(rec.pct).name; set[nm]=1; }); } }); return set;
+}
+function openCollection(){ try{ renderCollection(); show('collection'); }catch(e){} }
+function renderCollection(){
+  try{
+    var box=document.getElementById('collectionBox'); if(!box){ return; }
+    var types=obtainedTypes(); var d=loadDB(); var myAv=d.avatar;
+    var mascotType={}; for(var tn in CHAR){ mascotType[CHAR[tn].m]=tn; }
+    var nUnlocked=0;
+    var H='<div class="muted" style="margin-bottom:10px;line-height:1.6">검사 결과로 나온 유형의 마스코트와 내가 고른 프로필 캐릭터를 모으는 도감이에요.</div><div class="dex-grid">';
+    AVATARS.forEach(function(a){
+      var typeName=mascotType[a.name]; var unlocked=(typeName && types[typeName]) || (a.id===myAv); if(unlocked){ nUnlocked++; }
+      H+='<div class="dex-cell'+(unlocked?'':' locked')+'"><span class="avatar" style="width:64px;height:64px;background:'+a.color+'1f">'+mascotArtSVG(a.id,64)+'</span><span class="avatar-nm">'+a.name+'</span>'+(unlocked?'':'<span class="dex-lock">🔒</span>')+'</div>';
+    });
+    H+='</div><div class="center muted" style="margin-top:8px">'+nUnlocked+' / '+AVATARS.length+' 수집</div>';
+    var totalTests=0; (d.profiles||[]).forEach(function(p){ if(!p.imported&&p.history){ totalTests+=p.history.length; } });
+    var nFriends=0; var set=acceptedFriendSet(); for(var k in set){ nFriends++; }
+    var nTypes=0; for(var t in types){ nTypes++; }
+    var badges=[ {on:totalTests>=1,t:'🎯 첫 검사'},{on:totalTests>=3,t:'🔁 3회 검사'},{on:totalTests>=5,t:'🏅 5회 검사'},{on:totalTests>=10,t:'👑 10회 검사'},{on:nFriends>=1,t:'🤝 첫 친구'},{on:nFriends>=3,t:'👥 친구 3명'},{on:nTypes>=3,t:'🌈 3유형'},{on:nUnlocked>=7,t:'📖 도감 완성'} ];
+    H+='<div class="section-title" style="margin-top:18px">배지</div><div class="pillrow">';
+    badges.forEach(function(b){ H+='<span class="pill'+(b.on?' g':'')+'" style="opacity:'+(b.on?1:0.38)+'">'+b.t+'</span>'; });
+    H+='</div>';
+    box.innerHTML=H;
   }catch(e){}
 }
 function mergeProfiles(localArr, cloudArr){
