@@ -180,6 +180,12 @@
   .stats{background:var(--soft);border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin:14px 0 2px;text-align:center;font-size:13px;color:#48526a;line-height:1.7;}
   .stats b{color:var(--accent);font-weight:800;}
   .stats-sub{font-size:12px;color:var(--sub);}
+  /* v26: 로그인 */
+  .authbar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 12px;margin:14px 0 0;font-size:12.5px;}
+  .authbar .ab-stat{color:var(--sub);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4;}
+  .authbar .ab-stat b{color:var(--accent);}
+  .authbar button{flex:none;min-height:38px;padding:7px 12px;font-size:13px;}
+  .auth-input{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;font-family:inherit;font-size:16px;margin-top:9px;}
   /* v24: MBTI 근사 · 인물상 */
   .mbti-card{background:linear-gradient(135deg,#eef3fb,#eef8f4);border:1px solid #d8e3ee;border-radius:15px;padding:15px;}
   .mbti-row{display:flex;align-items:center;gap:12px;}
@@ -209,6 +215,8 @@
       <div class="facet"><span class="dot" style="background:var(--O)"></span>개방성</div>
     </div>
 
+    <div id="authBar" class="authbar no-print"><span class="ab-stat">게스트 모드 · 로그인하면 어디서나 내 데이터</span><button class="btn btn-ghost btn-sm" onclick="openAuth()">로그인</button></div>
+
     <div id="homeStats" class="stats no-print">📊 검사 통계를 불러오는 중…</div>
 
     <div id="resumeBox" style="display:none;"></div>
@@ -229,7 +237,7 @@
       <button class="btn btn-ghost" onclick="openData()">데이터 관리</button>
     </div>
     <div class="note blue">친구와 <b>궁합</b>을 보려면 결과 화면의 <b>‘💬 내 결과 공유하기’</b>로 링크를 보내세요(받은 친구가 열면 자동으로 결과가 추가돼요). 그냥 <b>검사만 추천</b>하려면 아래 <b>‘🔗 검사 추천하기’</b>로 앱 링크만 보낼 수 있어요(내 결과는 포함되지 않아요).</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v25 · 2026-06-28 06:00</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v26 · 2026-06-28 06:40</div>
   </section>
 
   <!-- MODE -->
@@ -334,6 +342,21 @@
     <h2>친구 결과를 받았어요 💌</h2>
     <div id="crossctxBody" style="margin-top:8px;"></div>
     <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈으로</button></div>
+  </section>
+
+  <!-- 로그인 / 회원가입 -->
+  <section id="auth" class="card" style="display:none;">
+    <h2>로그인 / 회원가입</h2>
+    <p class="muted" style="margin-top:6px;line-height:1.7;">로그인하면 검사 결과가 <b>내 계정 클라우드</b>에 저장돼, 휴대폰·PC·카톡 어디서 열어도 내 데이터와 궁합을 볼 수 있어요.</p>
+    <input id="authEmail" class="auth-input" type="email" placeholder="이메일" autocomplete="email">
+    <input id="authPw" class="auth-input" type="password" placeholder="비밀번호 (6자 이상)" autocomplete="current-password">
+    <div class="btn-row">
+      <button class="btn btn-pri" onclick="authLogin()">로그인</button>
+      <button class="btn btn-ghost" onclick="authSignup()">회원가입</button>
+    </div>
+    <div id="authMsg" class="muted" style="margin-top:8px;line-height:1.6;"></div>
+    <div class="btn-row"><button class="btn btn-ghost btn-block" onclick="goHome()">게스트로 계속 (로그인 없이)</button></div>
+    <p class="muted" style="margin-top:10px;font-size:11.5px;line-height:1.6;">※ 비밀번호는 Firebase 인증으로 안전하게 처리되며 앱은 비밀번호를 저장하지 않아요. 게스트로도 모든 기능을 쓸 수 있어요(데이터는 이 브라우저에만 저장).</p>
   </section>
 
   <!-- 받은 링크 붙여넣기 -->
@@ -582,7 +605,7 @@ var LS_KEY="hexaco_v1", PROG_KEY="hexaco_prog";
 var lsOK=(function(){try{ if(typeof window==='undefined'||typeof window.localStorage==='undefined'||window.localStorage===null) return false; window.localStorage.setItem("__hx","1"); window.localStorage.removeItem("__hx"); return true; }catch(e){ return false; }})();
 var memDB=null, memProg=null;
 function loadDB(){ if(!lsOK){ if(!memDB) memDB={profiles:[],curId:null}; return memDB; } try{ return JSON.parse(localStorage.getItem(LS_KEY))||{profiles:[],curId:null}; }catch(e){ return {profiles:[],curId:null}; } }
-function saveDB(db){ if(!lsOK){ memDB=db; return; } try{ localStorage.setItem(LS_KEY,JSON.stringify(db)); }catch(e){} }
+function saveDB(db){ if(!lsOK){ memDB=db; } else { try{ localStorage.setItem(LS_KEY,JSON.stringify(db)); }catch(e){} } try{ if(typeof pushCloud==='function') pushCloud(); }catch(e){} }
 function saveProgress(){ var o={curId:loadDB().curId,mode:curMode,q:QUESTIONS,answers:answers,idx:idx}; if(!lsOK){ memProg=o; return; } try{ localStorage.setItem(PROG_KEY,JSON.stringify(o)); }catch(e){} }
 function loadProgress(){ if(!lsOK){ return memProg; } try{ return JSON.parse(localStorage.getItem(PROG_KEY)); }catch(e){ return null; } }
 function clearProgress(){ if(!lsOK){ memProg=null; return; } try{ localStorage.removeItem(PROG_KEY); }catch(e){} }
@@ -592,7 +615,7 @@ function currentProfile(){ var db=loadDB(); return getProfile(db.curId); }
 
 /* ===================== 화면 전환 ===================== */
 function $(id){return document.getElementById(id);}
-var SCREENS=["home","mode","quiz","result","trend","compat","data","crossctx","pastelink"];
+var SCREENS=["home","mode","quiz","result","trend","compat","data","crossctx","pastelink","auth"];
 function show(s){ for(var i=0;i<SCREENS.length;i++){ var el=$(SCREENS[i]); if(el) el.style.display=(SCREENS[i]===s)?"block":"none"; } window.scrollTo(0,0); }
 function goHome(){ renderHome(); show("home"); try{ loadCounters(); }catch(e){} }
 function toast(msg){ try{ var t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){ t.className='toast on'; },20); setTimeout(function(){ t.className='toast'; setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },320); },3400); }catch(e){} }
@@ -1125,6 +1148,7 @@ function init(){
   if(!lsOK) showStorageNotice();
   try{ afterImportFlow(); }catch(e){}
   try{ loadCounters(); }catch(e){}
+  try{ if(typeof startFirebase==='function') startFirebase(); }catch(e){}
 }
 if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
 
@@ -1394,6 +1418,87 @@ function bumpCounters(mode){
     ['easy','balanced','precise'].forEach(function(mm){ if(mm!==mk){ cntReq('/get/'+CNT_NS+'/m_'+mm, function(v){ CNTV[mm]=v; paintCounters(); }); } });
   }catch(e){}
 }
+</script>
+
+<script>
+/* ===================== v26: Firebase 로그인 + Firestore 동기화 (게스트 폴백 필수) ===================== */
+var FB_CONFIG={apiKey:"AIzaSyBXVjkvzA4pab8WVY3WVWxzr1hfH1EL8Hc",authDomain:"hexaco-quiz.firebaseapp.com",projectId:"hexaco-quiz",storageBucket:"hexaco-quiz.firebasestorage.app",messagingSenderId:"439691416990",appId:"1:439691416990:web:3367100b843d7f0817328f"};
+var fbReady=false, fbAuth=null, fbDb=null, cloudUser=null, pushTimer=null;
+function loadFirebaseSDK(cb){
+  if(window.firebase && window.firebase.auth){ cb(false); return; }
+  var base='https://www.gstatic.com/firebasejs/10.12.2/';
+  var files=['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'];
+  var i=0, failed=false;
+  function next(){ if(failed){ return; } if(i>=files.length){ cb(false); return; } var s=document.createElement('script'); s.src=base+files[i]; s.async=false; s.onload=function(){ i++; next(); }; s.onerror=function(){ if(!failed){ failed=true; cb(true); } }; document.head.appendChild(s); }
+  next();
+}
+function startFirebase(){
+  try{
+    loadFirebaseSDK(function(err){
+      if(err){ try{ paintAuthBar(); }catch(e){} return; }
+      try{
+        if(!window.firebase || !firebase.initializeApp){ paintAuthBar(); return; }
+        firebase.initializeApp(FB_CONFIG);
+        fbAuth=firebase.auth(); fbDb=firebase.firestore(); fbReady=true;
+        fbAuth.onAuthStateChanged(function(u){ cloudUser=u||null; onAuthChanged(u); });
+        paintAuthBar();
+      }catch(e){ try{ paintAuthBar(); }catch(_){ } }
+    });
+  }catch(e){ try{ paintAuthBar(); }catch(_){ } }
+}
+function onAuthChanged(u){
+  paintAuthBar();
+  if(u){ loadCloud(u); var a=document.getElementById('auth'); if(a && getComputedStyle(a).display!=='none'){ goHome(); } }
+}
+function paintAuthBar(){
+  try{
+    var bar=document.getElementById('authBar'); if(!bar){ return; }
+    if(cloudUser){
+      bar.innerHTML='<span class="ab-stat">☁️ <b>'+esc(cloudUser.email||'로그인됨')+'</b> · 클라우드 동기화 중</span><button class="btn btn-ghost btn-sm" onclick="authLogout()">로그아웃</button>';
+    } else {
+      bar.innerHTML='<span class="ab-stat">게스트 모드 · 로그인하면 어디서나 내 데이터</span><button class="btn btn-ghost btn-sm" onclick="openAuth()">로그인</button>';
+    }
+  }catch(e){}
+}
+function mergeProfiles(localArr, cloudArr){
+  var byId={};
+  (cloudArr||[]).forEach(function(p){ if(p&&p.id){ byId[p.id]=p; } });
+  (localArr||[]).forEach(function(p){ if(!p||!p.id){ return; } var ex=byId[p.id];
+    if(!ex){ byId[p.id]=p; } else { var lh=(p.history||[]).length, ch=(ex.history||[]).length; if(lh>ch){ byId[p.id]=p; } } });
+  var out=[]; for(var k in byId){ out.push(byId[k]); } return out;
+}
+function loadCloud(u){
+  if(!fbDb||!u){ return; }
+  try{
+    fbDb.collection('users').doc(u.uid).get().then(function(doc){
+      var cloud=(doc && doc.exists)?doc.data():null;
+      var local=loadDB();
+      var cloudProfiles=(cloud && cloud.profiles)?cloud.profiles:[];
+      var merged=mergeProfiles(local.profiles, cloudProfiles);
+      var curId=local.curId || (cloud && cloud.curId) || (merged.length?merged[0].id:null);
+      var hasCur=false; merged.forEach(function(p){ if(p.id===curId){ hasCur=true; } }); if(!hasCur && merged.length){ curId=merged[0].id; }
+      saveDB({profiles:merged, curId:curId});
+      pushCloud();
+      renderHome();
+      toast('로그인됨 · 클라우드 데이터와 동기화했어요.');
+    }, function(){ });
+  }catch(e){}
+}
+function pushCloud(){
+  if(!fbDb || !cloudUser){ return; }
+  if(pushTimer){ clearTimeout(pushTimer); }
+  pushTimer=setTimeout(function(){
+    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
+  }, 700);
+}
+function openAuth(){ try{ document.getElementById('authMsg').textContent=''; }catch(e){} show('auth'); if(!fbReady){ try{ document.getElementById('authMsg').innerHTML='<span style="color:#c0564a">로그인 서버에 연결할 수 없어요(오프라인일 수 있어요). 게스트로 계속 사용할 수 있어요.</span>'; }catch(e){} } }
+function authMsgSet(t,ok){ try{ var m=document.getElementById('authMsg'); m.style.color=ok?'#2c7a62':'#c0564a'; m.textContent=t; }catch(e){} }
+function authVals(){ return {e:((document.getElementById('authEmail')||{}).value||'').trim(), p:(document.getElementById('authPw')||{}).value||''}; }
+function fbErrMsg(e){ var c=(e&&e.code)||''; if(c.indexOf('email-already-in-use')>=0){ return '이미 가입된 이메일이에요. 로그인해 주세요.'; } if(c.indexOf('invalid-email')>=0){ return '이메일 형식이 올바르지 않아요.'; } if(c.indexOf('weak-password')>=0){ return '비밀번호는 6자 이상이어야 해요.'; } if(c.indexOf('wrong-password')>=0||c.indexOf('invalid-credential')>=0){ return '이메일 또는 비밀번호가 맞지 않아요.'; } if(c.indexOf('user-not-found')>=0){ return '가입되지 않은 이메일이에요. 회원가입해 주세요.'; } if(c.indexOf('too-many-requests')>=0){ return '시도가 많아 잠시 후 다시 해주세요.'; } if(c.indexOf('network')>=0){ return '네트워크 연결을 확인해 주세요.'; } return '처리 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.'; }
+function authSignup(){ if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; } var v=authVals(); if(!v.e||!v.p){ authMsgSet('이메일과 비밀번호를 입력해 주세요.'); return; } authMsgSet('가입 중…',true); fbAuth.createUserWithEmailAndPassword(v.e,v.p).then(function(){ authMsgSet('가입 완료! 동기화할게요.',true); }, function(e){ authMsgSet(fbErrMsg(e)); }); }
+function authLogin(){ if(!fbReady){ authMsgSet('로그인 서버에 연결할 수 없어요.'); return; } var v=authVals(); if(!v.e||!v.p){ authMsgSet('이메일과 비밀번호를 입력해 주세요.'); return; } authMsgSet('로그인 중…',true); fbAuth.signInWithEmailAndPassword(v.e,v.p).then(function(){ authMsgSet('로그인 성공!',true); }, function(e){ authMsgSet(fbErrMsg(e)); }); }
+function authLogout(){ try{ if(fbAuth){ fbAuth.signOut().then(function(){ cloudUser=null; toast('로그아웃했어요. (이 브라우저 데이터는 그대로 남아요.)'); paintAuthBar(); }); } }catch(e){} }
+window.__fb={ ready:function(){return fbReady;}, user:function(){return cloudUser;}, login:authLogin, signup:authSignup, logout:authLogout, loadCloud:loadCloud, pushCloud:pushCloud, mergeProfiles:mergeProfiles };
 </script>
 </body>
 </html>
