@@ -293,8 +293,8 @@
     <div class="newprof">
       <input id="setupHandle" type="text" placeholder="고유 아이디 (한글/영문/숫자·밑줄 2~16자)" maxlength="16">
     </div>
-    <div class="section-title" style="margin-top:16px;">프로필 캐릭터 선택</div>
-    <div id="setupAvatars"></div>
+    <div class="section-title" style="margin-top:16px;">내 캐릭터</div>
+    <div class="center" style="margin-top:4px;"><div id="setupEgg"></div><div class="muted" style="margin-top:7px;font-size:12px;line-height:1.6;">아직 <b>알</b>이에요. 검사를 완료하면 내 유형 <b>캐릭터로 부화</b>해요 🐣</div></div>
     <div class="section-title" style="margin-top:16px;">친구 공개 범위</div>
     <div id="setupVis"></div>
     <div class="muted" style="margin-top:6px;font-size:11.5px;line-height:1.5;">친구가 내 결과를 어디까지 볼지 정해요. <b>공개 프로필</b>은 강점·유형까지, 보완점(약점)은 숨겨요.</div>
@@ -365,7 +365,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v40 · 2026-06-28 13:15</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v41 · 2026-06-28 13:45</div>
   </section>
 
   <!-- MODE -->
@@ -1065,7 +1065,8 @@ function finish(){
   if(p){ p.history=p.history||[]; p.history.push(rec); saveDB(db); }
   clearProgress();
   try{ bumpCounters(curMode); }catch(e){} /* v23: 검사 완료 시에만 +1 */
-  try{ if(typeof publishMyResult==='function') publishMyResult(); }catch(e){} /* v29: 누적 결과 친구공유용 발행 */
+  try{ if(typeof normalizeAvatar==='function') normalizeAvatar(); }catch(e){} /* v41: 검사 후 유형 마스코트로 자동 부화 */
+  try{ if(typeof publishMyResult==='function') publishMyResult(); }catch(e){} /* v29: 누적 결과 친구공유용 발행(avatar 갱신 포함) */
   renderResult(p?p.name:"게스트", rec, p); show("result");
 }
 function renderResult(who, rec, profile, opts){
@@ -1648,10 +1649,21 @@ var MASCOT_ART={
  gorumi:'<path d="M80 26 L128 54 L128 106 L80 134 L32 106 L32 54 Z" fill="#3fb0a8"/><path d="M80 40 L116 61 L116 99 L80 120 L44 99 L44 61 Z" fill="#5cc7bf" opacity="0.5"/>'
   +'<circle cx="66" cy="78" r="5.5" fill="#1f4d49"/><circle cx="94" cy="78" r="5.5" fill="#1f4d49"/><circle cx="64" cy="76" r="1.8" fill="#fff"/><circle cx="92" cy="76" r="1.8" fill="#fff"/>'
   +'<path d="M68 92 Q80 102 92 92" fill="none" stroke="#1f4d49" stroke-width="3" stroke-linecap="round"/>'
-  +'<circle cx="80" cy="110" r="9" fill="#fff" opacity="0.9"/><path d="M80 105 v10 M75 110 h10" stroke="#3fb0a8" stroke-width="2.6" stroke-linecap="round"/>'
+  +'<circle cx="80" cy="110" r="9" fill="#fff" opacity="0.9"/><path d="M80 105 v10 M75 110 h10" stroke="#3fb0a8" stroke-width="2.6" stroke-linecap="round"/>',
+ /* v41: 검사 전 공통 "알" */
+ egg:'<path d="M80 28 C53 28 39 64 39 93 C39 124 57 146 80 146 C103 146 121 124 121 93 C121 64 107 28 80 28 Z" fill="#f1e7cf"/>'
+  +'<ellipse cx="67" cy="62" rx="12" ry="19" fill="rgba(255,255,255,0.45)"/>'
+  +'<circle cx="59" cy="106" r="6.5" fill="#e4d4a9"/><circle cx="100" cy="90" r="5.5" fill="#e4d4a9"/><circle cx="88" cy="124" r="7.5" fill="#e4d4a9"/><circle cx="63" cy="130" r="4.5" fill="#e4d4a9"/>'
+  +'<path d="M58 84 l7 -6 l6 8 l7 -7 l7 8 l6 -6" fill="none" stroke="#cdbb89" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'
+  +'<text x="80" y="120" text-anchor="middle" font-size="30" font-weight="800" fill="#cdbb89" opacity="0.55" font-family="sans-serif">?</text>'
 };
 function mascotArtSVG(id, sz){ var inner=MASCOT_ART[id]; if(!inner){ return ''; } return '<svg viewBox="0 0 160 160" width="'+sz+'" height="'+sz+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="마스코트">'+inner+'</svg>'; }
-function avatarSVG(id, sz){ sz=sz||34; var a=avatarById(id); if(!a||!MASCOT_ART[id]){ return '<span class="avatar avatar-empty" style="width:'+sz+'px;height:'+sz+'px"></span>'; } return '<span class="avatar" style="width:'+sz+'px;height:'+sz+'px;background:'+a.color+'1f">'+mascotArtSVG(id,sz)+'</span>'; }
+function avatarSVG(id, sz){
+  sz=sz||34;
+  if(!id || id==='egg'){ return '<span class="avatar" style="width:'+sz+'px;height:'+sz+'px;background:#f5efe0">'+mascotArtSVG('egg',sz)+'</span>'; }
+  var a=avatarById(id); if(!a||!MASCOT_ART[id]){ return '<span class="avatar" style="width:'+sz+'px;height:'+sz+'px;background:#f5efe0">'+mascotArtSVG('egg',sz)+'</span>'; }
+  return '<span class="avatar" style="width:'+sz+'px;height:'+sz+'px;background:'+a.color+'1f">'+mascotArtSVG(id,sz)+'</span>';
+}
 function avatarGridHTML(selId){
   var H='<div class="avatar-grid">';
   AVATARS.forEach(function(a){
@@ -1936,12 +1948,19 @@ function enterHome(){
   }catch(e){ try{ show('home'); }catch(_){} }
   try{ afterImportFlow(); }catch(e){}
 }
-/* v39: 신뢰도 자가치유 — history에서 현재(v37) 산식으로 재계산해 results 문서를 항상 새 스케일로 갱신 */
+/* v41: 아바타 자가치유/부화 — 검사 이력 있으면 현재 대표 유형 마스코트로, 없으면 알(egg)로 덮어씀 */
+function avatarForType(){
+  try{ var p=currentMyProfile(); if(!p||!p.history||!p.history.length){ return 'egg'; } var ag=aggProfile(p); if(!ag){ return 'egg'; } var tn=topProfile(ag.dom).name; var mid=(typeof mascotIdByName==='function')?mascotIdByName(CHAR[tn].m):null; return mid||'egg'; }catch(e){ return 'egg'; }
+}
+function normalizeAvatar(){
+  try{ var d=loadDB(); var target=avatarForType(); if(d.avatar!==target){ d.avatar=target; saveDB(d); try{ paintAuthBar(); }catch(e){} try{ if(typeof renderHandleBox==='function') renderHandleBox(); }catch(e){} } return target; }catch(e){ return null; }
+}
+/* v39+v41 자가치유 — 로드/홈 진입 시 신뢰도(현재 산식)와 아바타(부화 규칙)를 재계산해 results 갱신 */
 function selfHealResult(){
   try{
     if(!fbReady||!cloudUser||!fbDb){ return; }
-    var p=(typeof currentMyProfile==='function')?currentMyProfile():null; if(!p||!p.history||!p.history.length){ return; }
-    publishMyResult();   /* publishMyResult가 aggReliability(현재 산식)로 reliability를 다시 계산해 results에 set */
+    normalizeAvatar();   /* 아바타: 이력→유형 마스코트, 없음→알 */
+    publishMyResult();   /* reliability(현재 산식)+avatar+visibility를 results에 set */
   }catch(e){}
 }
 function paintAuthBar(){
@@ -1976,11 +1995,10 @@ function visToggleHTML(sel){ var H='<div class="relmode-toggle">'; VIS_OPTS.forE
 function renderSetup(){
   try{
     var d=loadDB();
-    window.__setupAvatar=d.avatar||window.__setupAvatar||null;
     window.__setupVis=d.visibility||window.__setupVis||'public';
     var hi=document.getElementById('setupHandle'); if(hi){ hi.value=d.handle||''; }
-    var t=document.getElementById('setupTitle'); if(t){ t.textContent=(d.handle||d.avatar)?'프로필 수정':'프로필 만들기'; }
-    var g=document.getElementById('setupAvatars'); if(g){ g.innerHTML=avatarGridHTML(window.__setupAvatar); }
+    var t=document.getElementById('setupTitle'); if(t){ t.textContent=(d.handle)?'프로필 수정':'프로필 만들기'; }
+    var eg=document.getElementById('setupEgg'); if(eg){ var cur=(d.avatar&&d.avatar!=='egg'&&MASCOT_ART[d.avatar])?d.avatar:'egg'; eg.innerHTML=avatarSVG(cur,92); }
     var vg=document.getElementById('setupVis'); if(vg){ vg.innerHTML=visToggleHTML(window.__setupVis); }
     var m=document.getElementById('setupMsg'); if(m){ m.textContent=''; }
   }catch(e){}
@@ -1999,13 +2017,11 @@ function saveSetup(){
   function m(t,err){ if(msg){ msg.style.color=err?'#c0564a':'#2c7a62'; msg.textContent=t; } }
   if(!fbReady||!cloudUser||!fbDb){ m('로그인이 필요해요.',1); return; }
   var h=((document.getElementById('setupHandle')||{}).value||'').trim().replace(/^@/,'');
-  var av=window.__setupAvatar;
   if(!validHandle(h)){ m('아이디는 한글/영문/숫자·밑줄 2~16자예요.',1); return; }
-  if(!av){ m('프로필 캐릭터를 하나 선택해 주세요.',1); return; }
   var d=loadDB(); var lower=h.toLowerCase(); var unchanged=(d.handle && d.handle.toLowerCase()===lower);
   m('확인 중…',0); if(msg){ msg.style.color='#65718a'; }
   function commit(){
-    var d2=loadDB(); d2.handle=h; d2.avatar=av; d2.visibility=window.__setupVis||d2.visibility||'public'; if(!d2.displayName){ d2.displayName=h; } saveDB(d2);
+    var d2=loadDB(); d2.handle=h; d2.avatar=d2.avatar||'egg'; d2.visibility=window.__setupVis||d2.visibility||'public'; if(!d2.displayName){ d2.displayName=h; } saveDB(d2);
     try{ fbDb.collection('handles').doc(lower).set({uid:cloudUser.uid, handle:h}); }catch(e){}
     try{ publishMyResult(); }catch(e){}
     try{ paintAuthBar(); }catch(e){}
@@ -2024,7 +2040,9 @@ function renderHandleBox(){
     if(!fbReady || !cloudUser){ box.innerHTML='<span class="muted">로그인하면 프로필을 설정할 수 있어요.</span>'; return; }
     var d=loadDB();
     if(d.handle && d.avatar){
-      box.innerHTML='<div class="handle-set">'+avatarSVG(d.avatar,38)+'<b style="margin-left:2px">@'+esc(d.handle)+'</b><button class="btn btn-ghost btn-sm" onclick="openSetup()">프로필 수정</button></div>';
+      var isEgg=(d.avatar==='egg'||!MASCOT_ART[d.avatar]);
+      box.innerHTML='<div class="handle-set">'+avatarSVG(d.avatar,38)+'<b style="margin-left:2px">@'+esc(d.handle)+'</b><button class="btn btn-ghost btn-sm" onclick="openSetup()">프로필 수정</button></div>'
+        +(isEgg?'<div class="muted" style="margin-top:6px;font-size:11.5px">🥚 아직 알이에요. <b>검사를 완료하면</b> 내 유형 캐릭터로 부화해요.</div>':'');
     } else {
       box.innerHTML='<div class="btn-row" style="margin:0"><button class="btn btn-pri btn-block" onclick="openSetup()">프로필 만들기</button></div>';
     }
