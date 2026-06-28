@@ -254,6 +254,7 @@
   .rel-pct{font-size:18px;font-weight:800;}
   .rel-row2{display:flex;flex-wrap:wrap;gap:6px;}
   .rel-chip{font-size:11.5px;font-weight:700;color:#5a6377;background:#fff;border:1px solid #e3e8f1;border-radius:999px;padding:4px 10px;}
+  .rel-badge{display:inline-block;font-size:10.5px;font-weight:800;border:1px solid;border-radius:999px;padding:1px 8px;line-height:1.5;white-space:nowrap;}
   .rel-comps{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
   .rel-comp{display:flex;align-items:center;gap:8px;font-size:11.5px;}
   .rel-comp .rcl{flex:none;width:86px;color:#5a6377;font-weight:700;}
@@ -294,6 +295,9 @@
     </div>
     <div class="section-title" style="margin-top:16px;">프로필 캐릭터 선택</div>
     <div id="setupAvatars"></div>
+    <div class="section-title" style="margin-top:16px;">친구 공개 범위</div>
+    <div id="setupVis"></div>
+    <div class="muted" style="margin-top:6px;font-size:11.5px;line-height:1.5;">친구가 내 결과를 어디까지 볼지 정해요. <b>공개 프로필</b>은 강점·유형까지, 보완점(약점)은 숨겨요.</div>
     <div id="setupMsg" class="muted" style="margin-top:11px;font-size:12.5px;min-height:16px;"></div>
     <div class="btn-row" style="margin-top:12px;">
       <button class="btn btn-pri btn-block" onclick="saveSetup()">완료하고 시작하기</button>
@@ -361,7 +365,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v39 · 2026-06-28 12:45</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v40 · 2026-06-28 13:15</div>
   </section>
 
   <!-- MODE -->
@@ -1967,13 +1971,17 @@ function scrollToReqs(){
 
 /* ===================== v30 프로필(아이디+아바타) 의무 생성 ===================== */
 function validHandle(h){ return /^[A-Za-z0-9가-힣_]{2,16}$/.test(h); }
+var VIS_OPTS=[['summary','요약만'],['public','공개 프로필'],['full','전체 공개']];
+function visToggleHTML(sel){ var H='<div class="relmode-toggle">'; VIS_OPTS.forEach(function(o){ H+='<button type="button" class="relmode-btn'+(o[0]===sel?' on':'')+'" onclick="pickVis(\''+o[0]+'\')">'+o[1]+'</button>'; }); H+='</div>'; return H; }
 function renderSetup(){
   try{
     var d=loadDB();
     window.__setupAvatar=d.avatar||window.__setupAvatar||null;
+    window.__setupVis=d.visibility||window.__setupVis||'public';
     var hi=document.getElementById('setupHandle'); if(hi){ hi.value=d.handle||''; }
     var t=document.getElementById('setupTitle'); if(t){ t.textContent=(d.handle||d.avatar)?'프로필 수정':'프로필 만들기'; }
     var g=document.getElementById('setupAvatars'); if(g){ g.innerHTML=avatarGridHTML(window.__setupAvatar); }
+    var vg=document.getElementById('setupVis'); if(vg){ vg.innerHTML=visToggleHTML(window.__setupVis); }
     var m=document.getElementById('setupMsg'); if(m){ m.textContent=''; }
   }catch(e){}
 }
@@ -1984,6 +1992,7 @@ function pickAvatar(id){
     var m=document.getElementById('setupMsg'); if(m){ m.textContent=''; }
   }catch(e){}
 }
+function pickVis(v){ try{ window.__setupVis=v; var vg=document.getElementById('setupVis'); if(vg){ vg.innerHTML=visToggleHTML(v); } }catch(e){} }
 function openSetup(){ try{ renderSetup(); show('setup'); }catch(e){} }
 function saveSetup(){
   var msg=document.getElementById('setupMsg');
@@ -1996,7 +2005,7 @@ function saveSetup(){
   var d=loadDB(); var lower=h.toLowerCase(); var unchanged=(d.handle && d.handle.toLowerCase()===lower);
   m('확인 중…',0); if(msg){ msg.style.color='#65718a'; }
   function commit(){
-    var d2=loadDB(); d2.handle=h; d2.avatar=av; if(!d2.displayName){ d2.displayName=h; } saveDB(d2);
+    var d2=loadDB(); d2.handle=h; d2.avatar=av; d2.visibility=window.__setupVis||d2.visibility||'public'; if(!d2.displayName){ d2.displayName=h; } saveDB(d2);
     try{ fbDb.collection('handles').doc(lower).set({uid:cloudUser.uid, handle:h}); }catch(e){}
     try{ publishMyResult(); }catch(e){}
     try{ paintAuthBar(); }catch(e){}
@@ -2035,7 +2044,7 @@ function publishMyResult(){
   try{
     if(!fbReady||!cloudUser||!fbDb){ return; }
     var d=loadDB(); var p=currentMyProfile(); var ag=p?aggProfile(p):null;
-    var base={ uid:cloudUser.uid, handle:d.handle||'', displayName:d.displayName||d.handle||'', avatar:d.avatar||'', updatedAt:Date.now() };
+    var base={ uid:cloudUser.uid, handle:d.handle||'', displayName:d.displayName||d.handle||'', avatar:d.avatar||'', visibility:d.visibility||'public', updatedAt:Date.now() };
     if(ag){ var rel=aggReliability(p); var tp=topProfile(ag.dom); base.agg=ag.dom; base.fac=ag.fac||null; base.count=ag.count; base.reliability=rel.score; base.relV=39; base.name=tp.name; }
     fbDb.collection('results').doc(cloudUser.uid).set(base, {merge:true}).then(function(){}, function(){});
   }catch(e){}
@@ -2212,7 +2221,7 @@ function renderFriendRanking(){
       var medal=(i===0?'🥇':(i===1?'🥈':(i===2?'🥉':(i+1)+'')));
       H+='<div class="rankrow" onclick="openFriendDetail(\''+it.uid+'\')">'
         +'<span class="rk">'+medal+'</span>'+avatarSVG(it.r.avatar,38)
-        +'<span class="rkname"><b>'+esc(it.r.displayName||it.r.handle||'친구')+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.r.handle||'')+' · '+esc(it.r.name||'')+(it.r.reliability!=null?(' · 신뢰도 '+it.r.reliability+'%'):'')+'</span></span>'
+        +'<span class="rkname"><b>'+esc(it.r.displayName||it.r.handle||'친구')+'</b><span class="muted" style="display:block;font-size:11px">@'+esc(it.r.handle||'')+' · '+esc(it.r.name||'')+'</span>'+(it.r.reliability!=null?('<span style="display:inline-block;margin-top:3px">'+relChip(it.r.reliability)+'</span>'):'')+'</span>'
         +'<span class="rkscore" style="color:'+col+'">'+it.score+'%<span class="rkgo">›</span></span></div>';
     });
     box.innerHTML=H;
@@ -2237,14 +2246,34 @@ function openFriendCompat(fuid){
   }catch(e){}
 }
 /* v37: 친구 개인 결과 보기 */
+function relChip(score){ if(score==null){ return ''; } var lv=(typeof relLevel==='function')?relLevel(score):{c:'#5a6377'}; return '<span class="rel-badge" style="background:'+lv.c+'1a;color:'+lv.c+';border-color:'+lv.c+'66">신뢰도 '+score+'%</span>'; }
 function friendResultHTML(fr){
+  var vis=fr.visibility||'public';
   var dom=fr.agg; var prof=topProfile(dom);
-  var H='<div class="center">'+avatarSVG(fr.avatar,76)+'<div class="profile-name" style="margin-top:8px">'+esc(fr.name||prof.name)+'</div><div class="who">@'+esc(fr.handle||'')+(fr.reliability!=null?(' · 신뢰도 '+fr.reliability+'%'):'')+(fr.count?(' · '+fr.count+'회 검사'):'')+'</div></div>';
+  var H='<div class="center">'+avatarSVG(fr.avatar,76)+'<div class="profile-name" style="margin-top:8px">'+esc(fr.name||prof.name)+'</div><div class="who">@'+esc(fr.handle||'')+(fr.count?(' · '+fr.count+'회 검사'):'')+'</div>'+(fr.reliability!=null?('<div style="margin-top:5px">'+relChip(fr.reliability)+'</div>'):'')+'</div>';
   try{ H+='<div class="char-wrap">'+charCardHTML(prof, dom)+'</div>'; }catch(e){}
-  H+='<div class="radar-wrap" style="margin-top:6px">'+buildRadarSVG(dom)+'</div>';
+  try{ H+='<div class="muted" style="text-align:center;margin-top:2px">'+charHeadline(prof,dom)+'</div>'; }catch(e){}
+  if(vis==='summary'){
+    H+='<div class="note blue" style="margin-top:14px">이 친구는 결과를 <b>요약만</b> 공개했어요. 유형·캐릭터·신뢰도까지만 볼 수 있어요.</div>';
+    return H;
+  }
+  H+='<div class="radar-wrap" style="margin-top:8px">'+buildRadarSVG(dom)+'</div>';
+  var strong=DORDER.filter(function(k){ return dom[k]>=58; });
+  H+='<div class="ccard"><div class="cc-h">강점 요약</div><div class="ddesc" style="padding:0 0 6px"><b>'+DNAME[prof.t1.k]+'</b>('+prof.t1.p+'%)이 가장 두드러지는 <b>'+esc(prof.name)+'</b> 유형이에요. '+prof.blurb+'.</div>';
+  if(strong.length){ H+='<div class="pillrow">'; strong.forEach(function(k){ H+='<span class="pill g">▲ '+DNAME[k]+' 강함</span>'; }); H+='</div>'; }
+  H+='</div>';
   H+='<div class="ccard"><div class="cc-h">요인 점수</div>';
   DORDER.forEach(function(k){ H+='<div class="cc-bar"><span class="cc-nm">'+DNAME[k]+'</span><div class="cbar"><i style="width:'+dom[k]+'%;background:'+DHEX[k]+'"></i></div><span class="cc-v">'+dom[k]+'</span></div>'; });
-  H+='</div><div class="muted" style="text-align:center;font-size:11.5px;margin-top:8px">친구의 결과 요약이에요. 개별 응답은 비공개예요.</div>';
+  H+='</div>';
+  try{ H+='<div class="ccard"><div class="cc-h">MBTI 근사 · 인물상</div>'+mbtiBoxHTML(dom, prof)+'</div>'; }catch(e){}
+  if(vis==='full'){
+    var weak=DORDER.filter(function(k){ return dom[k]<=42; });
+    H+='<div class="ccard"><div class="cc-h">보완점 · 성장 포인트</div><div class="ddesc" style="padding:0 0 6px"><b>'+DNAME[prof.low.k]+'</b>('+prof.low.p+'%)는 낮은 편이에요. '+LOW_HINT[prof.low.k]+'.</div>';
+    if(weak.length){ H+='<div class="pillrow">'; weak.forEach(function(k){ H+='<span class="pill r">▼ '+DNAME[k]+' 보완</span>'; }); H+='</div>'; }
+    H+='</div>';
+    try{ H+='<div class="ccard"><div class="cc-h">종합</div>'+comprehensiveHTML(dom, prof, fr.displayName||fr.handle||'친구')+'</div>'; }catch(e){}
+  }
+  H+='<div class="muted" style="text-align:center;font-size:11.5px;margin-top:8px">친구의 결과예요. 개별 응답은 비공개'+(vis==='public'?', 보완점(약점)은 비공개예요.':'예요.')+'</div>';
   return H;
 }
 function openFriendDetail(fuid){
@@ -2271,7 +2300,7 @@ function renderGroupPick(){
     var box=document.getElementById('groupPick'); if(!box){ return; }
     var set=acceptedFriendSet(); var fr=window.__friendResults||{}; var any=false, H='';
     for(var fuid in set){ var r=fr[fuid]; if(r&&r.agg){ any=true;
-      H+='<label class="reqcard" style="cursor:pointer"><input type="checkbox" class="grp-chk" value="'+fuid+'" style="width:18px;height:18px;flex:none">'+avatarSVG(r.avatar,34)+'<span class="rq-info"><b>'+esc(r.displayName||r.handle||'친구')+'</b> <span class="muted" style="font-size:11px">@'+esc(r.handle||'')+(r.reliability!=null?(' · 신뢰도 '+r.reliability+'%'):'')+'</span></span></label>';
+      H+='<label class="reqcard" style="cursor:pointer"><input type="checkbox" class="grp-chk" value="'+fuid+'" style="width:18px;height:18px;flex:none">'+avatarSVG(r.avatar,34)+'<span class="rq-info"><b>'+esc(r.displayName||r.handle||'친구')+'</b> <span class="muted" style="font-size:11px">@'+esc(r.handle||'')+'</span> '+(r.reliability!=null?relChip(r.reliability):'')+'</span></label>';
     } }
     if(!any){ H='<span class="muted">검사를 완료한 친구가 있어야 그룹 분석을 할 수 있어요.</span>'; }
     box.innerHTML=H;
@@ -2365,6 +2394,7 @@ function loadCloud(u){
         handle:(cloud&&cloud.handle)||local.handle||null,
         displayName:(cloud&&cloud.displayName)||local.displayName||null,
         avatar:(cloud&&cloud.avatar)||local.avatar||null,
+        visibility:(cloud&&cloud.visibility)||local.visibility||'public',
         friends:(cloud&&cloud.friends)||local.friends||[]});
       pushCloud();
       enterHome();
@@ -2377,7 +2407,7 @@ function pushCloud(){
   if(!fbDb || !cloudUser){ return; }
   if(pushTimer){ clearTimeout(pushTimer); }
   pushTimer=setTimeout(function(){
-    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, handle:db.handle||null, displayName:db.displayName||null, avatar:db.avatar||null, friends:db.friends||[], updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
+    try{ var db=loadDB(); fbDb.collection('users').doc(cloudUser.uid).set({profiles:db.profiles||[], curId:db.curId||null, handle:db.handle||null, displayName:db.displayName||null, avatar:db.avatar||null, visibility:db.visibility||'public', friends:db.friends||[], updatedAt:Date.now()}).then(function(){}, function(){}); }catch(e){}
   }, 700);
 }
 function openAuth(){ try{ document.getElementById('authMsg').textContent=''; }catch(e){} show('auth'); try{ setInappWarn(); }catch(e){} if(!fbReady){ try{ document.getElementById('authMsg').innerHTML='<span style="color:#c0564a">로그인 서버에 연결할 수 없어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.</span>'; }catch(e){} } }
