@@ -255,6 +255,34 @@
   .rel-row2{display:flex;flex-wrap:wrap;gap:6px;}
   .rel-chip{font-size:11.5px;font-weight:700;color:#5a6377;background:#fff;border:1px solid #e3e8f1;border-radius:999px;padding:4px 10px;}
   .rel-badge{display:inline-block;font-size:10.5px;font-weight:800;border:1px solid;border-radius:999px;padding:1px 8px;line-height:1.5;white-space:nowrap;}
+  /* v42: 모드 신뢰도 기여 */
+  .mode-rel-now{margin:2px 0 12px;}
+  .mode-contrib{display:flex;align-items:center;gap:8px;margin-top:9px;padding-top:9px;border-top:1px dashed #e6eaf2;}
+  .mc-label{font-size:11px;font-weight:700;color:#8089a0;}
+  .mc-bars{font-size:14px;font-weight:800;letter-spacing:1px;}
+  .mc-dim{color:#dfe3ec;}
+  .mc-tag{font-size:11.5px;font-weight:800;color:#5a6377;margin-left:auto;background:#f0f3f9;border-radius:999px;padding:2px 9px;}
+  .mc-reco{font-size:10.5px;font-weight:800;color:#fff;background:#5a7bc0;border-radius:999px;padding:1px 8px;vertical-align:middle;margin-left:5px;}
+  /* v42: 검사 중 알 부화 게이지 */
+  .egg-gauge{display:flex;flex-direction:column;align-items:center;gap:2px;margin:2px 0 8px;}
+  .egg-g{transform-origin:50% 90%;}
+  .egg-glabel{font-size:11.5px;font-weight:800;color:#9c7d3a;}
+  .qmile{font-size:12px;font-weight:800;color:#c08a3e;min-height:1em;}
+  .egg-wobble{animation:eggwob 1.8s ease-in-out infinite;}
+  .egg-wobble-fast{animation:eggwob 0.7s ease-in-out infinite;}
+  @keyframes eggwob{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+  .qfade{animation:qfadein .26s ease;}
+  @keyframes qfadein{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+  .lk{transition:transform .08s ease, background .12s ease, border-color .12s ease;}
+  .lk:active{transform:scale(.97);}
+  /* v42: 부화 연출 오버레이 */
+  .hatch-ov{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(255,253,247,0.96);animation:qfadein .2s ease;}
+  .hatch-stage{text-align:center;}
+  .hatch-egg{display:inline-block;transform-origin:50% 85%;animation:hatchshake .5s ease-in-out 2, hatchpop .4s ease .9s both;}
+  @keyframes hatchshake{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+  @keyframes hatchpop{0%{transform:scale(1)}60%{transform:scale(1.18)}100%{transform:scale(0.2);opacity:0}}
+  .hatch-sparks{font-size:26px;margin-top:6px;animation:qfadein .3s ease .8s both;}
+  .hatch-msg{margin-top:8px;font-size:15px;font-weight:800;color:#9c7d3a;}
   .rel-comps{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
   .rel-comp{display:flex;align-items:center;gap:8px;font-size:11.5px;}
   .rel-comp .rcl{flex:none;width:86px;color:#5a6377;font-weight:700;}
@@ -365,27 +393,29 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v41 · 2026-06-28 13:45</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v42 · 2026-06-28 14:15</div>
   </section>
 
   <!-- MODE -->
   <section id="mode" class="card" style="display:none;">
-    <div class="center"><h2>검사 모드 선택</h2><p class="muted" style="margin-top:6px;">정밀할수록 facet(세부 특질) 점수가 정확해집니다.</p></div>
-    <div class="mode-card" onclick="startQuiz(1)"><div class="mt">간편 · 24문항</div><div class="ms">약 3분 · 6요인은 신뢰할 만하고 facet은 대략적입니다.</div></div>
-    <div class="mode-card" onclick="startQuiz(2)"><div class="mt">균형 · 48문항</div><div class="ms">약 5분 · 6요인 + facet을 무난히 파악합니다. (추천)</div></div>
-    <div class="mode-card" onclick="startQuiz(3)"><div class="mt">정밀 · 72문항</div><div class="ms">약 8분 · facet 24개까지 가장 정확하게 측정합니다.</div></div>
+    <div class="center"><h2>검사 모드 선택</h2><p class="muted" style="margin-top:6px;">정밀할수록 facet(세부 특질) 점수가 정확하고 <b>신뢰도</b>도 더 많이 올라요.</p></div>
+    <div id="modeRel" class="mode-rel-now"></div>
+    <div class="mode-card" onclick="startQuiz(1)"><div class="mt">간편 · 24문항</div><div class="ms">약 3분 · 6요인은 신뢰할 만하고 facet은 대략적입니다.</div><div class="mode-contrib"><span class="mc-label">신뢰도 기여</span><span class="mc-bars" style="color:#c08a3e">▲<span class="mc-dim">▲▲</span></span><span class="mc-tag">소폭</span></div></div>
+    <div class="mode-card" onclick="startQuiz(2)"><div class="mt">균형 · 48문항 <span class="mc-reco">추천</span></div><div class="ms">약 5분 · 6요인 + facet을 무난히 파악합니다.</div><div class="mode-contrib"><span class="mc-label">신뢰도 기여</span><span class="mc-bars" style="color:#5a7bc0">▲▲<span class="mc-dim">▲</span></span><span class="mc-tag">보통</span></div></div>
+    <div class="mode-card" onclick="startQuiz(3)"><div class="mt">정밀 · 72문항</div><div class="ms">약 8분 · facet 24개까지 가장 정확하게 측정합니다.</div><div class="mode-contrib"><span class="mc-label">신뢰도 기여</span><span class="mc-bars" style="color:#3f8f74">▲▲▲</span><span class="mc-tag">가장 크게</span></div></div>
     <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈</button></div>
   </section>
 
   <!-- QUIZ -->
   <section id="quiz" style="display:none;">
     <div class="quiz-top">
-      <div class="progress-top"><span class="qfacet" id="qfacet"></span><span id="qnum">1 / 24</span></div>
+      <div class="egg-gauge" id="eggGauge"></div>
+      <div class="progress-top"><span class="qmile" id="qmile"></span><span id="qnum">1 / 24</span></div>
       <div class="progress"><i id="pbar" style="width:0%"></i></div>
     </div>
     <div class="quiz-body">
-      <div class="qtext" id="qtext">질문</div>
-      <div class="likert" id="likert"></div>
+      <div class="qtext qfade" id="qtext">질문</div>
+      <div class="likert qfade" id="likert"></div>
     </div>
     <div class="quiz-bottom">
       <button class="btn btn-ghost" id="prevBtn" onclick="prevQ()" style="visibility:hidden;">‹ 이전</button>
@@ -932,7 +962,16 @@ function ensureProfile(){
     var p={id:uid(),name:nm,imported:false,history:[]}; db.profiles.push(p); db.curId=p.id; saveDB(db);
   }
 }
-function beginTest(){ ensureProfile(); renderHome(); show("mode"); }
+function beginTest(){ ensureProfile(); renderHome(); try{ renderModeRel(); }catch(e){} show("mode"); }
+function renderModeRel(){
+  try{
+    var box=document.getElementById('modeRel'); if(!box){ return; }
+    var p=(typeof currentMyProfile==='function')?currentMyProfile():null;
+    var ag=(p&&typeof aggReliability==='function')?aggReliability(p):null;
+    if(!ag||!ag.count){ box.innerHTML='<div class="muted" style="text-align:center;font-size:12px;margin-bottom:4px">첫 검사예요! <b>정밀 검사</b>일수록 신뢰도가 더 크게 올라요 🥚</div>'; return; }
+    box.innerHTML='<div class="center" style="margin-bottom:6px">현재 '+(typeof relChip==='function'?relChip(ag.score):('신뢰도 '+ag.score+'%'))+' <span class="muted" style="font-size:12px">· 이 검사로 더 올려보세요</span></div>';
+  }catch(e){}
+}
 
 /* ===================== 퀴즈 ===================== */
 var answers=[], idx=0, curMode=2;
@@ -946,18 +985,55 @@ function resumeQuiz(){
   QUESTIONS=pr.q; answers=pr.answers||new Array(pr.q.length).fill(null); idx=pr.idx||0; curMode=pr.mode||2;
   if(idx>=QUESTIONS.length) idx=QUESTIONS.length-1; renderQ(); show("quiz");
 }
+/* v42: 검사 중 알-부화 게이지 */
+function eggGaugeHTML(pct){
+  var segs=[[28,'M70 76 l8 -7 l7 9'],[42,'M86 80 l9 7'],[56,'M60 96 l9 -6 l7 8 l8 -6'],[70,'M92 100 l8 8'],[84,'M56 112 l10 8 l9 -6'],[95,'M74 64 l7 6 l-6 6']];
+  var cr=''; segs.forEach(function(s){ if(pct>=s[0]){ cr+='<path d="'+s[1]+'" fill="none" stroke="#b89a5e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'; } });
+  var wob=pct>=70?' egg-wobble-fast':(pct>=30?' egg-wobble':'');
+  var lab=pct>=95?'곧 부화! 🐣':(pct>=50?'반쯤 깨졌어요':'알을 깨는 중…');
+  return '<div class="egg-g'+wob+'"><svg viewBox="0 0 160 160" width="58" height="58" xmlns="http://www.w3.org/2000/svg">'
+    +'<path d="M80 28 C53 28 39 64 39 93 C39 124 57 146 80 146 C103 146 121 124 121 93 C121 64 107 28 80 28 Z" fill="#f1e7cf"/>'
+    +'<ellipse cx="67" cy="62" rx="11" ry="17" fill="rgba(255,255,255,0.4)"/>'
+    +'<circle cx="59" cy="106" r="6" fill="#e4d4a9"/><circle cx="100" cy="90" r="5" fill="#e4d4a9"/>'
+    +cr+'</svg></div><div class="egg-glabel">'+Math.round(pct)+'% · '+lab+'</div>';
+}
+function quizMilestone(i,total){
+  var r=(i)/total;
+  if(i===0){ return '시작! 🥚'; }
+  if(r>=0.92){ return '거의 다 왔어요! 곧 부화해요 🐣'; }
+  if(r>=0.66){ return '조금만 더!'; }
+  if(r>=0.44 && r<=0.56){ return '절반 왔어요!'; }
+  return '';
+}
+function playHatch(cb){
+  try{
+    var ov=document.createElement('div'); ov.className='hatch-ov';
+    ov.innerHTML='<div class="hatch-stage"><div class="hatch-egg"><svg viewBox="0 0 160 160" width="118" height="118" xmlns="http://www.w3.org/2000/svg"><path d="M80 28 C53 28 39 64 39 93 C39 124 57 146 80 146 C103 146 121 124 121 93 C121 64 107 28 80 28 Z" fill="#f1e7cf"/><path d="M40 92 l16 -10 l14 12 l16 -12 l14 12 l16 -10" fill="none" stroke="#b89a5e" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="hatch-sparks">✨ 🐣 ✨</div><div class="hatch-msg">부화 중…</div></div>';
+    document.body.appendChild(ov);
+    setTimeout(function(){ try{ if(ov.parentNode){ ov.parentNode.removeChild(ov); } }catch(e){} cb(); }, 1150);
+  }catch(e){ cb(); }
+}
 function renderQ(){
-  var q=QUESTIONS[idx]; $("qfacet").textContent="";/* v15: 검사 중 요인/facet 라벨 숨김(응답 왜곡 방지). 데이터 태그/채점은 그대로 */
-  $("qnum").textContent=(idx+1)+" / "+QUESTIONS.length;
-  $("pbar").style.width=Math.round(idx/QUESTIONS.length*100)+"%"; $("qtext").textContent=q.t;
+  var q=QUESTIONS[idx]; var total=QUESTIONS.length;
+  $("qnum").textContent=(idx+1)+" / "+total;
+  $("pbar").style.width=Math.round(idx/total*100)+"%";
+  try{ $("eggGauge").innerHTML=eggGaugeHTML(idx/total*100); }catch(e){}
+  try{ $("qmile").textContent=quizMilestone(idx,total); }catch(e){}
+  $("qtext").textContent=q.t;
   var h=""; for(var v=1;v<=5;v++){ var sel=(answers[idx]===v)?" sel":""; h+='<button class="lk'+sel+'" onclick="pick('+v+')"><span class="rb"></span><span>'+LIKERT[v-1]+'</span></button>'; }
   $("likert").innerHTML=h; $("prevBtn").style.visibility=idx>0?"visible":"hidden";
+  try{ ["qtext","likert"].forEach(function(id){ var el=$(id); if(el){ el.classList.remove("qfade"); void el.offsetWidth; el.classList.add("qfade"); } }); }catch(e){}
 }
 var LIKERT=["전혀 아니다","아니다","보통이다","그렇다","매우 그렇다"];
 function pick(v){
   answers[idx]=v; saveProgress();
   var b=$("likert").children; for(var i=0;i<b.length;i++){ b[i].className="lk"+((i+1===v)?" sel":""); }
-  setTimeout(function(){ if(idx<QUESTIONS.length-1){ idx++; renderQ(); } else { finish(); } },130);
+  var isLast=(idx>=QUESTIONS.length-1);
+  if(!isLast && (idx+1)===Math.floor(QUESTIONS.length/2)){ try{ toast('절반 왔어요! 절반만 더 가면 부화해요 🥚'); }catch(e){} }
+  setTimeout(function(){
+    if(!isLast){ idx++; renderQ(); }
+    else { try{ $("eggGauge").innerHTML=eggGaugeHTML(100); }catch(e){} playHatch(finish); }
+  },130);
 }
 function prevQ(){ if(idx>0){ idx--; renderQ(); } }
 
