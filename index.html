@@ -237,7 +237,7 @@
       <button class="btn btn-ghost" onclick="openData()">데이터 관리</button>
     </div>
     <div class="note blue">친구와 <b>궁합</b>을 보려면 결과 화면의 <b>‘💬 내 결과 공유하기’</b>로 링크를 보내세요(받은 친구가 열면 자동으로 결과가 추가돼요). 그냥 <b>검사만 추천</b>하려면 아래 <b>‘🔗 검사 추천하기’</b>로 앱 링크만 보낼 수 있어요(내 결과는 포함되지 않아요).</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v27 · 2026-06-28 07:20</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v28 · 2026-06-28 07:50</div>
   </section>
 
   <!-- MODE -->
@@ -1054,7 +1054,40 @@ function afterImportFlow(){ var who=window.__importedName; if(!who){ return; } w
   else { showCrossCtxGuidance(who); } }
 
 /* ===================== v25: 크로스 컨텍스트(인앱↔설치앱) 대응 ===================== */
-function isInAppBrowser(){ try{ var ua=navigator.userAgent||''; return /KAKAOTALK|FBAN|FBAV|FB_IAB|Instagram|Line\/|NAVER\(inapp|DaumApps|Snapchat|Twitter|; wv\)/i.test(ua); }catch(e){ return false; } }
+function isInAppBrowser(){
+  try{
+    var ua=navigator.userAgent||'';
+    /* 명시적 인앱 토큰 (정식 브라우저엔 없음) + 안드로이드 웹뷰(; wv) */
+    return /KAKAOTALK|NAVER\(inapp|Line\/|FBAN|FBAV|FB_IAB|FBIOS|Instagram|DaumApps|kakaostory|everytimeapp|Snapchat|MicroMessenger|; ?wv\)|; ?wv;/i.test(ua);
+    /* 일반 Chrome/Safari/SamsungBrowser/Whale/Edge/Firefox 등은 위 토큰이 없어 false */
+  }catch(e){ return false; }
+}
+function isKakaoInApp(){ try{ return /KAKAOTALK/i.test(navigator.userAgent||''); }catch(e){ return false; } }
+/* v28: 인앱 → 외부 기본 브라우저 열기 (현재 전체 URL+#해시 보존) */
+function buildExternalScheme(){
+  try{
+    var ua=navigator.userAgent||''; var url=location.href;
+    if(/KAKAOTALK/i.test(ua)){ return 'kakaotalk://web/openExternal?url='+encodeURIComponent(url); }
+    if(/Android/i.test(ua)){
+      var noScheme=url.replace(/^https?:\/\//,'');
+      var hi=noScheme.indexOf('#'); if(hi>=0){ noScheme=noScheme.substring(0,hi); } /* intent의 #Intent와 충돌 방지 → 해시는 fallback_url로 보존 */
+      return 'intent://'+noScheme+'#Intent;scheme=https;action=android.intent.action.VIEW;S.browser_fallback_url='+encodeURIComponent(url)+';end';
+    }
+    return null; /* iOS 비카카오 등은 프로그램적 강제 불가 → 폴백 UI */
+  }catch(e){ return null; }
+}
+function copyCurrentLink(){ try{ copyTextValue(location.href, '링크가 복사됐어요. 크롬/사파리 주소창에 붙여넣어 열어주세요.'); }catch(e){} }
+function tryOpenExternal(){ try{ var s=buildExternalScheme(); if(s){ location.href=s; } else { copyCurrentLink(); } }catch(e){} }
+function maybeAutoExternal(){
+  try{
+    if(!isInAppBrowser()){ return; }                 /* 정식 브라우저에선 발동 안 함 */
+    var tried=false; try{ tried=(sessionStorage.getItem('__extTried')==='1'); }catch(e){ tried=!!window.__extTried; }
+    if(tried){ return; }                              /* 무한루프/반복 방지: 한 번만 */
+    try{ sessionStorage.setItem('__extTried','1'); }catch(e){ window.__extTried=true; }
+    var s=buildExternalScheme();
+    if(s){ setTimeout(function(){ try{ location.href=s; }catch(e){} }, 350); }
+  }catch(e){}
+}
 function copyImportLink(){ var link=window.__importLink||location.href; copyTextValue(link, "링크가 복사됐어요. 홈 화면 앱(또는 크롬)에서 붙여넣어 열어 주세요."); }
 function showCrossCtxGuidance(who){
   var inApp=isInAppBrowser();
@@ -1145,6 +1178,7 @@ window.onerror=function(msg){ try{ if(window.console&&console.warn) console.warn
 function showStorageNotice(){ try{ var hm=$("home"); if(!hm||hm.querySelector('.ls-warn')) return; var d=document.createElement('div'); d.className='note ls-warn'; d.innerHTML='⚠️ 이 환경에서는 저장이 제한될 수 있어요. 검사·결과·궁합·공유는 동작하며, 결과는 <b>데이터·공유</b>의 코드/링크로 따로 보관하세요.'; hm.appendChild(d); }catch(e){} }
 function init(){
   try{ handleAutoImport(); }catch(e){}            /* 친구 링크 데이터는 잡아두고 로그인 후 처리 */
+  try{ maybeAutoExternal(); }catch(e){}           /* v28: 인앱이면 외부 브라우저로 1회 자동 전환 시도 */
   try{ renderHome(); }catch(e){ try{ var pr=$("profRow"); if(pr) pr.innerHTML='<span class="muted">아직 프로필이 없습니다.</span>'; }catch(_){ } }
   /* v27: 로그인 게이트 — 인증 전엔 로그인 화면만 */
   try{ show("auth"); }catch(e){ try{ var hm=$("auth"); if(hm) hm.style.display="block"; }catch(_){ } }
@@ -1522,7 +1556,17 @@ function authGoogle(){
   }
   catch(e){ authMsgSet('구글 로그인을 시작할 수 없어요. 이메일/비밀번호를 이용해 주세요.'); }
 }
-function setInappWarn(){ try{ var w=document.getElementById('inappWarn'); if(w){ w.style.display=(typeof isInAppBrowser==='function' && isInAppBrowser())?'block':'none'; } }catch(e){} }
+function setInappWarn(){
+  try{
+    var w=document.getElementById('inappWarn'); if(!w){ return; }
+    if(typeof isInAppBrowser==='function' && isInAppBrowser()){
+      w.innerHTML='⚠️ <b>카카오톡 등 인앱 브라우저</b>로 열려 있어요. 인앱에서는 <b>구글 로그인</b>과 일부 기능이 제한돼요. <b>기본 브라우저(크롬·사파리)</b>에서 열면 모든 기능이 정상 동작해요.'
+        +'<div class="btn-row" style="margin-top:9px;"><button class="btn btn-pri btn-sm" onclick="tryOpenExternal()">🌐 기본 브라우저에서 열기</button><button class="btn btn-ghost btn-sm" onclick="copyCurrentLink()">🔗 링크 복사</button></div>'
+        +'<div class="muted" style="margin-top:8px;font-size:11.5px;line-height:1.6;">자동으로 안 열리면 화면 <b>우측 위 ⋯(또는 공유 버튼)</b> → <b>‘다른 브라우저로 열기 / Safari·Chrome으로 열기’</b>를 눌러주세요.</div>';
+      w.style.display='block';
+    } else { w.style.display='none'; w.innerHTML=''; }
+  }catch(e){}
+}
 window.__fb={ ready:function(){return fbReady;}, user:function(){return cloudUser;}, login:authLogin, signup:authSignup, logout:authLogout, google:authGoogle, loadCloud:loadCloud, pushCloud:pushCloud, mergeProfiles:mergeProfiles };
 </script>
 </body>
