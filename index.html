@@ -180,6 +180,15 @@
   .stats{background:var(--soft);border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin:14px 0 2px;text-align:center;font-size:13px;color:#48526a;line-height:1.7;}
   .stats b{color:var(--accent);font-weight:800;}
   .stats-sub{font-size:12px;color:var(--sub);}
+  /* v24: MBTI 근사 · 인물상 */
+  .mbti-card{background:linear-gradient(135deg,#eef3fb,#eef8f4);border:1px solid #d8e3ee;border-radius:15px;padding:15px;}
+  .mbti-row{display:flex;align-items:center;gap:12px;}
+  .mbti-code{font-size:30px;font-weight:800;letter-spacing:1.5px;color:var(--accent);background:#fff;border:1.5px solid #cfe0f5;border-radius:11px;padding:5px 12px;flex:none;}
+  .mbti-lead{font-size:14.5px;font-weight:700;color:#3a4456;line-height:1.4;}
+  .mbti-desc{font-size:13.5px;color:#3a4456;line-height:1.7;margin-top:11px;}
+  .mbti-note{font-size:12px;color:#7a5d23;background:#fbf6ea;border:1px solid #ecdcb6;border-radius:9px;padding:7px 10px;margin-top:9px;line-height:1.55;}
+  .mbti-persona{font-size:13.5px;color:#2c4a3e;background:#eaf5ef;border:1px solid #cfe6db;border-radius:9px;padding:9px 11px;margin-top:9px;line-height:1.6;}
+  .mbti-disc{font-size:11.5px;color:var(--sub);margin-top:10px;line-height:1.55;}
 </style>
 </head>
 <body>
@@ -219,7 +228,7 @@
       <button class="btn btn-ghost" onclick="openData()">데이터 관리</button>
     </div>
     <div class="note blue">친구와 <b>궁합</b>을 보려면 결과 화면의 <b>‘💬 내 결과 공유하기’</b>로 링크를 보내세요(받은 친구가 열면 자동으로 결과가 추가돼요). 그냥 <b>검사만 추천</b>하려면 아래 <b>‘🔗 검사 추천하기’</b>로 앱 링크만 보낼 수 있어요(내 결과는 포함되지 않아요).</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v23 · 2026-06-28 05:00</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v24 · 2026-06-28 05:30</div>
   </section>
 
   <!-- MODE -->
@@ -260,6 +269,7 @@
     <div class="section"><div class="section-title">6요인 프로파일</div><div class="radar-wrap" id="radarWrap"></div></div>
     <div id="modeNote"></div>
     <div class="section"><div class="section-title">종합 요약</div><div class="summary-box" id="summaryBox"></div></div>
+    <div class="section" id="mbtiSec"><div class="section-title">MBTI 근사 · 인물상</div><div id="mbtiBox"></div></div>
     <div class="section" id="trendDeltaSec" style="display:none;"><div class="section-title">지난번 대비 변화</div><div id="trendDelta" class="mini"></div></div>
     <div class="section"><div class="section-title">추천 직무·역할</div><div class="rolebox" id="roleBox"></div></div>
     <div class="section"><div class="section-title">응답 신뢰도</div><div class="mini" id="relBox"></div></div>
@@ -782,6 +792,7 @@ function renderResult(who, rec, profile, opts){
     if(fn){ rh.innerHTML='<div class="note blue" style="margin-top:16px">💌 <b>'+esc(fn)+'</b>님이 결과를 보내줬어요. 아래 버튼으로 <b>내 결과를 답장</b>하면 '+esc(fn)+'님도 우리 궁합을 볼 수 있어요.</div><div class="btn-row no-print"><button class="btn btn-pri btn-block" onclick="replyMyResult()">💬 '+esc(fn)+'님께 내 결과 답장 보내기</button></div>'; rh.style.display="block"; }
     else { rh.style.display="none"; rh.innerHTML=""; } }
   try{ $("comprehensive").innerHTML=comprehensiveHTML(dom, prof, who); }catch(e){ $("comprehensive").innerHTML=""; }
+  try{ $("mbtiBox").innerHTML=mbtiBoxHTML(dom, prof); }catch(e){ $("mbtiBox").innerHTML=""; }
   try{ paintCounters(); }catch(e){}
   if(isPast){ $("trendDeltaSec").style.display="none"; $("histSec").style.display="none"; var rhp=$("replyHint"); if(rhp){ rhp.style.display="none"; rhp.innerHTML=""; } }
   window._lastDom=dom; window._lastProfile=prof; window._lastWho=who;
@@ -1177,6 +1188,53 @@ function charHeadline(prof, dom){
   var arr=DORDER.map(function(k){return {k:k,p:dom[k]};}).sort(function(a,b){return b.p-a.p;});
   return '‘'+DNAME[arr[0].k]+'’ 성향이 가장 돋보이는 사람이에요';
 }
+
+/* v24: MBTI 근사 (HEXACO 점수 기반 단순 매핑 — 정식 검사와 측정 방식 다름) */
+var MBTI_DESC={
+ 'ISTJ':'책임감 있고 현실적이며 약속과 규칙을 충실히 지키는 유형이에요. 맡은 일을 꼼꼼하게 끝까지 해냅니다.',
+ 'ISFJ':'따뜻하고 헌신적이며 주변을 세심하게 챙기는 유형이에요. 조용히 남을 돕고 안정감을 줍니다.',
+ 'INFJ':'깊은 통찰과 이상을 품고 사람을 이해하려는 유형이에요. 의미 있는 관계와 가치를 중요하게 여깁니다.',
+ 'INTJ':'전략적이고 독립적이며 큰 그림을 그리는 유형이에요. 목표를 세우고 체계적으로 밀고 나갑니다.',
+ 'ISTP':'차분하고 분석적이며 직접 해결하는 것을 즐기는 유형이에요. 위기에 침착하고 실용적입니다.',
+ 'ISFP':'온화하고 감각적이며 자기만의 방식으로 아름다움을 즐기는 유형이에요. 자유롭고 다정합니다.',
+ 'INFP':'이상과 진정성을 소중히 여기는 따뜻한 몽상가 유형이에요. 내면의 가치에 충실합니다.',
+ 'INTP':'호기심 많고 논리적이며 아이디어를 깊이 파고드는 유형이에요. 새로운 개념을 탐구하길 좋아합니다.',
+ 'ESTP':'활동적이고 대담하며 지금 이 순간을 즐기는 유형이에요. 문제를 빠르고 현실적으로 해결합니다.',
+ 'ESFP':'밝고 사교적이며 분위기를 띄우는 유형이에요. 사람들과 어울리며 즐거움을 나눕니다.',
+ 'ENFP':'열정적이고 상상력이 풍부하며 사람과 가능성에 끌리는 유형이에요. 새로운 시도를 즐깁니다.',
+ 'ENTP':'재치 있고 도전적이며 아이디어로 토론을 즐기는 유형이에요. 틀을 깨는 발상에 강합니다.',
+ 'ESTJ':'추진력 있고 조직적이며 일을 효율적으로 이끄는 유형이에요. 책임지고 결과를 만들어냅니다.',
+ 'ESFJ':'친화적이고 협조적이며 사람들을 살뜰히 챙기는 유형이에요. 조화를 만들고 분위기를 돌봅니다.',
+ 'ENFJ':'따뜻한 카리스마로 사람을 이끌고 돕는 유형이에요. 모두의 성장을 함께 응원합니다.',
+ 'ENTJ':'결단력 있고 전략적이며 목표를 향해 사람을 이끄는 유형이에요. 큰 그림과 실행을 모두 챙깁니다.'
+};
+var PERSONA={
+ '정직한 원칙가':'원칙을 지키는 든든한 조언자·중재자 느낌이에요.',
+ '섬세한 감성가':'사람의 마음을 어루만지는 따뜻한 상담가·예술가 분위기예요.',
+ '활기찬 사교가':'어디서나 분위기를 살리는 인기 진행자·이벤트 기획자 스타일이에요.',
+ '너그러운 화합가':'모두를 품어주는 평화로운 조율자·서포터 느낌이에요.',
+ '성실한 실행가':'계획대로 해내는 믿음직한 프로젝트 매니저·실무 리더 분위기예요.',
+ '창의적 탐구가':'호기심 가득한 탐험가·발명가 스타일이에요.',
+ '균형 잡힌 올라운더':'어떤 자리에서도 무난히 어울리는 만능 플레이어·올라운더 느낌이에요.'
+};
+function mbtiOf(dom){
+  var code=(dom.X>50?'E':'I')+(dom.O>50?'N':'S')+(dom.A>50?'F':'T')+(dom.C>50?'J':'P');
+  var border=[]; var ax=[['외향(E/I)',dom.X],['직관·감각(N/S)',dom.O],['감정·사고(F/T)',dom.A],['계획·인식(J/P)',dom.C]];
+  ax.forEach(function(a){ if(Math.abs(a[1]-50)<=5){ border.push(a[0]); } });
+  return {code:code, border:border};
+}
+function mbtiBoxHTML(dom, prof){
+  var m=mbtiOf(dom);
+  var H='<div class="mbti-card">';
+  H+='<div class="mbti-row"><span class="mbti-code">'+m.code+'</span><span class="mbti-lead">MBTI로 치면 대략 <b>'+m.code+'</b>에 가까워요</span></div>';
+  H+='<div class="mbti-desc">'+(MBTI_DESC[m.code]||'')+'</div>';
+  if(m.border.length){ H+='<div class="mbti-note">※ '+m.border.join(', ')+' 축은 점수가 50점 부근이라 경향이 약한 편이에요. 상황에 따라 반대 글자에 가까울 수도 있어요.</div>'; }
+  var per=PERSONA[prof.name];
+  if(per){ H+='<div class="mbti-persona">🎭 <b>이런 분위기의 인물상</b> — '+per+'</div>'; }
+  H+='<div class="mbti-disc">※ 정식 MBTI 검사와는 <b>측정 방식이 달라</b>, 6요인 점수로 추정한 <b>재미·참고용 근사치</b>예요. 실제 MBTI 결과와 다를 수 있어요.</div>';
+  H+='</div>';
+  return H;
+}
 function compatReason(){ return '서로의 강점이 부족한 부분을 채워줘 함께 있으면 편안하고 시너지가 납니다.'; }
 function clashReason(){ return '성향 차이가 큰 편이라, 서로의 방식을 이해하려는 노력이 조금 더 필요해요.'; }
 function comprehensiveHTML(dom, prof, who){
@@ -1234,7 +1292,7 @@ function growTogether(a,b){
 /* ===================== v23: 공개 검사 카운터 (무인증 Abacus) ===================== */
 /* 검사 완료(finish) 시에만 hit(+1). 재열람/가져오기/답장/새로고침에서는 증가하지 않음(get만). */
 var CNT_BASE='https://abacus.jasoncameron.dev';
-var CNT_NS='big5hexaco-monkey8289';
+var CNT_NS='big5hexaco-monkey8289-v2';
 var CNTV={total:null,today:null,easy:null,balanced:null,precise:null};
 function cntModeKey(m){ return m===1?'easy':(m===3?'precise':'balanced'); }
 function cntTodayKey(){ var d=new Date(); function p(n){return(n<10?'0':'')+n;} return 'd_'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate()); }
