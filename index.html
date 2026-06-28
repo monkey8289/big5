@@ -1292,7 +1292,7 @@ function growTogether(a,b){
 /* ===================== v23: 공개 검사 카운터 (무인증 Abacus) ===================== */
 /* 검사 완료(finish) 시에만 hit(+1). 재열람/가져오기/답장/새로고침에서는 증가하지 않음(get만). */
 var CNT_BASE='https://abacus.jasoncameron.dev';
-var CNT_NS='big5hexaco-monkey8289-v2';
+var CNT_NS='big5hexaco-monkey8289-v3';
 var CNTV={total:null,today:null,easy:null,balanced:null,precise:null};
 function cntModeKey(m){ return m===1?'easy':(m===3?'precise':'balanced'); }
 function cntTodayKey(){ var d=new Date(); function p(n){return(n<10?'0':'')+n;} return 'd_'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate()); }
