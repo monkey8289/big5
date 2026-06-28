@@ -210,7 +210,7 @@
   .rankrow .rkscore{font-size:17px;font-weight:800;display:flex;align-items:center;gap:3px;white-space:nowrap;}
   .rankrow .rkgo{font-size:18px;color:#b7c0d4;font-weight:700;}
   /* v30: 아바타 · 의무 프로필 · 친구요청 알림 */
-  .avatar{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;flex:none;vertical-align:middle;}
+  .avatar{display:inline-flex;align-items:center;justify-content:center;border-radius:27%;overflow:hidden;flex:none;vertical-align:middle;}
   .avatar svg{display:block;}
   .avatar-empty{background:#e7ebf3;}
   .avatar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:4px;}
@@ -251,7 +251,7 @@
   <section id="setup" class="card" style="display:none;">
     <div class="center" style="margin-bottom:4px;">
       <h2 id="setupTitle">프로필 만들기</h2>
-      <p class="muted" style="margin-top:7px;line-height:1.6;">시작하려면 <b>아이디</b>와 <b>프로필 캐릭터</b>를 정해주세요. (건너뛸 수 없어요)</p>
+      <p class="muted" style="margin-top:7px;line-height:1.6;">시작하려면 <b>아이디</b>와 <b>프로필 캐릭터</b>를 정해주세요.</p>
     </div>
     <div class="section-title" style="margin-top:10px;">아이디</div>
     <div class="newprof">
@@ -317,7 +317,7 @@
       <div id="friendRank" class="rankbox"><span class="muted">로그인 후 이용할 수 있어요.</span></div>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v31 · 2026-06-28 09:30</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v32 · 2026-06-28 10:00</div>
   </section>
 
   <!-- MODE -->
@@ -1395,39 +1395,77 @@ var CHAR={
  '창의적 탐구가':{m:'호롱이',color:DHEX.O,emb:EMB.O,tag:'호기심으로 반짝이는 탐험가',desc:'늘 새로운 걸 궁금해하는 아이디어 뱅크. 머릿속에 전구가 반짝반짝해요. 다만 벌인 일을 끝맺는 연습이 필요하답니다.',traits:['호기심','창의','상상','개방'],compat:['활기찬 사교가','균형 잡힌 올라운더'],clash:['성실한 실행가']},
  '균형 잡힌 올라운더':{m:'고루미',color:'#6d8bc0',emb:EMB.B,tag:'어디에도 잘 맞는 균형의 달인',desc:'모난 데 없이 두루두루 잘하는 만능 친구. 어떤 사람, 어떤 상황과도 무난히 어울려요. 자기만의 뾰족한 색을 하나쯤 키우면 더 빛난답니다.',traits:['균형','적응','유연','조화'],compat:['창의적 탐구가','너그러운 화합가'],clash:[]}
 };
-/* v30: 마스코트 아바타(프로필 사진) — 7종 */
+/* v32: 마스코트 아바타 — 7종 개성 재디자인(서로 다른 실루엣·색·표정·소품) */
 var AVATARS=[
- {id:'chamgom', name:'참곰',   color:DHEX.H, emb:EMB.H},
- {id:'monggle', name:'몽글이', color:DHEX.E, emb:EMB.E},
- {id:'banjjak', name:'반짝이', color:DHEX.X, emb:EMB.X},
- {id:'pogeun',  name:'포근이', color:DHEX.A, emb:EMB.A},
- {id:'ttobak',  name:'또박이', color:DHEX.C, emb:EMB.C},
- {id:'horong',  name:'호롱이', color:DHEX.O, emb:EMB.O},
- {id:'gorumi',  name:'고루미', color:'#6d8bc0', emb:EMB.B}
+ {id:'chamgom', name:'참곰',   color:'#b07a4e'},
+ {id:'monggle', name:'몽글이', color:'#9a8fd6'},
+ {id:'banjjak', name:'반짝이', color:'#f2b733'},
+ {id:'pogeun',  name:'포근이', color:'#f0a3a0'},
+ {id:'ttobak',  name:'또박이', color:'#4f86c6'},
+ {id:'horong',  name:'호롱이', color:'#8c6cc0'},
+ {id:'gorumi',  name:'고루미', color:'#3fb0a8'}
 ];
 function avatarById(id){ for(var i=0;i<AVATARS.length;i++){ if(AVATARS[i].id===id) return AVATARS[i]; } return null; }
-function mascotSVGsized(c, emb, sz){
-  return '<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" width="'+sz+'" height="'+sz+'" role="img" aria-label="마스코트 아바타">'
-   +'<path d="M80 18 C42 18 30 48 30 84 C30 122 52 146 80 146 C108 146 130 122 130 84 C130 48 118 18 80 18 Z" fill="'+c+'"/>'
-   +'<ellipse cx="80" cy="40" rx="20" ry="9" fill="rgba(255,255,255,0.18)"/>'
-   +'<circle cx="62" cy="78" r="10" fill="#fff"/><circle cx="98" cy="78" r="10" fill="#fff"/>'
-   +'<circle cx="64" cy="80" r="5" fill="#2a2f3a"/><circle cx="100" cy="80" r="5" fill="#2a2f3a"/>'
-   +'<path d="M70 96 Q80 106 90 96" fill="none" stroke="#2a2f3a" stroke-width="3" stroke-linecap="round"/>'
-   +'<g transform="translate(80,122)">'+emb+'</g></svg>';
-}
-function avatarSVG(id, sz){ var a=avatarById(id); sz=sz||34; if(!a){ return '<span class="avatar avatar-empty" style="width:'+sz+'px;height:'+sz+'px"></span>'; } return '<span class="avatar" style="width:'+sz+'px;height:'+sz+'px;background:'+a.color+'22">'+mascotSVGsized(a.color,a.emb,sz)+'</span>'; }
+function mascotIdByName(nm){ for(var i=0;i<AVATARS.length;i++){ if(AVATARS[i].name===nm) return AVATARS[i].id; } return null; }
+var MASCOT_ART={
+ /* 참곰 — 곰: 듬직·정직 (방패 체크) */
+ chamgom:'<circle cx="50" cy="46" r="16" fill="#9c6a42"/><circle cx="110" cy="46" r="16" fill="#9c6a42"/><circle cx="50" cy="46" r="8" fill="#caa07e"/><circle cx="110" cy="46" r="8" fill="#caa07e"/>'
+  +'<ellipse cx="80" cy="92" rx="48" ry="50" fill="#b07a4e"/><ellipse cx="80" cy="106" rx="26" ry="20" fill="#ecd8c1"/>'
+  +'<ellipse cx="80" cy="98" rx="6.5" ry="5" fill="#5a3d28"/>'
+  +'<circle cx="62" cy="84" r="5.5" fill="#3a2a1c"/><circle cx="98" cy="84" r="5.5" fill="#3a2a1c"/><circle cx="60" cy="82" r="1.8" fill="#fff"/><circle cx="96" cy="82" r="1.8" fill="#fff"/>'
+  +'<path d="M72 110 Q80 117 88 110" fill="none" stroke="#5a3d28" stroke-width="3" stroke-linecap="round"/>'
+  +'<path d="M80 126 l12 5 v7 q0 8 -12 13 q-12 -5 -12 -13 v-7 z" fill="#fff" opacity="0.92"/><path d="M74.5 136 l4 4 l8.5 -8.5" fill="none" stroke="#b07a4e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
+ /* 몽글이 — 물방울: 부드럽고 감성적 */
+ monggle:'<path d="M80 22 C108 70 117 96 117 111 C117 132 100 147 80 147 C60 147 43 132 43 111 C43 96 52 70 80 22 Z" fill="#9a8fd6"/>'
+  +'<ellipse cx="66" cy="74" rx="9" ry="17" fill="rgba(255,255,255,0.28)"/>'
+  +'<circle cx="58" cy="114" r="7" fill="#f4b6d0" opacity="0.7"/><circle cx="102" cy="114" r="7" fill="#f4b6d0" opacity="0.7"/>'
+  +'<path d="M58 102 Q66 95 74 102" fill="none" stroke="#46407a" stroke-width="3.5" stroke-linecap="round"/><path d="M86 102 Q94 95 102 102" fill="none" stroke="#46407a" stroke-width="3.5" stroke-linecap="round"/>'
+  +'<path d="M71 118 Q80 125 89 118" fill="none" stroke="#46407a" stroke-width="3" stroke-linecap="round"/>'
+  +'<circle cx="113" cy="84" r="3.4" fill="#fff" opacity="0.85"/>',
+ /* 반짝이 — 별: 발랄·에너지 */
+ banjjak:'<path d="M80 18 L97 60 L142 64 L108 94 L119 138 L80 114 L41 138 L52 94 L18 64 L63 60 Z" fill="#f2b733"/>'
+  +'<circle cx="60" cy="84" r="6" fill="#f08a4b" opacity="0.55"/><circle cx="100" cy="84" r="6" fill="#f08a4b" opacity="0.55"/>'
+  +'<circle cx="67" cy="76" r="6" fill="#5a4012"/><circle cx="93" cy="76" r="6" fill="#5a4012"/><circle cx="65" cy="74" r="2" fill="#fff"/><circle cx="91" cy="74" r="2" fill="#fff"/>'
+  +'<path d="M65 90 Q80 108 95 90 Q80 99 65 90 Z" fill="#8a4318"/>'
+  +'<path d="M128 34 l2.2 6.4 l6.4 2.2 l-6.4 2.2 l-2.2 6.4 l-2.2 -6.4 l-6.4 -2.2 l6.4 -2.2 z" fill="#fff" opacity="0.9"/>'
+  +'<circle cx="26" cy="44" r="3" fill="#fff" opacity="0.8"/>',
+ /* 포근이 — 복슬복슬 양: 따뜻·포근 */
+ pogeun:'<g fill="#f0a3a0"><circle cx="50" cy="72" r="20"/><circle cx="80" cy="58" r="22"/><circle cx="110" cy="72" r="20"/><circle cx="42" cy="100" r="20"/><circle cx="118" cy="100" r="20"/><circle cx="58" cy="120" r="20"/><circle cx="102" cy="120" r="20"/><circle cx="80" cy="110" r="27"/></g>'
+  +'<ellipse cx="80" cy="94" rx="33" ry="29" fill="#fff3ee"/>'
+  +'<path d="M62 90 Q68 84 74 90" fill="none" stroke="#9c5b58" stroke-width="3.5" stroke-linecap="round"/><path d="M86 90 Q92 84 98 90" fill="none" stroke="#9c5b58" stroke-width="3.5" stroke-linecap="round"/>'
+  +'<circle cx="62" cy="102" r="6" fill="#f3a0a0" opacity="0.6"/><circle cx="98" cy="102" r="6" fill="#f3a0a0" opacity="0.6"/>'
+  +'<path d="M72 104 Q80 112 88 104" fill="none" stroke="#9c5b58" stroke-width="3" stroke-linecap="round"/>',
+ /* 또박이 — 로봇: 단정·야무진 (체크) */
+ ttobak:'<line x1="80" y1="22" x2="80" y2="36" stroke="#4f86c6" stroke-width="4"/><circle cx="80" cy="19" r="6" fill="#7fc6e8"/>'
+  +'<rect x="42" y="36" width="76" height="62" rx="14" fill="#4f86c6"/><rect x="52" y="47" width="56" height="40" rx="9" fill="#1f3550"/>'
+  +'<circle cx="68" cy="65" r="6" fill="#74e0cf"/><circle cx="92" cy="65" r="6" fill="#74e0cf"/><path d="M70 79 H90" stroke="#74e0cf" stroke-width="3" stroke-linecap="round"/>'
+  +'<rect x="54" y="102" width="52" height="40" rx="11" fill="#5f96d4"/><path d="M66 123 l7 7 l16 -17" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>',
+ /* 호롱이 — 부엉이: 호기심·탐험 (전구) */
+ horong:'<path d="M50 46 L58 22 L66 48 Z" fill="#7a5cb0"/><path d="M110 46 L102 22 L94 48 Z" fill="#7a5cb0"/>'
+  +'<ellipse cx="80" cy="96" rx="46" ry="50" fill="#8c6cc0"/><ellipse cx="80" cy="106" rx="27" ry="34" fill="#dccff0"/>'
+  +'<circle cx="64" cy="82" r="17" fill="#fff"/><circle cx="96" cy="82" r="17" fill="#fff"/><circle cx="66" cy="84" r="8" fill="#3a2a55"/><circle cx="94" cy="84" r="8" fill="#3a2a55"/><circle cx="63" cy="81" r="2.6" fill="#fff"/><circle cx="91" cy="81" r="2.6" fill="#fff"/>'
+  +'<path d="M80 94 l7 9 l-7 4 l-7 -4 z" fill="#f2b733"/>'
+  +'<circle cx="124" cy="40" r="9" fill="#ffe9a8" stroke="#f2b733" stroke-width="2"/><rect x="120" y="48" width="8" height="5" rx="2" fill="#f2b733"/>',
+ /* 고루미 — 육각형: 균형·올라운드 (+) */
+ gorumi:'<path d="M80 26 L128 54 L128 106 L80 134 L32 106 L32 54 Z" fill="#3fb0a8"/><path d="M80 40 L116 61 L116 99 L80 120 L44 99 L44 61 Z" fill="#5cc7bf" opacity="0.5"/>'
+  +'<circle cx="66" cy="78" r="5.5" fill="#1f4d49"/><circle cx="94" cy="78" r="5.5" fill="#1f4d49"/><circle cx="64" cy="76" r="1.8" fill="#fff"/><circle cx="92" cy="76" r="1.8" fill="#fff"/>'
+  +'<path d="M68 92 Q80 102 92 92" fill="none" stroke="#1f4d49" stroke-width="3" stroke-linecap="round"/>'
+  +'<circle cx="80" cy="110" r="9" fill="#fff" opacity="0.9"/><path d="M80 105 v10 M75 110 h10" stroke="#3fb0a8" stroke-width="2.6" stroke-linecap="round"/>'
+};
+function mascotArtSVG(id, sz){ var inner=MASCOT_ART[id]; if(!inner){ return ''; } return '<svg viewBox="0 0 160 160" width="'+sz+'" height="'+sz+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="마스코트">'+inner+'</svg>'; }
+function avatarSVG(id, sz){ sz=sz||34; var a=avatarById(id); if(!a||!MASCOT_ART[id]){ return '<span class="avatar avatar-empty" style="width:'+sz+'px;height:'+sz+'px"></span>'; } return '<span class="avatar" style="width:'+sz+'px;height:'+sz+'px;background:'+a.color+'1f">'+mascotArtSVG(id,sz)+'</span>'; }
 function avatarGridHTML(selId){
   var H='<div class="avatar-grid">';
   AVATARS.forEach(function(a){
     var on=(a.id===selId)?' on':'';
-    H+='<button type="button" class="avatar-cell'+on+'" onclick="pickAvatar(\''+a.id+'\')"><span class="avatar" style="width:54px;height:54px;background:'+a.color+'22">'+mascotSVGsized(a.color,a.emb,54)+'</span><span class="avatar-nm">'+a.name+'</span></button>';
+    H+='<button type="button" class="avatar-cell'+on+'" onclick="pickAvatar(\''+a.id+'\')"><span class="avatar" style="width:56px;height:56px;background:'+a.color+'1f">'+mascotArtSVG(a.id,56)+'</span><span class="avatar-nm">'+a.name+'</span></button>';
   });
   H+='</div>'; return H;
 }
 function charCardHTML(prof, dom){
   var ch=CHAR[prof.name]; if(!ch) return '';
   var H='<div class="charcard">';
-  H+='<div class="char-svg">'+mascotSVG(ch.color, ch.emb)+'</div>';
+  H+='<div class="char-svg">'+mascotArtSVG(mascotIdByName(ch.m)||'gorumi', 150)+'</div>';
   H+='<div class="char-info">';
   H+='<div class="char-m">'+ch.m+'</div>';
   H+='<div class="char-type">'+prof.name+'</div>';
@@ -1554,9 +1592,9 @@ function comprehensiveHTML(dom, prof, who){
 function charPairHTML(prof1, n1, prof2, n2){
   var c1=CHAR[prof1.name], c2=CHAR[prof2.name]; if(!c1||!c2) return '';
   var H='<div class="charpair">';
-  H+='<div class="cp">'+mascotSVG(c1.color,c1.emb)+'<div class="cpm">'+c1.m+'</div><div class="cpt">'+esc(n1)+'<br>'+prof1.name+'</div></div>';
+  H+='<div class="cp">'+mascotArtSVG(mascotIdByName(c1.m)||'gorumi',150)+'<div class="cpm">'+c1.m+'</div><div class="cpt">'+esc(n1)+'<br>'+prof1.name+'</div></div>';
   H+='<div class="cpx">×</div>';
-  H+='<div class="cp">'+mascotSVG(c2.color,c2.emb)+'<div class="cpm">'+c2.m+'</div><div class="cpt">'+esc(n2)+'<br>'+prof2.name+'</div></div>';
+  H+='<div class="cp">'+mascotArtSVG(mascotIdByName(c2.m)||'gorumi',150)+'<div class="cpm">'+c2.m+'</div><div class="cpt">'+esc(n2)+'<br>'+prof2.name+'</div></div>';
   H+='</div>';
   return H;
 }
