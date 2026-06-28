@@ -166,6 +166,16 @@
   .charpair .cp .cpm{font-size:14px;font-weight:800;margin-top:2px;}
   .charpair .cp .cpt{font-size:11px;color:var(--sub);font-weight:700;text-align:center;}
   .charpair .cpx{font-size:22px;color:#c0894a;font-weight:800;}
+  /* v22: 결과 화면 품질 폴리시 */
+  .headline{font-size:14.5px;color:#5a6478;font-weight:700;margin-top:7px;line-height:1.5;}
+  #result .dcard{box-shadow:0 2px 9px rgba(40,55,80,.05);border-radius:15px;}
+  #result .dhead{padding:14px 14px 9px;}
+  .fachead{font-size:11.5px;font-weight:800;color:#9aa3b1;letter-spacing:.4px;margin:4px 0 8px;}
+  #result .ddesc{font-size:14px;}
+  #result .section-title{font-size:12.5px;}
+  .relbar,.dbar,.fbar,.cbar{box-shadow:inset 0 0 0 1px rgba(0,0,0,.02);}
+  .summary-box{font-size:14.5px;}
+  #result .rolebox .rn{font-size:18px;}
 </style>
 </head>
 <body>
@@ -199,10 +209,11 @@
       <button class="btn btn-pri" onclick="beginTest()">검사 시작</button>
       <button class="btn btn-ghost" onclick="openTrend()">내 추이</button>
       <button class="btn btn-ghost" onclick="openCompat()">궁합·팀 분석</button>
-      <button class="btn btn-ghost" onclick="openData()">데이터·공유</button>
+      <button class="btn btn-ghost" onclick="shareApp()">🔗 검사 추천하기</button>
+      <button class="btn btn-ghost" onclick="openData()">데이터 관리</button>
     </div>
-    <div class="note blue">프로필과 기록은 <b>이 브라우저에만</b> 저장됩니다. 친구와 비교하려면 <b>데이터·공유 → 링크 공유</b>로 결과를 보내거나 받으세요.</div>
-    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v20 · 2026-06-28 03:30</div>
+    <div class="note blue">친구와 <b>궁합</b>을 보려면 결과 화면의 <b>‘💬 내 결과 공유하기’</b>로 링크를 보내세요(받은 친구가 열면 자동으로 결과가 추가돼요). 그냥 <b>검사만 추천</b>하려면 아래 <b>‘🔗 검사 추천하기’</b>로 앱 링크만 보낼 수 있어요(내 결과는 포함되지 않아요).</div>
+    <div class="center" style="margin-top:12px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v22 · 2026-06-28 04:30</div>
   </section>
 
   <!-- MODE -->
@@ -237,6 +248,7 @@
       <span class="profile-badge">HEXACO 프로파일</span>
       <div class="profile-name" id="profileName">—</div>
       <div class="who" id="whoName"></div>
+      <div class="headline" id="headline"></div>
     </div>
     <div id="charCard"></div>
     <div class="section"><div class="section-title">6요인 프로파일</div><div class="radar-wrap" id="radarWrap"></div></div>
@@ -246,7 +258,7 @@
     <div class="section"><div class="section-title">추천 직무·역할</div><div class="rolebox" id="roleBox"></div></div>
     <div class="section"><div class="section-title">응답 신뢰도</div><div class="mini" id="relBox"></div></div>
     <div class="section">
-      <div class="section-title">요인·facet 상세 (탭하여 펼치기)</div>
+      <div class="section-title">요인·facet 상세</div>
       <div class="note">※ 백분위(상위 %)는 <b>검증된 표준화 표본이 아닌 예시용 근사 규준</b> 기반 참고치입니다. 재미·자기이해 용도로만 보세요.</div>
       <div id="domainCards" style="margin-top:12px;"></div>
     </div>
@@ -254,7 +266,7 @@
     <div class="section" id="histSec" style="display:none;"><div class="section-title">나의 검사 추이</div><div id="histChart"></div></div>
     <div id="replyHint" style="display:none;"></div>
     <div class="btn-row no-print">
-      <button class="btn btn-pri" onclick="shareKakao()">💬 결과 공유</button>
+      <button class="btn btn-pri" onclick="shareKakao()">💬 내 결과 공유하기</button>
       <button class="btn btn-ghost" onclick="exportPNG()">🖼 PNG</button>
       <button class="btn btn-ghost" onclick="beginTest()">↻ 다시검사</button>
       <button class="btn btn-ghost" onclick="goHome()">🏠 홈</button>
@@ -287,29 +299,14 @@
 
   <!-- DATA -->
   <section id="data" class="card" style="display:none;">
-    <h2>데이터 · 공유</h2>
+    <h2>데이터 관리</h2>
     <div class="section">
-      <div class="section-title">링크로 공유 (온라인)</div>
-      <p class="muted">결과를 링크로 만들어 카톡 등으로 보낼 수 있어요. 받는 사람이 링크를 열면 결과가 자동 추가되고 바로 궁합 분석으로 이어집니다.</p>
-      <div class="btn-row" style="justify-content:flex-start;margin-top:10px;">
-        <button class="btn btn-pri btn-sm" onclick="shareKakao()">💬 카톡으로 보내기</button>
-        <button class="btn btn-ghost btn-sm" onclick="makeShareLink()">🔗 링크 만들기</button>
-      </div>
-      <textarea class="code" id="shareArea" readonly placeholder="‘링크 만들기’를 누르면 공유 링크가 여기 표시됩니다." style="min-height:60px;"></textarea>
+      <div class="note blue">공유는 두 가지로 간단해요. <b>‘💬 내 결과 공유하기’</b>(결과 화면) — 내 결과를 담은 링크로, 받은 사람이 열면 자동 추가되어 바로 궁합을 봅니다. <b>‘🔗 검사 추천하기’</b>(홈) — 내 결과 없이 앱 링크만 보내 검사를 권합니다.</div>
     </div>
     <div class="section">
-      <div class="section-title">결과 코드 (오프라인·수동)</div>
-      <textarea class="code" id="exportArea" readonly placeholder="‘코드 생성’을 누르면 현재 프로필의 결과 코드가 표시됩니다."></textarea>
-      <div class="btn-row" style="justify-content:flex-start;margin-top:10px;">
-        <button class="btn btn-ghost btn-sm" onclick="genExport()">코드 생성</button>
-        <button class="btn btn-ghost btn-sm" onclick="copyExport()">복사</button>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-title">가져오기 — 친구/백업 결과 코드 붙여넣기</div>
-      <textarea class="code" id="importArea" placeholder="여기에 결과 코드를 붙여넣으세요."></textarea>
-      <div class="btn-row" style="justify-content:flex-start;margin-top:10px;"><button class="btn btn-pri btn-sm" onclick="doImport()">가져오기</button></div>
-      <div id="importMsg" class="muted" style="margin-top:8px;"></div>
+      <div class="section-title">저장된 데이터</div>
+      <p class="muted">프로필과 검사 기록은 <b>이 브라우저에만</b> 저장됩니다. 개별 프로필은 홈 화면에서 ✕ 버튼으로 삭제할 수 있어요.</p>
+      <div class="btn-row" style="justify-content:flex-start;margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="resetAllData()">🗑 모든 데이터 초기화</button></div>
     </div>
     <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈으로</button></div>
   </section>
@@ -726,6 +723,7 @@ function renderResult(who, rec, profile, opts){
   var isPast=!!(opts && opts.past);
   var dom=rec.pct, fac=rec.fac||{}, prof=topProfile(dom);
   $("profileName").textContent=prof.name; $("whoName").textContent=who?("👤 "+who):"";
+  try{ $("headline").innerHTML=charHeadline(prof, dom); }catch(e){ $("headline").innerHTML=""; }
   try{ $("charCard").innerHTML=charCardHTML(prof, dom); }catch(e){ $("charCard").innerHTML=""; }
   var pb=$("pastBanner");
   if(pb){ if(isPast){ pb.style.display="block"; pb.innerHTML='<div class="note blue" style="margin-bottom:6px;">🕘 <b>과거 결과</b> · '+fullDate(rec.date)+' 검사'+(rec.mode?(' ('+modeLabel(rec.mode)+')'):'')+'<div class="btn-row" style="margin-top:8px;"><button class="btn btn-ghost btn-sm" onclick="openTrend()">‹ 이력으로 돌아가기</button></div></div>'; } else { pb.style.display="none"; pb.innerHTML=""; } }
@@ -758,10 +756,11 @@ function renderResult(who, rec, profile, opts){
   var c="";
   DOMAINS.forEach(function(dm){
     var k=dm.k, p=dom[k], t=tierOf(p), top=percentileTop(k,p);
-    c+='<div class="dcard"><button class="dhead" onclick="toggleFacet(\''+k+'\')"><span class="ddot" style="background:'+dm.hex+'"></span><span class="dn">'+dm.name+'</span><span class="dtier" style="background:'+tierColor(t)+'">'+tierLabel(t)+'</span><span class="dp">'+p+'% · 상위 '+top+'%</span><span class="dcar" id="car_'+k+'">▼</span></button>';
+    c+='<div class="dcard"><div class="dhead" style="cursor:default;"><span class="ddot" style="background:'+dm.hex+'"></span><span class="dn">'+dm.name+'</span><span class="dtier" style="background:'+tierColor(t)+'">'+tierLabel(t)+'</span><span class="dp">'+p+'% · 상위 '+top+'%</span></div>';
     c+='<div class="dbar"><i style="width:'+p+'%;background:'+dm.hex+'"></i></div>';
     c+=domainRichHTML(k,t);
-    c+='<div class="dbody" id="fac_'+k+'" style="display:none;">';
+    c+='<div class="dbody" id="fac_'+k+'" style="display:block;">';
+    c+='<div class="fachead">세부 특질 (facet)</div>';
     dm.facets.forEach(function(fc){ var fp=(fac[fc]==null)?p:fac[fc]; c+='<div class="frow"><span class="fnm">'+fc+'</span><span class="fbar"><i style="width:'+fp+'%;background:'+dm.hex+'"></i></span><span class="fpc">'+fp+'</span></div><div class="facd">'+facDesc(fc,fp)+'</div>'; });
     c+='</div></div>';
   });
@@ -963,7 +962,8 @@ function replyMyResult(){
 
 /* ===================== 내보내기/가져오기 ===================== */
 function buildCode(profile){ var rec=profile.history[profile.history.length-1]; return encodeRec({v:2,t:"hexaco",name:profile.name,date:rec.date,pct:rec.pct,fac:rec.fac||null,rel:rec.rel||null}); }
-function openData(){ try{ $("exportArea").value=""; }catch(e){} try{ $("importArea").value=""; }catch(e){} try{ $("importMsg").textContent=""; }catch(e){} try{ $("shareArea").value=""; }catch(e){} show("data"); }
+function openData(){ show("data"); }
+function resetAllData(){ if(!confirm("모든 프로필과 검사 기록을 삭제할까요? 되돌릴 수 없습니다.")) return; try{ if(lsOK){ localStorage.removeItem(LS_KEY); } }catch(e){} memDB={profiles:[],curId:null}; try{ clearProgress(); }catch(e){} renderHome(); show("home"); toast("모든 데이터를 초기화했어요."); }
 function genExport(){ var p=currentProfile(); if(!p||!p.history||!p.history.length){ alert("현재 프로필에 저장된 결과가 없습니다. 먼저 검사를 진행하세요."); return; } $("exportArea").value=buildCode(p); }
 function copyTextValue(text, okMsg){ try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){ toast(okMsg); }, function(){ fallbackCopy(text,okMsg); }); } else { fallbackCopy(text,okMsg); } }catch(e){ fallbackCopy(text,okMsg); } }
 function fallbackCopy(text, okMsg){ try{ var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast(okMsg); }catch(e){ try{ prompt("아래 링크를 길게 눌러 복사하세요:", text); }catch(_){} } }
@@ -971,7 +971,12 @@ function copyExport(){ var ta=$("exportArea"); if(!ta.value){ genExport(); } if(
 function makeShareLink(){ var link=shareLink(); if(!link){ alert("공유할 결과가 없습니다. 먼저 검사를 완료하세요."); return; } try{ $("shareArea").value=link; }catch(e){} copyTextValue(link, "공유 링크가 복사됐어요. 카톡 등에 붙여넣어 보내세요."); }
 function shareKakao(){ var link=shareLink(); if(!link){ alert("공유할 결과가 없습니다. 먼저 검사를 완료하세요."); return; } var p=currentProfile(); var nm=(p&&p.name)?p.name:"";
   if(navigator.share){ navigator.share({title:"성격검사 결과", text:nm+"님의 HEXACO 성격검사 결과를 공유해요. 열어보면 바로 우리 궁합도 볼 수 있어요!", url:link}).then(function(){}, function(){}); }
-  else { try{ $("shareArea").value=link; }catch(e){} copyTextValue(link, "이 기기는 공유 시트를 지원하지 않아 링크를 복사했어요. 카톡에 붙여넣어 보내세요."); } }
+  else { copyTextValue(link, "링크가 복사됐어요. 카톡에 붙여넣어 보내세요."); } }
+/* v21: 앱만 공유 (내 결과 없이 깨끗한 앱 링크 — #import 없음) */
+function appLink(){ return location.origin+location.pathname; }
+function shareApp(){ var link=appLink();
+  if(navigator.share){ navigator.share({title:"HEXACO 성격검사", text:"이 성격검사 한번 해봐! 6가지 성격을 분석하고 나만의 유형 캐릭터도 나와 😊", url:link}).then(function(){}, function(){}); }
+  else { copyTextValue(link, "앱 링크가 복사됐어요. 카톡에 붙여넣어 친구에게 검사를 추천해보세요."); } }
 function doImport(){ var obj=decodeRec($("importArea").value); var msg=$("importMsg"); if(!obj||!obj.pct||!obj.name){ msg.style.color="#c0564a"; msg.textContent="코드를 해석할 수 없습니다. 올바른 결과 코드인지 확인하세요."; return; } var who=addImportedRecord(obj); msg.style.color="#2c7a62"; msg.textContent="‘"+who+"’ 결과를 가져왔습니다. 홈/궁합 분석에서 사용할 수 있어요."; }
 function addImportedRecord(obj){ var db=loadDB(); var name=obj.name; var exist=null; for(var i=0;i<db.profiles.length;i++){ if(db.profiles[i].name===name && db.profiles[i].imported){ exist=db.profiles[i]; break; } } var rec={date:obj.date||new Date().toISOString(),pct:obj.pct,fac:obj.fac||null,rel:obj.rel||null}; if(exist){ exist.history.push(rec); } else { db.profiles.push({id:uid(),name:name,imported:true,history:[rec]}); } saveDB(db); return name; }
 
@@ -1047,32 +1052,32 @@ function modeLabel(m){ return m===1?'간편':(m===3?'정밀':'균형'); }
 
 /* facet 점수대별 한 줄 해설 */
 var FAC={
- '진실성':{h:'꾸밈없이 솔직하게 표현합니다.',l:'필요하면 듣기 좋게 포장하기도 합니다.'},
- '공정성':{h:'손해를 봐도 규칙과 공정을 지킵니다.',l:'이득을 위해 융통성을 발휘하기도 합니다.'},
- '욕심없음':{h:'부·지위에 대한 욕심이 적습니다.',l:'성공과 풍요를 적극적으로 추구합니다.'},
- '겸손함':{h:'자신을 낮추고 과시하지 않습니다.',l:'자기 가치를 당당히 드러냅니다.'},
- '두려움':{h:'위험과 아픔을 조심하고 신중합니다.',l:'위험 앞에서도 겁이 적고 대담합니다.'},
- '불안':{h:'걱정과 긴장을 잘 느끼는 편입니다.',l:'웬만한 일엔 느긋하고 평온합니다.'},
- '의존성':{h:'힘들 때 기대고 함께하길 원합니다.',l:'스스로 해결하는 독립심이 강합니다.'},
- '감상성':{h:'정이 깊고 감정에 잘 공감합니다.',l:'감정에 비교적 담담한 편입니다.'},
- '사회적자존감':{h:'사람들 사이에서 자신감이 있습니다.',l:'스스로를 낮게 볼 때가 있습니다.'},
- '사회적대담성':{h:'나서고 발표하는 데 거리낌이 적습니다.',l:'앞에 나서는 상황이 부담스럽습니다.'},
- '사교성':{h:'어울리고 모이는 것을 즐깁니다.',l:'혼자만의 시간을 더 편안해합니다.'},
- '활기':{h:'밝고 에너지가 넘칩니다.',l:'차분하고 잔잔한 편입니다.'},
- '용서':{h:'서운함을 빨리 풀고 용서합니다.',l:'상처를 오래 기억하는 편입니다.'},
- '온화함':{h:'부드럽고 너그럽게 대합니다.',l:'비판적이고 직설적인 편입니다.'},
- '유연성':{h:'잘 양보하고 맞춰줍니다.',l:'자기 방식을 굽히지 않는 편입니다.'},
- '인내':{h:'화를 잘 참고 침착합니다.',l:'짜증·화가 비교적 쉽게 납니다.'},
- '조직성':{h:'정리·계획을 잘합니다.',l:'즉흥적이고 자유롭게 움직입니다.'},
- '근면성':{h:'부지런하고 끈기가 있습니다.',l:'힘든 일은 미루는 편입니다.'},
- '완벽주의':{h:'꼼꼼하고 빈틈을 잘 챙깁니다.',l:'세세한 건 대범하게 넘깁니다.'},
- '신중함':{h:'따져보고 신중하게 결정합니다.',l:'끌리면 즉흥적으로 행동합니다.'},
- '심미안':{h:'아름다움에 깊이 감응합니다.',l:'실용을 미보다 우선합니다.'},
- '탐구심':{h:'새 지식과 원리에 호기심이 큽니다.',l:'익숙한 것에 집중하는 편입니다.'},
- '창의성':{h:'새 아이디어를 잘 떠올립니다.',l:'검증된 방식을 선호합니다.'},
- '비관습성':{h:'색다른 생각에 열려 있습니다.',l:'전통과 익숙함을 선호합니다.'}
+ '진실성':{h:'꾸밈없이 솔직하게 표현합니다.',m:'대체로 솔직하되 가끔은 상황을 봐가며 표현을 다듬습니다.',l:'필요하면 듣기 좋게 포장하기도 합니다.'},
+ '공정성':{h:'손해를 봐도 규칙과 공정을 지킵니다.',m:'기본적으로 공정하지만 작은 융통성은 발휘하기도 합니다.',l:'이득을 위해 융통성을 발휘하기도 합니다.'},
+ '욕심없음':{h:'부·지위에 대한 욕심이 적습니다.',m:'적당한 성공은 바라되 욕심이 과하지는 않습니다.',l:'성공과 풍요를 적극적으로 추구합니다.'},
+ '겸손함':{h:'자신을 낮추고 과시하지 않습니다.',m:'자신을 내세우지도, 지나치게 낮추지도 않습니다.',l:'자기 가치를 당당히 드러냅니다.'},
+ '두려움':{h:'위험과 아픔을 조심하고 신중합니다.',m:'무모하지도 겁이 많지도 않게 위험을 적당히 가늠합니다.',l:'위험 앞에서도 겁이 적고 대담합니다.'},
+ '불안':{h:'걱정과 긴장을 잘 느끼는 편입니다.',m:'평소엔 괜찮다가 일이 몰리면 가끔 걱정이 늘어납니다.',l:'웬만한 일엔 느긋하고 평온합니다.'},
+ '의존성':{h:'힘들 때 기대고 함께하길 원합니다.',m:'혼자서도 잘 지내지만 힘들 땐 기대기도 합니다.',l:'스스로 해결하는 독립심이 강합니다.'},
+ '감상성':{h:'정이 깊고 감정에 잘 공감합니다.',m:'감정에 적당히 공감하되 크게 휘둘리지는 않습니다.',l:'감정에 비교적 담담한 편입니다.'},
+ '사회적자존감':{h:'사람들 사이에서 자신감이 있습니다.',m:'대체로 무난하게 자신감을 갖되 위축될 때도 있습니다.',l:'스스로를 낮게 볼 때가 있습니다.'},
+ '사회적대담성':{h:'나서고 발표하는 데 거리낌이 적습니다.',m:'편한 자리에선 나서고 부담스러우면 한발 물러섭니다.',l:'앞에 나서는 상황이 부담스럽습니다.'},
+ '사교성':{h:'어울리고 모이는 것을 즐깁니다.',m:'혼자도, 어울리는 것도 둘 다 즐기며 상황에 맞춰 조절합니다.',l:'혼자만의 시간을 더 편안해합니다.'},
+ '활기':{h:'밝고 에너지가 넘칩니다.',m:'들뜨지도 처지지도 않는 잔잔한 에너지를 유지합니다.',l:'차분하고 잔잔한 편입니다.'},
+ '용서':{h:'서운함을 빨리 풀고 용서합니다.',m:'서운함이 남기도 하지만 시간이 지나면 풀어냅니다.',l:'상처를 오래 기억하는 편입니다.'},
+ '온화함':{h:'부드럽고 너그럽게 대합니다.',m:'대체로 부드럽되 필요할 땐 분명히 짚고 넘어갑니다.',l:'비판적이고 직설적인 편입니다.'},
+ '유연성':{h:'잘 양보하고 맞춰줍니다.',m:'어지간하면 맞춰주지만 중요한 건 양보하지 않습니다.',l:'자기 방식을 굽히지 않는 편입니다.'},
+ '인내':{h:'화를 잘 참고 침착합니다.',m:'웬만하면 참되 한도를 넘으면 분명히 표현합니다.',l:'짜증·화가 비교적 쉽게 납니다.'},
+ '조직성':{h:'정리·계획을 잘합니다.',m:'중요한 건 정리하고 사소한 건 느슨하게 둡니다.',l:'즉흥적이고 자유롭게 움직입니다.'},
+ '근면성':{h:'부지런하고 끈기가 있습니다.',m:'할 일은 해내되 늘 전력질주하지는 않습니다.',l:'힘든 일은 미루는 편입니다.'},
+ '완벽주의':{h:'꼼꼼하고 빈틈을 잘 챙깁니다.',m:'중요한 부분은 꼼꼼히, 사소한 건 적당히 넘깁니다.',l:'세세한 건 대범하게 넘깁니다.'},
+ '신중함':{h:'따져보고 신중하게 결정합니다.',m:'큰 결정은 따져보고 작은 일은 가볍게 결정합니다.',l:'끌리면 즉흥적으로 행동합니다.'},
+ '심미안':{h:'아름다움에 깊이 감응합니다.',m:'아름다움도 즐기고 실용도 함께 챙깁니다.',l:'실용을 미보다 우선합니다.'},
+ '탐구심':{h:'새 지식과 원리에 호기심이 큽니다.',m:'관심 가는 분야는 파고들되 모든 걸 캐묻진 않습니다.',l:'익숙한 것에 집중하는 편입니다.'},
+ '창의성':{h:'새 아이디어를 잘 떠올립니다.',m:'필요할 때 새 아이디어를 내고 평소엔 검증된 방식을 씁니다.',l:'검증된 방식을 선호합니다.'},
+ '비관습성':{h:'색다른 생각에 열려 있습니다.',m:'새로운 것에 열려 있되 익숙함의 편안함도 좋아합니다.',l:'전통과 익숙함을 선호합니다.'}
 };
-function facDesc(fc,fp){ var f=FAC[fc]; if(!f) return ''; if(fp>=60) return f.h; if(fp<=40) return f.l; return '상황에 따라 중간 수준입니다.'; }
+function facDesc(fc,fp){ var f=FAC[fc]; if(!f) return ''; if(fp>=60) return f.h; if(fp<=40) return f.l; return f.m||'보통 수준입니다.'; }
 
 /* 요인 점수대별 상세 해설 */
 var DRICH={
@@ -1156,6 +1161,11 @@ function charCardHTML(prof, dom){
   H+='<div class="pillrow">'; ch.traits.forEach(function(t){ H+='<span class="pill" style="border-color:'+ch.color+';color:'+ch.color+'">#'+t+'</span>'; }); H+='</div>';
   H+='</div></div>';
   return H;
+}
+function charHeadline(prof, dom){
+  if(prof.name==='균형 잡힌 올라운더'){ return '여섯 가지 성격이 고르게 어우러진, 균형 잡힌 사람이에요'; }
+  var arr=DORDER.map(function(k){return {k:k,p:dom[k]};}).sort(function(a,b){return b.p-a.p;});
+  return '‘'+DNAME[arr[0].k]+'’ 성향이 가장 돋보이는 사람이에요';
 }
 function compatReason(){ return '서로의 강점이 부족한 부분을 채워줘 함께 있으면 편안하고 시너지가 납니다.'; }
 function clashReason(){ return '성향 차이가 큰 편이라, 서로의 방식을 이해하려는 노력이 조금 더 필요해요.'; }
