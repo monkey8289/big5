@@ -441,7 +441,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v52 · 2026-06-29</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v53 · 2026-06-29</div>
   </section>
 
   <!-- MODE -->
@@ -2398,7 +2398,7 @@ function sendFriendRequest(h){
     fbDb.collection('friendRequests').doc(reqId(fuid,me)).get().then(function(rev){
       if(rev.exists && rev.data().status==='pending'){
         fbDb.collection('friendRequests').doc(reqId(fuid,me)).update({status:'accepted'}).then(function(){
-          m('@'+fhandle+'님과 친구가 됐어요! (상대 요청 수락)', '#2c7a62'); clearFriendInput(); try{ loadFriendsRanking(); }catch(e){}
+          m('@'+fhandle+'님과 친구가 됐어요! (상대 요청 수락)', '#2c7a62'); clearFriendInput(); try{ primeFriendResult(fuid); }catch(e){} try{ loadFriendsRanking(); }catch(e){}
         }, function(){ m('수락 처리에 실패했어요.'); });
         return;
       }
@@ -2436,13 +2436,13 @@ function renderFriendRequests(){
     reqs.forEach(function(r){
       H+='<div class="reqcard">'+avatarSVG(r.fromAvatar,38)
         +'<span class="rq-info"><b>'+esc(r.fromName||r.fromHandle||'친구')+'</b> <span class="muted" style="font-size:11px">@'+esc(r.fromHandle||'')+'</span><br><span class="muted" style="font-size:11.5px">친구 요청을 보냈어요</span></span>'
-        +'<span class="rq-btns"><button class="btn btn-pri" onclick="acceptRequest(\''+r.id+'\')">수락</button><button class="btn btn-ghost" onclick="rejectRequest(\''+r.id+'\')">거절</button></span></div>';
+        +'<span class="rq-btns"><button class="btn btn-pri" onclick="acceptRequest(\''+r.id+'\',\''+(r.from||'')+'\')">수락</button><button class="btn btn-ghost" onclick="rejectRequest(\''+r.id+'\')">거절</button></span></div>';
     });
     box.innerHTML=H;
   }catch(e){}
 }
-function acceptRequest(id){
-  try{ if(!fbDb){ return; } fbDb.collection('friendRequests').doc(id).update({status:'accepted'}).then(function(){ toast('친구가 됐어요!'); try{ loadFriendsRanking(); }catch(e){} }, function(){ toast('수락에 실패했어요.'); }); }catch(e){}
+function acceptRequest(id, fuid){
+  try{ if(!fbDb){ return; } fbDb.collection('friendRequests').doc(id).update({status:'accepted'}).then(function(){ toast('친구가 됐어요!'); if(fuid){ try{ primeFriendResult(fuid); }catch(e){} } try{ loadFriendsRanking(); }catch(e){} }, function(){ toast('수락에 실패했어요.'); }); }catch(e){}
 }
 function rejectRequest(id){
   try{ if(!fbDb){ return; } fbDb.collection('friendRequests').doc(id).update({status:'rejected'}).then(function(){ toast('요청을 거절했어요.'); }, function(){ toast('처리에 실패했어요.'); }); }catch(e){}
@@ -2472,7 +2472,23 @@ function recomputeFriends(){
     renderFriendRanking();
   }catch(e){}
 }
-function subscribeFriendResult(fuid){
+/* v53: 친구 추가/수락 즉시 그 친구의 results 문서를 직접 1회 fetch → 검사내역 있으면 바로 유형·궁합·아바타 표시.
+   (구독 리스너 왕복을 기다리지 않음. 수락 직후 일시적 권한/네트워크 오류·문서 전파 지연 시 재시도) */
+function primeFriendResult(fuid, attempt){
+  attempt=attempt||0;
+  try{ if(!fbDb||!fuid){ return; } }catch(e){ return; }
+  window.__friendResults=window.__friendResults||{};
+  try{
+    fbDb.collection('results').doc(fuid).get().then(function(doc){
+      if(doc && doc.exists){ window.__friendResults[fuid]=doc.data(); try{ renderFriendRanking(); }catch(e){} }
+      else if(attempt<3){ setTimeout(function(){ primeFriendResult(fuid, attempt+1); }, 700*(attempt+1)); }
+    }, function(){ if(attempt<6){ setTimeout(function(){ primeFriendResult(fuid, attempt+1); }, 700*(attempt+1)); } });
+  }catch(e){}
+}
+function subscribeFriendResult(fuid, attempt){
+  attempt=attempt||0;
+  try{ if(__resUnsubs[fuid]){ __resUnsubs[fuid](); } }catch(e){}
+  window.__friendResults=window.__friendResults||{};
   __resUnsubs[fuid]=fbDb.collection('results').doc(fuid).onSnapshot(function(doc){
     if(doc.exists){
       var data=doc.data();
@@ -2486,7 +2502,14 @@ function subscribeFriendResult(fuid){
       window.__friendResults[fuid]=data;
     } else { delete window.__friendResults[fuid]; }
     renderFriendRanking();
-  }, function(){});
+  }, function(err){
+    /* v53: 조용히 죽지 않게 — 죽은 구독을 제거해 재구독 가능 상태로 되돌리고, 친구가 유효하면 백오프 재시도. */
+    try{ if(__resUnsubs[fuid]){ __resUnsubs[fuid](); } }catch(e){}
+    delete __resUnsubs[fuid];
+    if(attempt<6 && acceptedFriendSet()[fuid]){
+      setTimeout(function(){ if(acceptedFriendSet()[fuid] && !__resUnsubs[fuid]){ subscribeFriendResult(fuid, attempt+1); } }, 600*(attempt+1));
+    }
+  });
 }
 /* v33: 관계별 모드 (연애/직장/친구) */
 var REL_MODES=[ {id:'love',name:'연애',icon:'💕'}, {id:'work',name:'직장 동료',icon:'💼'}, {id:'friend',name:'친구',icon:'🤝'} ];
