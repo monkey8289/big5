@@ -441,7 +441,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v51 · 2026-06-29 (hotfix)</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v52 · 2026-06-29</div>
   </section>
 
   <!-- MODE -->
@@ -2015,16 +2015,16 @@ function aggReliability(profile){
   });
   var avgSd=sds.reduce(function(a,b){return a+b;},0)/sds.length;
   /* v37: 곡선을 빡세게 — 양(누적단위)은 멱곡선으로 천천히 상한 접근, 품질·일관은 곱셈 계수로(낮으면 전체 끌어내림) */
-  var consF=(n<2)?0.90:Math.max(0.2, Math.min(1, 1 - avgSd/22));   /* 일관성 계수: 들쭉날쭉하면 ↓ */
+  var consF=(n<2)?1.0:Math.max(0.2, Math.min(1, 1 - avgSd/22));    /* v52: 단일검사는 일관성 페널티 없음(1.0) · 다회는 들쭉날쭉하면 ↓ */
   var qualF=Math.max(0.2, Math.min(1, avgQ/0.9));                  /* 응답 품질 계수: 성의 없으면 ↓ */
-  var countConf=Math.min(1, Math.pow(QU/23, 0.48));               /* 품질가중 누적단위 — 90%+엔 정밀·일관 8회급 필요 */
+  var countConf=Math.min(1, Math.pow(QU/24, 0.235));              /* v52: 바닥 올림(첫 정밀~0.6)·천장 어렵게(90%+엔 정밀·일관 8회급) */
   var score=Math.round(100 * countConf * qualF * consF);
   score=Math.max(3, Math.min(99, score));
   return {count:n, units:U, qunits:Math.round(QU*10)/10, quality:Math.round(avgQ*100), qualFactor:Math.round(qualF*100), capped:(avgQ>=0.9), score:score, avgSd:Math.round(avgSd), consistency:Math.round(consF*100), countConf:Math.round(countConf*100)};
 }
 function aggBoxHTML(profile){
   var ag=aggReliability(profile); if(!ag.count){ return ''; }
-  var col=ag.score>=70?'#3f8f74':(ag.score>=45?'#c08a3e':'#c0564a');
+  var col=ag.score>=65?'#3f8f74':(ag.score>=40?'#c08a3e':'#c0564a');
   var H='<div class="val" style="color:'+col+'">'+ag.count+'회 검사 기반 · 신뢰도 '+ag.score+'%</div>';
   H+='<div class="relbar" style="margin-top:8px"><i style="width:'+ag.score+'%;background:'+col+'"></i></div>';
   H+=relComponentBars(ag);
