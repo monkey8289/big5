@@ -441,7 +441,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v53 · 2026-06-29</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v54 · 2026-06-29</div>
   </section>
 
   <!-- MODE -->
@@ -1300,8 +1300,8 @@ function renderResult(who, rec, profile, opts){
   if(profile && profile.history && profile.history.length>=2){ $("histChart").innerHTML=buildLineChart(profile.history); hs.style.display="block"; } else { hs.style.display="none"; }
 
   var rh=$("replyHint"); if(rh){ rh.style.display="none"; rh.innerHTML=""; }  /* v29: 링크 답장 기능 제거 */
-  try{ $("comprehensive").innerHTML=comprehensiveHTML(dom, prof, who); }catch(e){ $("comprehensive").innerHTML=""; }
-  try{ $("mbtiBox").innerHTML=mbtiBoxHTML(dom, prof); }catch(e){ $("mbtiBox").innerHTML=""; }
+  try{ $("comprehensive").innerHTML=comprehensiveHTML(dom, prof, who, fac); }catch(e){ $("comprehensive").innerHTML=""; }
+  try{ $("mbtiBox").innerHTML=mbtiBoxHTML(dom, prof, fac); }catch(e){ $("mbtiBox").innerHTML=""; }
   try{ var agh=aggBoxHTML(profile); if(agh){ $("aggBox").innerHTML=agh; $("aggSec").style.display="block"; } else { $("aggSec").style.display="none"; } }catch(e){ try{ $("aggSec").style.display="none"; }catch(_){} }
   try{ paintCounters(); }catch(e){}
   if(isPast){ $("trendDeltaSec").style.display="none"; $("histSec").style.display="none"; var rhp=$("replyHint"); if(rhp){ rhp.style.display="none"; rhp.innerHTML=""; } }
@@ -2092,27 +2092,64 @@ var PERSONA={
  '창의적 탐구가':'호기심 가득한 탐험가·발명가 스타일이에요.',
  '균형 잡힌 올라운더':'어떤 자리에서도 무난히 어울리는 만능 플레이어·올라운더 느낌이에요.'
 };
-function mbtiOf(dom){
-  var code=(dom.X>50?'E':'I')+(dom.O>50?'N':'S')+(dom.A>50?'F':'T')+(dom.C>50?'J':'P');
-  var border=[]; var ax=[['외향(E/I)',dom.X],['직관·감각(N/S)',dom.O],['감정·사고(F/T)',dom.A],['계획·인식(J/P)',dom.C]];
-  ax.forEach(function(a){ if(Math.abs(a[1]-50)<=5){ border.push(a[0]); } });
-  return {code:code, border:border};
+/* v54: MBTI 근사 — facet 블렌드로 정교화 (참고용 근사 유지)
+   E/I=외향(사교성·사회적대담성·활기) · N/S=개방(심미안·탐구심·창의성·비관습성)
+   F/T=친화 + 정서 공감(감상성·의존성) 블렌드 · J/P=성실(조직성·근면성·완벽주의·신중함)
+   점수기준: 종합(누적 가중) dom+fac. facet 없으면 도메인으로 폴백. */
+var MBTI_AX=[
+  {key:'EI', pos:'E', neg:'I', posN:'외향', negN:'내향'},
+  {key:'NS', pos:'N', neg:'S', posN:'직관', negN:'감각'},
+  {key:'FT', pos:'F', neg:'T', posN:'감정', negN:'사고'},
+  {key:'JP', pos:'J', neg:'P', posN:'계획', negN:'즉흥'}
+];
+function mbtiAxisScores(dom, fac){
+  fac=fac||{};
+  function fv(name, dflt){ var v=fac[name]; return (v==null||isNaN(v))?dflt:v; }
+  function avg(a){ var s=0,n=0; for(var i=0;i<a.length;i++){ var x=a[i]; if(x!=null&&!isNaN(x)){ s+=x; n++; } } return n?s/n:50; }
+  var EI=avg([fv('사교성',dom.X), fv('사회적대담성',dom.X), fv('활기',dom.X)]);
+  var NS=avg([fv('심미안',dom.O), fv('탐구심',dom.O), fv('창의성',dom.O), fv('비관습성',dom.O)]);
+  var sent=fv('감상성',dom.E), dep=fv('의존성',dom.E);
+  var empathy=0.6*sent+0.4*dep;                 /* 공감·정서적 따뜻함 (감상성 우위) */
+  var FT=0.55*dom.A + 0.45*empathy;             /* 친화 + 공감 블렌드 → 친화만 쓸 때와 달라짐 */
+  var JP=avg([fv('조직성',dom.C), fv('근면성',dom.C), fv('완벽주의',dom.C), fv('신중함',dom.C)]);
+  return {EI:Math.round(EI), NS:Math.round(NS), FT:Math.round(FT), JP:Math.round(JP)};
 }
-function mbtiBoxHTML(dom, prof){
-  var m=mbtiOf(dom);
+function mbtiStrength(score){ var m=Math.abs(score-50); if(m>=18){ return {t:'뚜렷',w:false}; } if(m>=9){ return {t:'보통',w:false}; } return {t:'약함',w:true}; }
+function mbtiOf(dom, fac){
+  var sc=mbtiAxisScores(dom, fac);
+  var code='', axes=[], weak=[];
+  MBTI_AX.forEach(function(a){
+    var sv=sc[a.key]; var letter=(sv>50)?a.pos:a.neg; var nm=(sv>50)?a.posN:a.negN;
+    var st=mbtiStrength(sv); code+=letter;
+    axes.push({key:a.key, letter:letter, name:nm, score:sv, strength:st.t, weak:st.w});
+    if(st.w){ weak.push(nm); }
+  });
+  return {code:code, axes:axes, weak:weak, sc:sc};
+}
+function mbtiBoxHTML(dom, prof, fac){
+  var m=mbtiOf(dom, fac);
   var H='<div class="mbti-card">';
   H+='<div class="mbti-row"><span class="mbti-code">'+m.code+'</span><span class="mbti-lead">MBTI로 치면 대략 <b>'+m.code+'</b>에 가까워요</span></div>';
   H+='<div class="mbti-desc">'+(MBTI_DESC[m.code]||'')+'</div>';
-  if(m.border.length){ H+='<div class="mbti-note">※ '+m.border.join(', ')+' 축은 점수가 50점 부근이라 경향이 약한 편이에요. 상황에 따라 반대 글자에 가까울 수도 있어요.</div>'; }
+  H+='<div class="mbti-axes" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px;">';
+  m.axes.forEach(function(a){
+    var weak=a.weak; var bd=weak?'#e1e6ef':'#cdd9ee'; var bg=weak?'#f2f4f8':'#eef2fa';
+    var cMain=weak?'#7a8392':'#2f4d80'; var cSub=weak?'#9aa3b1':'#46689c';
+    H+='<span style="display:inline-flex;align-items:center;gap:5px;border:1px solid '+bd+';background:'+bg+';border-radius:9px;padding:3px 9px;font-size:12px;font-weight:700;color:'+cSub+'">'
+      +'<b style="font-size:13px;color:'+cMain+'">'+a.letter+'</b> '+a.name
+      +' <span style="font-weight:600;color:'+cSub+'">'+(weak?'약함·애매':a.strength)+'</span></span>';
+  });
+  H+='</div>';
+  if(m.weak.length){ H+='<div class="mbti-note">※ '+m.weak.join(', ')+' 축은 점수가 50점 부근(±9)이라 경향이 약해요. 상황에 따라 반대 글자에 가까울 수 있어요.</div>'; }
   var per=PERSONA[prof.name];
   if(per){ H+='<div class="mbti-persona">🎭 <b>이런 분위기의 인물상</b> — '+per+'</div>'; }
-  H+='<div class="mbti-disc">※ 정식 MBTI 검사와는 <b>측정 방식이 달라</b>, 6요인 점수로 추정한 <b>재미·참고용 근사치</b>예요. 실제 MBTI 결과와 다를 수 있어요.</div>';
+  H+='<div class="mbti-disc">※ 정식 MBTI 검사와는 <b>측정 방식이 달라</b>, 6요인·facet 점수로 추정한 <b>재미·참고용 근사치</b>예요. (E/I=외향, N/S=개방, F/T=친화+공감, J/P=성실 기반) 실제 MBTI와 다를 수 있어요.</div>';
   H+='</div>';
   return H;
 }
 function compatReason(){ return '서로의 강점이 부족한 부분을 채워줘 함께 있으면 편안하고 시너지가 납니다.'; }
 function clashReason(){ return '성향 차이가 큰 편이라, 서로의 방식을 이해하려는 노력이 조금 더 필요해요.'; }
-function comprehensiveHTML(dom, prof, who){
+function comprehensiveHTML(dom, prof, who, fac){
   var arr=DORDER.map(function(k){return {k:k,p:dom[k]};}).sort(function(a,b){return b.p-a.p;});
   var hi=arr[0], hi2=arr[1], lo=arr[arr.length-1];
   var H='';
@@ -2628,7 +2665,7 @@ function friendResultHTML(fr){
   H+='<div class="ccard"><div class="cc-h">요인 점수</div>';
   DORDER.forEach(function(k){ H+='<div class="cc-bar"><span class="cc-nm">'+DNAME[k]+'</span><div class="cbar"><i style="width:'+dom[k]+'%;background:'+DHEX[k]+'"></i></div><span class="cc-v">'+dom[k]+'</span></div>'; });
   H+='</div>';
-  try{ H+='<div class="ccard"><div class="cc-h">MBTI 근사 · 인물상</div>'+mbtiBoxHTML(dom, prof)+'</div>'; }catch(e){}
+  try{ H+='<div class="ccard"><div class="cc-h">MBTI 근사 · 인물상</div>'+mbtiBoxHTML(dom, prof, fac)+'</div>'; }catch(e){}
   if(vis==='full'){
     var weak=DORDER.filter(function(k){ return dom[k]<=42; });
     H+='<div class="ccard"><div class="cc-h">보완점 · 성장 포인트</div><div class="ddesc" style="padding:0 0 6px"><b>'+DNAME[prof.low.k]+'</b>('+prof.low.p+'%)는 낮은 편이에요. '+LOW_HINT[prof.low.k]+'.</div>';
