@@ -401,6 +401,7 @@
 
     <div id="resumeBox" style="display:none;"></div>
     <div id="retestReminder"></div>
+    <div id="retnHome"></div>
 
     <div class="home-grid">
       <button class="btn btn-pri home-btn" onclick="beginTest()"><span class="hb-ico">📝</span><span>검사 시작</span></button>
@@ -441,7 +442,7 @@
       <button class="btn btn-ghost home-btn" onclick="openCollection()"><span class="hb-ico">📖</span><span>캐릭터 도감</span></button>
     </div>
 
-    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v54 · 2026-06-29</div>
+    <div class="center" style="margin-top:14px;font-size:11px;color:#aab2c0;font-weight:600;letter-spacing:.3px;">v55 · 2026-06-29</div>
   </section>
 
   <!-- MODE -->
@@ -475,6 +476,7 @@
   <!-- RESULT -->
   <section id="result" class="card" style="display:none;">
     <div id="pastBanner" style="display:none;"></div>
+    <div id="retnResult"></div>
     <div class="center">
       <span class="profile-badge" id="profileBadge">HEXACO 프로파일</span>
       <div class="profile-name" id="profileName">—</div>
@@ -513,6 +515,7 @@
   <section id="trend" class="card" style="display:none;">
     <h2>나의 재검사 추이</h2>
     <div class="who" id="trendWho"></div>
+    <div id="retnTrend"></div>
     <div id="trendBody" style="margin-top:14px;"></div>
     <div class="btn-row"><button class="btn btn-ghost" onclick="goHome()">🏠 홈으로</button></div>
   </section>
@@ -1003,6 +1006,7 @@ function renderHome(){
   try{ if(typeof watchFriendRequests==='function') watchFriendRequests(); }catch(e){}
   try{ if(typeof renderFriendRequests==='function') renderFriendRequests(); }catch(e){}
   try{ if(typeof loadFriendsRanking==='function') loadFriendsRanking(); }catch(e){}
+  try{ if(window.RETN) RETN.onHome(); }catch(e){}
 }
 function renderResumeBox(){
   var rb=$("resumeBox"); if(!rb) return;
@@ -1242,6 +1246,7 @@ function finish(){
   try{ if(typeof normalizeAvatar==='function') normalizeAvatar(); }catch(e){} /* v41: 검사 후 유형 마스코트로 자동 부화 */
   try{ if(typeof publishMyResult==='function') publishMyResult(); }catch(e){} /* v29: 누적 결과 친구공유용 발행(avatar 갱신 포함) */
   renderResult(p?p.name:"게스트", rec, p); show("result");
+  try{ if(window.RETN) RETN.onResultSaved(p, rec); }catch(e){}
 }
 function renderResult(who, rec, profile, opts){
   var isPast=!!(opts && opts.past);
@@ -1341,6 +1346,7 @@ function buildTrendDeltas(history){
 function openTrend(){
   var p=currentProfile(); if(!p){ alert("프로필을 선택하세요."); return; }
   $("trendWho").textContent="👤 "+p.name; var body=$("trendBody");
+  try{ if(window.RETN) RETN.onTrend(p); }catch(e){}
   if(!p.history||p.history.length===0){ body.innerHTML='<p class="muted">아직 검사 기록이 없습니다. 먼저 검사를 진행해 주세요.</p>'; show("trend"); return; }
   var html="";
   /* v43: 종합 결과 분석(누적 가중) 먼저 */
@@ -2865,6 +2871,272 @@ function setInappWarn(){
   }catch(e){}
 }
 window.__fb={ ready:function(){return fbReady;}, user:function(){return cloudUser;}, login:authLogin, signup:authSignup, logout:authLogout, google:authGoogle, loadCloud:loadCloud, pushCloud:pushCloud, mergeProfiles:mergeProfiles };
+</script>
+
+<script>
+/* ===================== v55: 리텐션/재유입 모듈 (RETN) =====================
+   목적: 사용자가 '한 번 검사하고 끝'이 아니라 계속 돌아오게.
+   설계: 전부 부가기능 + try/catch guard → 실패해도 기존 앱 동작에 영향 없음.
+   구현: ①선명도 게이지 ②재검사 리프레이밍 ③트리거 다양화+상황태그
+        ⑤분기 변화 리포트 ⑥오늘의 컨디션 체크인 ⑦시즌 배지 ⑨정기 궁합
+        +로컬 알림(웹푸시 클라이언트). 서버 발송(FCM)·친구 핑은 가이드로 분리. */
+(function(){
+  function DBg(){ try{ return loadDB(); }catch(e){ return null; } }
+  function RD(){ var db=DBg(); if(!db) return {}; return db.retn||{}; }
+  function RS(mut){ var db=DBg(); if(!db) return; db.retn=db.retn||{}; try{ mut(db.retn, db); }catch(e){} try{ saveDB(db); }catch(e){} }
+  function myP(){ try{ return (typeof currentMyProfile==='function')?currentMyProfile():null; }catch(e){ return null; } }
+  function lastRec(p){ return (p&&p.history&&p.history.length)?p.history[p.history.length-1]:null; }
+  function daysSince(iso){ try{ var ms=Date.parse(iso); if(!ms||isNaN(ms)) return null; return Math.floor((Date.now()-ms)/86400000); }catch(e){ return null; } }
+  function seasonOf(d){ var m=d.getMonth(); return (m<=1||m===11)?'겨울':(m<=4?'봄':(m<=7?'여름':'가을')); }
+  function quarterKey(d){ d=d||new Date(); return d.getFullYear()+'Q'+(Math.floor(d.getMonth()/3)+1); }
+  function E(id){ return document.getElementById(id); }
+
+  /* ---------- ① 알림 (로컬/웹푸시 클라이언트) ---------- */
+  function notifSupported(){ return (typeof Notification!=='undefined'); }
+  function notifPerm(){ return notifSupported()?Notification.permission:'unsupported'; }
+  function askNotif(cb){
+    if(!notifSupported()){ try{toast('이 기기는 알림을 지원하지 않아요.');}catch(e){} if(cb)cb(false); return; }
+    try{
+      Notification.requestPermission().then(function(p){
+        RS(function(r){ r.notif=(p==='granted'); });
+        if(p==='granted'){ try{ notify('알림이 켜졌어요 🔔','이제 다시 검사할 시기와 변화 리포트를 알려드릴게요.','welcome'); }catch(e){} try{ fcmRegister(); }catch(e){} }
+        try{ onHome(); }catch(e){}
+        if(cb)cb(p==='granted');
+      });
+    }catch(e){ if(cb)cb(false); }
+  }
+  function notify(title, body, tag, url){
+    try{
+      if(notifPerm()!=='granted') return;
+      var opt={ body:body||'', tag:tag||'hexaco', icon:'./icon.svg', badge:'./icon.svg', data:{url:url||'./'}, renotify:false };
+      if(navigator.serviceWorker && navigator.serviceWorker.ready){
+        navigator.serviceWorker.ready.then(function(reg){ try{ reg.showNotification(title, opt); }catch(e){ try{ new Notification(title,opt); }catch(_){}} });
+      } else { new Notification(title, opt); }
+    }catch(e){}
+  }
+  /* FCM 토큰 best-effort: messaging SDK가 있으면 토큰을 Firestore에 저장(서버 발송용). 없으면 no-op. */
+  function fcmRegister(){
+    try{
+      if(typeof firebase==='undefined' || !firebase.messaging || !window.cloudUser || !window.fbDb) return;
+      var m=firebase.messaging();
+      m.getToken().then(function(tok){
+        if(!tok) return;
+        RS(function(r){ r.fcmToken=tok; });
+        try{ fbDb.collection('pushTokens').doc(cloudUser.uid).set({uid:cloudUser.uid, token:tok, ts:Date.now()}, {merge:true}); }catch(e){}
+      }).catch(function(){});
+    }catch(e){}
+  }
+
+  /* ---------- ② 재검사 리마인더 (리프레이밍 + ③ 트리거 다양화) ---------- */
+  function renderRetestReminder(){
+    try{
+      var box=E('retestReminder'); if(!box){ return; }
+      var p=myP(); var rec=lastRec(p);
+      if(!rec){ box.innerHTML=''; return; }
+      var d=daysSince(rec.date); if(d==null){ box.innerHTML=''; return; }
+      var now=new Date();
+      /* 트리거: 90일 경과 OR 새해 1월 OR 마지막 검사 이후 계절 바뀜 OR 생일주간 */
+      var reasons=[];
+      if(d>=90){ var mo=Math.floor(d/30); reasons.push('마지막 검사가 <b>'+(mo>=1?mo+'개월':d+'일')+' 전</b>'); }
+      if(now.getMonth()===0 && d>=20){ reasons.push('<b>새해</b>가 됐어요'); }
+      try{ var ld=new Date(rec.date); if(seasonOf(ld)!==seasonOf(now) && d>=25){ reasons.push('계절이 <b>'+seasonOf(now)+'</b>로 바뀌었어요'); } }catch(e){}
+      var bd=RD().birthday;
+      if(bd){ try{ var pm=bd.split('-'); var bm=+pm[0]-1, bday=+pm[1]; var diff=Math.abs((now.getMonth()*31+now.getDate())-(bm*31+bday)); if(diff<=3 && d>=30){ reasons.push('<b>생일</b>이 다가와요 🎂'); } }catch(e){} }
+      if(!reasons.length){ box.innerHTML=''; return; }
+      var fresh=(typeof recencyWeight==='function')?Math.round(recencyWeight(rec,Date.now())*100):100;
+      box.innerHTML='<div class="note blue" style="margin-top:12px">🔄 '+reasons[0]+'이에요. 사람은 시간이 지나며 조금씩 변해요 — 지금 다시 검사하면 <b>3개월 전의 나</b>와 비교되고, 흐려진 결과 선명도('+fresh+'%)도 다시 또렷해져요.<div class="btn-row" style="margin-top:8px"><button class="btn btn-pri btn-sm" onclick="beginTest()">📝 지금의 나로 갱신</button> <button class="btn btn-ghost btn-sm" onclick="openTrend()">📈 변화 보기</button></div></div>';
+    }catch(e){}
+  }
+
+  /* ---------- 선명도 게이지 + 리포트 배너 + 컨디션 + 배지 (홈/결과) ---------- */
+  function freshness(p){ var rec=lastRec(p); if(!rec) return 0; try{ return Math.round(recencyWeight(rec,Date.now())*100); }catch(e){ return 100; } }
+  function gaugeHTML(p){
+    var ag=(typeof aggReliability==='function')?aggReliability(p):null; if(!ag||!ag.count) return '';
+    var f=freshness(p); var col=f>=70?'#3f8f74':(f>=45?'#c08a3e':'#c0564a');
+    var h='<div class="rel-card" style="margin-top:10px"><div style="display:flex;justify-content:space-between;align-items:center"><b>🔋 결과 선명도</b><span style="color:'+col+';font-weight:800">'+f+'%</span></div>';
+    h+='<div class="relbar" style="margin-top:7px"><i style="width:'+f+'%;background:'+col+'"></i></div>';
+    h+='<div class="muted" style="margin-top:6px;font-size:12px">최근 검사일수록 또렷해요(신뢰도 '+ag.score+'%). 시간이 지나면 서서히 흐려져요 — ';
+    h+=(f<70?'<b onclick="beginTest()" style="cursor:pointer;color:#3a6ed0">다시 검사해 선명하게 ›</b>':'지금은 또렷한 상태예요 ✨');
+    h+='</div></div>';
+    return h;
+  }
+
+  /* ---------- ⑤ 분기 변화 리포트 ---------- */
+  function reportDue(){ var p=myP(); if(!p||!p.history||p.history.length<2) return false; return RD().lastReportQ!==quarterKey(); }
+  function openReport(){
+    var p=myP(); if(!p||!p.history||p.history.length<2){ try{toast('검사가 2회 이상 쌓이면 리포트가 생겨요.');}catch(e){} return; }
+    RS(function(r){ r.lastReportQ=quarterKey(); });
+    var first=p.history[0], last=p.history[p.history.length-1];
+    var big=null,bigD=0; DORDER.forEach(function(k){ var dd=(last.pct[k]||50)-(first.pct[k]||50); if(Math.abs(dd)>Math.abs(bigD)){ bigD=dd; big=k; } });
+    var head=big?('이 기간 가장 크게 변한 건 <b>'+DNAME[big]+'</b> '+(bigD>0?'+':'')+bigD+'점'):'큰 변화 없이 안정적이에요';
+    var ov=document.createElement('div'); ov.className='hatch-ov'; ov.style.cssText='position:fixed;inset:0;background:rgba(20,30,55,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px';
+    var card='<div class="card" style="max-width:520px;width:100%;margin:auto"><div class="center"><span class="profile-badge">📊 나의 변화 리포트</span><h2 style="margin-top:8px">'+quarterKey()+' · '+esc(p.name)+'</h2></div>';
+    card+='<div class="note blue" style="margin-top:6px">'+head+'. 검사 '+p.history.length+'회 누적 · '+(typeof shortDate==='function'?shortDate(first.date)+' → '+shortDate(last.date):'')+'</div>';
+    try{ card+=buildLineChart(p.history); }catch(e){}
+    card+='<div class="btn-row" style="margin-top:14px"><button class="btn btn-pri" onclick="beginTest()">📝 지금의 나로 한 번 더</button><button class="btn btn-ghost" onclick="RETN.shareApp&&shareApp()">🔗 공유</button><button class="btn btn-ghost" id="retnRepClose">닫기</button></div></div>';
+    ov.innerHTML=card; document.body.appendChild(ov);
+    function close(){ try{ ov.parentNode.removeChild(ov); }catch(e){} try{ onHome(); }catch(e){} }
+    ov.addEventListener('click', function(ev){ if(ev.target===ov) close(); });
+    var cb=document.getElementById('retnRepClose'); if(cb) cb.onclick=close;
+  }
+
+  /* ---------- ⑥ 오늘의 컨디션 체크인 (state, 6문항 슬라이더) ---------- */
+  var CK=[['X','오늘 사람들과 어울리고 싶은 정도'],['E','오늘 예민·불안한 정도'],['C','오늘 계획적으로 움직이는 정도'],['A','오늘 너그럽고 협조적인 정도'],['O','오늘 새로운 걸 시도하고 싶은 정도'],['H','오늘 솔직·겸손하려는 정도']];
+  function openCheckin(){
+    var p=myP(); if(!p){ try{toast('먼저 프로필을 만들어 주세요.');}catch(e){} return; }
+    var ov=document.createElement('div'); ov.className='hatch-ov'; ov.style.cssText='position:fixed;inset:0;background:rgba(20,30,55,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px';
+    var h='<div class="card" style="max-width:480px;width:100%;margin:auto"><div class="center"><span class="profile-badge">🌤 오늘의 컨디션</span><h2 style="margin-top:8px">1분 상태 체크인</h2><p class="muted" style="margin-top:4px">고정된 성격이 아니라 <b>오늘의 상태</b>예요. 매일 기록하면 내 추이에 점이 찍혀요.</p></div>';
+    CK.forEach(function(it,i){ h+='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between"><span style="font-weight:600">'+it[1]+'</span><span id="ckv'+i+'" class="muted">50</span></div><input type="range" min="0" max="100" value="50" style="width:100%" oninput="document.getElementById(\'ckv'+i+'\').textContent=this.value" id="ck'+i+'"></div>'; });
+    h+='<div class="btn-row" style="margin-top:16px"><button class="btn btn-pri" id="ckSave">저장</button><button class="btn btn-ghost" id="ckClose">취소</button></div></div>';
+    ov.innerHTML=h; document.body.appendChild(ov);
+    function close(){ try{ ov.parentNode.removeChild(ov); }catch(e){} }
+    document.getElementById('ckClose').onclick=close;
+    ov.addEventListener('click', function(ev){ if(ev.target===ov) close(); });
+    document.getElementById('ckSave').onclick=function(){
+      var vals={}; CK.forEach(function(it,i){ vals[it[0]]=+(document.getElementById('ck'+i).value); });
+      RS(function(r){ r.states=r.states||{}; var k=p.id; r.states[k]=r.states[k]||[]; r.states[k].push({date:new Date().toISOString(), vals:vals}); if(r.states[k].length>60) r.states[k]=r.states[k].slice(-60); });
+      try{ notify('체크인 완료 🌤','오늘의 컨디션이 기록됐어요. 내일 또 만나요!','checkin'); }catch(e){}
+      try{toast('오늘의 컨디션을 기록했어요.');}catch(e){}
+      close(); try{ onHome(); }catch(e){}
+    };
+  }
+  function checkinCard(p){
+    var st=(RD().states||{})[p?p.id:'']||[]; var done=st.length?daysSince(st[st.length-1].date):null;
+    var todayDone=(done===0);
+    var h='<div class="rel-card" style="margin-top:10px"><div style="display:flex;justify-content:space-between;align-items:center"><b>🌤 오늘의 컨디션</b><span class="muted" style="font-size:12px">'+(st.length?st.length+'회 기록':'아직 없음')+'</span></div>';
+    if(todayDone){ h+='<div class="muted" style="margin-top:6px;font-size:12px">오늘 체크인 완료 ✅ 내일 또 기록해 추이를 쌓아보세요.</div>'; }
+    else { h+='<div class="btn-row" style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="RETN.openCheckin()">＋ 1분 체크인하기</button></div>'; }
+    h+='</div>'; return h;
+  }
+
+  /* ---------- ⑦ 시즌 한정 배지 ---------- */
+  function badgeMeta(id){
+    if(id==='first') return {e:'🥚',t:'첫 검사'};
+    if(id==='retest3') return {e:'🔁',t:'3회 달성'};
+    if(id==='retest5') return {e:'🏅',t:'5회 달성'};
+    if(id==='grower') return {e:'🌱',t:'성장의 증거'};
+    if(id==='4seasons') return {e:'🌗',t:'사계절 관찰자'};
+    if(id.indexOf('season-')===0){ var pa=id.split('-'); return {e:'❄️',t:pa[1]+' '+pa[2]+' 한정'}; }
+    return {e:'⭐',t:id};
+  }
+  function checkBadges(){
+    var p=myP(); if(!p||!p.history||!p.history.length) return [];
+    var earned=[]; var now=new Date();
+    RS(function(r){
+      r.badges=r.badges||{};
+      function give(id){ if(!r.badges[id]){ r.badges[id]=Date.now(); earned.push(id); } }
+      give('first');
+      if(p.history.length>=3) give('retest3');
+      if(p.history.length>=5) give('retest5');
+      give('season-'+now.getFullYear()+'-'+seasonOf(now));
+      if(p.history.length>=2){ var a=p.history[0].pct,b=p.history[p.history.length-1].pct,mx=0; DORDER.forEach(function(k){ var dd=Math.abs((b[k]||50)-(a[k]||50)); if(dd>mx)mx=dd; }); if(mx>=12) give('grower'); }
+      var seas={}; p.history.forEach(function(rec){ try{ seas[seasonOf(new Date(rec.date))]=1; }catch(e){} }); if(Object.keys(seas).length>=4) give('4seasons');
+    });
+    return earned;
+  }
+  function badgesHTML(){
+    var b=RD().badges||{}; var ids=Object.keys(b); if(!ids.length) return '';
+    ids.sort(function(a,c){ return b[c]-b[a]; });
+    var h='<div class="rel-card" style="margin-top:10px"><b>🏆 내 배지</b><div class="pillrow" style="margin-top:8px">';
+    ids.slice(0,8).forEach(function(id){ var m=badgeMeta(id); h+='<span class="pill">'+m.e+' '+m.t+'</span>'; });
+    h+='</div></div>'; return h;
+  }
+
+  /* ---------- 알림 토글 카드 ---------- */
+  function notifCardHTML(){
+    if(!notifSupported()) return '';
+    if(notifPerm()==='granted') return '';
+    return '<div class="note blue" style="margin-top:10px">🔔 알림을 켜면 <b>다시 검사할 시기</b>·<b>변화 리포트</b>·<b>친구 소식</b>을 앱 밖에서도 알려드려요.<div class="btn-row" style="margin-top:8px"><button class="btn btn-pri btn-sm" onclick="RETN.askNotif()">알림 켜기</button></div></div>';
+  }
+
+  /* ---------- 친구 요청 증가 감지 → 알림 ---------- */
+  function checkFriendDelta(){
+    try{
+      var el=E('friendReqCount'); if(!el) return; var m=(el.textContent||'').match(/\d+/); var n=m?+m[0]:0;
+      var prev=RD().lastReqCount||0;
+      if(n>prev){ notify('새 친구 요청 🔔', n+'명이 친구 요청을 보냈어요. 수락하고 궁합을 확인해보세요!','friendreq'); }
+      if(n!==prev){ RS(function(r){ r.lastReqCount=n; }); }
+    }catch(e){}
+  }
+
+  /* ---------- 메인 페인트 ---------- */
+  function onHome(){
+    try{
+      var p=myP(); var box=E('retnHome'); if(!box) return;
+      var h='';
+      h+=notifCardHTML();
+      if(p && p.history && p.history.length){
+        try{ checkBadges(); }catch(e){}
+        h+=gaugeHTML(p);
+        if(reportDue()){ h+='<div class="note blue" style="margin-top:10px">📊 <b>'+quarterKey()+' 변화 리포트</b>가 준비됐어요 — 지난 분기의 나와 무엇이 달라졌을까요?<div class="btn-row" style="margin-top:8px"><button class="btn btn-pri btn-sm" onclick="RETN.openReport()">리포트 열기</button></div></div>'; }
+        h+=checkinCard(p);
+        h+=badgesHTML();
+      }
+      box.innerHTML=h;
+      checkFriendDelta();
+      maybeFireDueReminder(p);
+    }catch(e){}
+  }
+  /* 앱을 열었을 때, 재검사 시기면 하루 1회 알림도 발송 */
+  function maybeFireDueReminder(p){
+    try{
+      if(notifPerm()!=='granted') return; var rec=lastRec(p); if(!rec) return;
+      var d=daysSince(rec.date); if(d==null||d<90) return;
+      var today=new Date().toISOString().slice(0,10);
+      if(RD().lastDueNotif===today) return;
+      RS(function(r){ r.lastDueNotif=today; });
+      notify('다시 만날 시간 🔄','마지막 검사가 '+Math.floor(d/30)+'개월 전이에요. 3개월 전의 나와 비교해볼까요?','retest');
+    }catch(e){}
+  }
+  function onResultSaved(p, rec){
+    try{
+      checkBadges();
+      var earned=RD()._lastEarned; /* not used */
+      tagPicker();
+      try{ onHome(); }catch(e){}
+    }catch(e){}
+  }
+  function onTrend(p){
+    try{
+      var box=E('retnTrend'); if(!box) return; var h='';
+      if(p && p.history && p.history.length>=2){
+        h+='<div class="btn-row" style="margin:4px 0"><button class="btn btn-pri btn-sm" onclick="RETN.openReport()">📊 변화 리포트 보기</button> <button class="btn btn-ghost btn-sm" onclick="RETN.openCheckin()">🌤 오늘 컨디션</button></div>';
+      }
+      /* 상황 태그 타임라인 */
+      var tagged=(p&&p.history)?p.history.filter(function(r){return r.tag;}):[];
+      if(tagged.length){ h+='<div class="rel-card" style="margin-top:6px"><b>📌 검사별 상황</b><div class="pillrow" style="margin-top:8px">'; tagged.forEach(function(r){ h+='<span class="pill">'+(typeof shortDate==='function'?shortDate(r.date):'')+' · '+esc(r.tag)+'</span>'; }); h+='</div></div>'; }
+      box.innerHTML=h;
+    }catch(e){}
+  }
+
+  /* ---------- ③ 상황 태그 ---------- */
+  function tagPicker(){
+    try{
+      var box=E('retnResult'); if(!box) return;
+      var tags=['🎉 새해','💼 이직·취업','📚 새 학기','💗 연애 시작','💔 이별','🏠 이사','🤔 그냥 궁금'];
+      var p=myP(); var rec=lastRec(p); var cur=(rec&&rec.tag)?rec.tag:'';
+      var h='<div class="note blue" style="margin-bottom:10px">📌 이번 결과에 <b>지금 내 상황</b>을 남겨두면, 다음 검사 때 "그때의 나"와 비교돼요.<div class="pillrow" style="margin-top:8px">';
+      tags.forEach(function(t){ var on=(cur===t); h+='<span class="pill" style="cursor:pointer'+(on?';background:#dbe7ff;border-color:#6f9cff;font-weight:700':'')+'" onclick="RETN.setTag(\''+t.replace(/'/g,'')+'\')">'+t+'</span>'; });
+      h+='<span class="pill" style="cursor:pointer" onclick="RETN.setTagCustom()">✏️ 직접</span></div></div>';
+      box.innerHTML=h;
+    }catch(e){}
+  }
+  function setTag(t){
+    var cur=myP(); if(!cur) return; var db=DBg(); var tgt=null; (db.profiles||[]).forEach(function(x){ if(x.id===cur.id) tgt=x; });
+    if(tgt && tgt.history && tgt.history.length){ tgt.history[tgt.history.length-1].tag=t; try{ saveDB(db); }catch(e){} }
+    try{toast('상황 태그 저장 · '+t);}catch(e){}
+    tagPicker();
+  }
+  function setTagCustom(){ try{ var v=prompt('이번 검사 당시 상황을 짧게 적어주세요'); if(v && v.trim()) setTag(v.trim().slice(0,20)); }catch(e){} }
+
+  /* ---------- 노출 ---------- */
+  window.RETN={ onHome:onHome, onResultSaved:onResultSaved, onTrend:onTrend, askNotif:askNotif, notify:notify, openReport:openReport, openCheckin:openCheckin, setTag:setTag, setTagCustom:setTagCustom, fcmRegister:fcmRegister };
+  /* 기존 재검사 리마인더를 개선판으로 교체(이후 renderHome 호출부터 적용) */
+  try{ window.renderRetestReminder=renderRetestReminder; }catch(e){}
+  /* 최초 1회: 홈이 이미 그려졌을 수 있으니 페인트 */
+  function _paint(){ try{ onHome(); }catch(e){} try{ renderRetestReminder(); }catch(e){} }
+  try{ if(document.readyState!=='loading'){ _paint(); } else { document.addEventListener('DOMContentLoaded', _paint); } }catch(e){}
+})();
 </script>
 </body>
 </html>
